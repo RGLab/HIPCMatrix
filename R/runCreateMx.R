@@ -311,6 +311,9 @@ runCreateMx <- function(labkey.url.base,
     stop("Experiment samples do not have unique biosample accessions.")
   }
 
+  metaData <- getMetaData(study = study,
+                          gef = gef,
+                          fasId = fasId)
 
   # ----------------------------- PROCESSING -------------------------------------
 
