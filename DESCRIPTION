@@ -1,16 +1,36 @@
 Package: HIPCMatrix
-Title: What the Package Does (One Line, Title Case)
+Title: Microarray and RNA-seq Processing for ImmuneSpace
 Version: 0.0.0.9000
 Authors@R: 
-    person(given = "First",
-           family = "Last",
+    person(given = "Helen",
+           family = "Miller",
            role = c("aut", "cre"),
-           email = "first.last@example.com",
-           comment = c(ORCID = "YOUR-ORCID-ID"))
-Description: What the package does (one paragraph).
-License: `use_mit_license()`, `use_gpl3_license()` or friends to pick a
-    license
+           email = "hmiller@fredhutch.org")
+Description: This package provides utilities for processing and analyzing bulk gene expression data for ImmuneSpace.
+License: `use_mit_license()`
 Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.1.1
+Imports: 
+    affy,
+    Biobase,
+    data.table,
+    DESeq,
+    GEOquery,
+    illuminaio,
+    ImmuneSpaceR,
+    limma,
+    preprocessCore,
+    Rlabkey,
+    tools
+Suggests: 
+    hugene10stv1cdf,
+    primeviewcdf,
+    hgu133plus2cdf,
+    hgu133a2cdf,
+    hthgu133pluspmcdf,
+    huex10stv2cdf,
+    hursta2a520709cdf,
+    testthat (>= 3.0.0)
+Config/testthat/edition: 3
