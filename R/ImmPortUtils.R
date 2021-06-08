@@ -1,28 +1,27 @@
-
 #' Prep ImmPort Files
 #'
 #' @param study study accession eg \code{SDY269}
 #' @param gef result of ISCon$getDataset("gene_expression_files") for one run.
 #' @param metaData list of study-specific meta data
-#' @param inputFiles input file names
+#' @param input_files input file names
 #'
 #' @return path to raw, prepped input files
 #'
-.prepImmportFls <- function(study, gef, metaData, inputFiles){
-  baseDir <- .getBaseDir(study, gef)
+.prepImmportFls <- function(study, gef, metaData, input_files){
+  supp_files_dir <- .get_supp_files_dir(study, gef)
   if( metaData$platform == "Illumina") {
-    mxList <- lapply(inputFiles, function(path){
+    mxList <- lapply(input_files, function(path){
       em <- fread(path)
       em <- .subsetIlluminaEM(em)
       em <- .prepIlluminaHeaders(em)
     })
   } else if (metaData$platform == "NA") {
-    mxList <- lapply(inputFiles, fread)
+    mxList <- lapply(input_files, fread)
     mxList <- .fixHeaders(mxList, study)
   }
 
-  inputFiles <- .mxListToFlatFile(mxList, baseDir, study)
-  return(inputFiles)
+  input_files <- .mxListToFlatFile(mxList, supp_files_dir, study)
+  return(input_files)
 }
 
 

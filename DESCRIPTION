@@ -16,7 +16,7 @@ Imports:
     affy,
     Biobase,
     data.table,
-    DESeq,
+    DESeq2,
     GEOquery,
     illuminaio,
     ImmuneSpaceR,

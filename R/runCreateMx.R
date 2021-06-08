@@ -1,19 +1,20 @@
 #' Get Base Directory
 #'
+#' Create run-specific base directory for supplementary files.
 #' Important that run specific directory is created to avoid overlap with previous runs.
 #' This done with unique cell_type * arm_accession string (aka cohort_type)
 #'
 #' @param study study accession eg \code{SDY269}
 #' @param gef result of ISCon$getDataset("gene_expression_files") for one run.
-.getBaseDir <- function(study, gef){
-  baseDir <- file.path("/share/files/Studies",
+.get_supp_files_dir <- function(study, gef){
+  supp_files_dir <- file.path("/share/files/Studies",
                     study,
                     "@files/rawdata/gene_expression/supp_files",
                     paste0(unique(gef$type),
                            "_",
                            unique(gef$arm_accession)))
-  dir.create(baseDir, recursive = TRUE)
-  return(baseDir)
+  dir.create(supp_files_dir, recursive = TRUE)
+  return(supp_files_dir)
 }
 
 #-------------------------------
@@ -27,30 +28,33 @@
 #' @param metaData list of study-specific meta data
 #' @param study study accession eg \code{SDY269}
 #' @param gef result of ISCon$getDataset("gene_expression_files") for one run.
-#' @param inputFiles input file names
+#' @param input_files input file names
 #' @export
-makeRawMatrix <- function(metaData, gef, study, inputFiles){
+makeRawMatrix <- function(metaData,
+                          gef,
+                          study,
+                          input_files) {
 
   # Get raw files from GEO or prepare ImmPort flat files
   # At end of this step, there should be a single "cohort_type_raw_expression.txt"
   # file for non-affymetrix studies
-  if (metaData$isGeo == TRUE) {
-    inputFiles <- .prepGeoFls(study, gef, metaData, inputFiles)
+  if ( metaData$file_location %in% c("gsm_soft", "gsm_supp_files", "gse_supp_files") ) {
+    input_files <- .prep_geo_files(study, gef, metaData, input_files)
   } else {
-    inputFiles <- .prepImmportFls(study, gef, metaData, inputFiles)
+    input_files <- .prepImmportFls(study, gef, metaData, input_files)
   }
 
   # Generate background corrected raw matrices for affy and illumina
   # For RNAseq pass through raw counts file.
-  if (metaData$platform == "Affymetrix" ) {
-    exprs <- .processAffy(inputFiles, gef, metaData)
+  if ( metaData$platform == "Affymetrix" ) {
+    exprs <- .processAffy(input_files, gef, metaData)
   } else {
-    if (metaData$platform == "Illumina") {
-      exprs <- .processIllumina(inputFiles)
+    if ( metaData$platform == "Illumina" ) {
+      exprs <- .processIllumina(input_files)
     } else if (metaData$platform == "NA"){
-      exprs <- .processRnaSeq(inputFiles, study)
+      exprs <- .processRnaSeq(input_files, study)
     } else {
-      exprs <- fread(inputFiles)
+      exprs <- fread(input_files)
     }
 
     # Ensure probe col is named 'feature_id'
@@ -91,6 +95,9 @@ makeRawMatrix <- function(metaData, gef, study, inputFiles){
 #' @param exprs data.table of expression
 #' @param study study accession eg \code{SDY269}
 #' @param metaData list of study-specific meta data
+#'
+#' @import DESeq2
+#'
 #' @export
 normalizeMatrix <- function(exprs, study, metaData){
   # data.table so MUST COPY to prevent changes in later work
@@ -120,11 +127,13 @@ normalizeMatrix <- function(exprs, study, metaData){
     orginal_colnames <- colnames(em)
     colnames(em) <- seq_len(ncol(em))
 
-    cds <- DESeq::newCountDataSet(countData = em, conditions = colnames(em))
-    cds <- DESeq::estimateSizeFactors(cds)
-    cdsBlind <- DESeq::estimateDispersions(cds, method = "blind" )
-    vsd <- DESeq::varianceStabilizingTransformation(cdsBlind)
-    norm_exprs <- exprs(vsd)
+    cds <- DESeq2::DESeqDataSetFromMatrix(countData = em,
+                                          colData = data.frame(cohort = rep(1, ncol(em))),
+                                          design = ~ 1)
+    cds <- DESeq2::estimateSizeFactors(cds)
+    cdsBlind <- DESeq2::estimateDispersions(cds)
+    vsd <- DESeq2::varianceStabilizingTransformation(cdsBlind)
+    norm_exprs <- SummarizedExperiment::assay(vsd)
     colnames(norm_exprs) <- orginal_colnames
   } else {
     cnames <- colnames(em)
@@ -230,7 +239,7 @@ writeMatrix <- function(pipeline.root,
 #' Runs all steps of creating matrix in ImmuneSpace.
 #'
 #' @param labkey.url.base labkey.url.base
-#' @param labeky.url.path labkey.url.path
+#' @param study Study accession
 #' @param pipeline.root pipeline.root
 #' @param analysis.directory analysis.directory
 #' @param output.tsv Name of output matrix
@@ -246,7 +255,7 @@ writeMatrix <- function(pipeline.root,
 #'
 #' @export
 runCreateMx <- function(labkey.url.base,
-                        labkey.url.path,
+                        study,
                         pipeline.root,
                         analysis.directory,
                         output.tsv,
@@ -257,11 +266,11 @@ runCreateMx <- function(labkey.url.base,
 
   # -------------------------------- RETRIEVE INPUTS ----------------------------------
   # For printing and con
-  study <- gsub("/Studies/", "", labkey.url.path)
-  mx <- gsub(".tsv", "", output.tsv)
+  stopifnot(grepl("^SDY\\d+$", study))
+  matrix_name <- gsub(".tsv", "", output.tsv)
 
   if (onCL == TRUE) {
-    print(paste(study, mx))
+    print(paste(study, matrix_name))
   }
 
   # Check that output filepath exists before starting run
@@ -317,32 +326,38 @@ runCreateMx <- function(labkey.url.base,
 
   # ----------------------------- PROCESSING -------------------------------------
 
-  # Identify correct inputFiles
-  if (metaData$isGeo == FALSE & metaData$useCustomRawFile == FALSE) {
-    inputFiles <- gef$file_info_name[ grep("cel$|txt$|tsv$|csv$",
+  # Identify correct input_files
+  if ( metaData$file_location == "immport" ) {
+
+    input_files <- gef$file_info_name[ grep("cel$|txt$|tsv$|csv$",
                                            gef$file_info_name,
                                            ignore.case = TRUE)]
-    inputFiles <- paste0(pipeline.root, "/rawdata/gene_expression/", inputFiles)
-    inputFiles <- unique(inputFiles[ file.exists(inputFiles) ])
-  } else if (metaData$useCustomRawFile == TRUE) {
-    suffix <- ifelse(specialCase, "author_data/", "raw_counts/")
+    input_files <- paste0(pipeline.root, "/rawdata/gene_expression/", input_files)
+    input_files <- unique(input_files[ file.exists(input_files) ])
+
+  } else if ( metaData$file_location == "custom" ) {
+
+    suffix <- ifelse(metaData$specialCase, "author_data/", "raw_counts/")
     sdyGEDir <- paste0("/share/files/Studies/", study, "/@files/rawdata/gene_expression/")
     rawDir <- paste0(sdyGEDir, suffix)
 
-    inputFiles <- list.files(rawDir, full.names = TRUE)
+    input_files <- list.files(rawDir, full.names = TRUE)
 
     uniqueSubString <- ifelse(specialCase, "GA", "Header")
-    inputFiles <- inputFiles[ grep("uniqueSubString", inputFiles, invert = TRUE) ]
+    input_files <- input_files[ grep("uniqueSubString", input_files, invert = TRUE) ]
+
   } else {
-    inputFiles <- NA
+
+    input_files <- NA
     gef <- gef[ !is.na(gef$geo_accession), ]
+
   }
 
   # Create three versions of matrix
   exprs <- makeRawMatrix(metaData = metaData,
                          gef = gef,
                          study = study,
-                         inputFiles = inputFiles)
+                         input_files = input_files)
 
   norm_exprs <- normalizeMatrix(exprs, study, metaData)
 

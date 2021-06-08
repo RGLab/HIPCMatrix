@@ -1,14 +1,20 @@
-#' Subset Illumina EM
+#' Subset Illumina raw data
 #'
 #' Subset Illumina expression matrix to only needed columns
 #'
-#' @param em expression
-.subsetIlluminaEM <- function(em){
-  badTerms <- c("bead", "array", "min", "max",
+#' @param raw_ge_dt data.table with raw values from illumina output
+#' for one sample
+.subset_raw_illumina_dt <- function(raw_ge_dt){
+  drop_terms <- c("bead", "array", "min", "max",
                 "norm", "search", "gene", "target_id_type",
                 "definition", "chromosome", "synonyms", "symbol",
                 "probeid", "V([2-9]|\\d{2,3})") # allow V1
-  em <- em[ , grep(paste(badTerms, collapse = "|"), colnames(em), ignore.case = TRUE, invert = TRUE), with = FALSE ]
+  ge_dt <- raw_ge_dt[ , grep(paste(drop_terms, collapse = "|"),
+                   colnames(raw_ge_dt),
+                   ignore.case = TRUE,
+                   invert = TRUE),
+            with = FALSE ]
+  ge_dt
 }
 
 #' Prep Illumina Headers
@@ -20,46 +26,53 @@
 #' Since in this script the read.ilmn(file, exprs = "AVG_Signal", probeid = "ID_REF) is
 #' hardcoded. The vars are substituted here for other viable versions, e.g. SAMPLE and PROBE_ID.
 #'
-#' @param em expression
-.prepIlluminaHeaders <- function(em){
-  detLoc <- grep("Detection", colnames(em), ignore.case = TRUE)
-  detVals <- colnames(em)[detLoc]
-  nmsLoc <- grep("Detection|ID_REF|PROBE_ID|TARGET_ID|GENE_SYMBOL",
-                 colnames(em), invert = TRUE, ignore.case = TRUE)
-  nmsVals <- colnames(em)[nmsLoc]
-  chgDet <- (all(detVals == "Detection Pval") | all(grepl("P_VALUE|PVAL", detVals))) &
-    length(detVals) > 0
-  chgNms <- !all(grepl("AVG_Signal", nmsVals)) & !all(grepl("^ES\\d{6,7}$", nmsVals))
-  chgPrb <- !any(grepl("ID_REF", colnames(em)))
+#' @param raw_illumina_dt data.table of raw illumina values.
+#'
+#' @return data.table with cleaned up names ready for \code{read.ilmn()}
+.prep_illumina_headers <- function(raw_illumina_dt){
 
-  if (chgDet) {
-    if (all(detVals == "Detection Pval")) {
-      detVals <- paste0(nmsVals, ".", detVals)
+  detection_indices <- grep("Detection", colnames(raw_illumina_dt), ignore.case = TRUE)
+  detection_names <- colnames(raw_illumina_dt)[detection_indices]
+  signal_indices <- grep("Detection|ID_REF|PROBE_ID|TARGET_ID|GENE_SYMBOL",
+                 colnames(raw_illumina_dt), invert = TRUE, ignore.case = TRUE)
+  signal_names <- colnames(raw_illumina_dt)[signal_indices]
+
+
+  change_detection <- ( all(detection_names == "Detection Pval") | all(grepl("P_VALUE|PVAL", detection_names)) ) &
+    length(detection_names) > 0
+  change_signal <- !all( grepl("AVG_Signal", signal_names) ) & !all( grepl("^ES\\d{6,7}$", signal_names) )
+  change_probeid <- !any( grepl("ID_REF", colnames(raw_illumina_dt)) )
+
+  if ( change_detection ) {
+
+    if ( all(detection_names == "Detection Pval") ) {
+      detection_names <- paste0(signal_names, ".", detection_names)
     }
-    detVals <- gsub("DETECTION_(PVAL|P_VALUE)", "Detection Pval", detVals)
-    setnames(em, detLoc, detVals)
+    detection_names <- gsub("DETECTION_(PVAL|P_VALUE)", "Detection Pval", detection_names)
+    setnames(raw_illumina_dt, detection_indices, detection_names)
+
   }
 
-  if (chgNms) {
-    if ( any(grepl("RAW", nmsVals))) {
-      nmsVals <- gsub("RAW_SIGNAL", "AVG_Signal", nmsVals)
-    } else if (!any(grepl("SAMPLE", nmsVals))) {
-      nmsVals <- paste0(nmsVals, ".AVG_Signal")
-    } else if (all(grepl("^SAMPLE", nmsVals))){
-      nmsVals <- paste0(nmsVals, ".AVG_Signal")
+  if ( change_signal ) {
+    if ( any(grepl("RAW", signal_names)) ) {
+      signal_names <- gsub("RAW_SIGNAL", "AVG_Signal", signal_names)
+    } else if (!any(grepl("SAMPLE", signal_names))) {
+      signal_names <- paste0(signal_names, ".AVG_Signal")
+    } else if (all(grepl("^SAMPLE", signal_names))){
+      signal_names <- paste0(signal_names, ".AVG_Signal")
     } else {
-      nmsVals <- gsub("AVG_Signal", "SAMPLE", nmsVals)
+      signal_names <- gsub("AVG_Signal", "SAMPLE", signal_names)
     }
-    nmsVals <- gsub("SIGNAL", "Signal", nmsVals)
-    setnames(em, nmsLoc, nmsVals)
+    signal_names <- gsub("SIGNAL", "Signal", signal_names)
+    setnames(raw_illumina_dt, signal_indices, signal_names)
   }
 
-  if (chgPrb) {
-    prb <- grep("PROBE_ID|V1|TARGET_ID", colnames(em))
-    setnames(em, prb, "ID_REF")
+  if ( change_probeid ) {
+    probeid_index <- grep("PROBE_ID|V1|TARGET_ID", colnames(raw_illumina_dt))
+    setnames(raw_illumina_dt, probeid_index, "ID_REF")
   }
 
-  return(em)
+  return(raw_illumina_dt)
 }
 
 #' Process Illumina

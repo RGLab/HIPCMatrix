@@ -4,10 +4,10 @@
 \alias{.processAffy}
 \title{Process Affy}
 \usage{
-.processAffy(inputFiles, gef, metaData)
+.processAffy(input_files, gef, metaData)
 }
 \arguments{
-\item{inputFiles}{input file names}
+\item{input_files}{input file names}
 
 \item{gef}{result of \code{ISCon$getDataset("gene_expression_files")} for one run.}
 

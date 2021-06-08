@@ -6,7 +6,7 @@
 \usage{
 runCreateMx(
   labkey.url.base,
-  labkey.url.path,
+  study,
   pipeline.root,
   analysis.directory,
   output.tsv,
@@ -18,6 +18,8 @@ runCreateMx(
 }
 \arguments{
 \item{labkey.url.base}{labkey.url.base}
+
+\item{study}{Study accession}
 
 \item{pipeline.root}{pipeline.root}
 
@@ -33,8 +35,6 @@ cell type from one cohort)}
 \item{taskOutputParams}{taskOutputParams}
 
 \item{onCL}{running on command line? (T/F)}
-
-\item{labeky.url.path}{labkey.url.path}
 }
 \description{
 Runs all steps of creating matrix in ImmuneSpace.

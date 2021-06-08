@@ -4,7 +4,7 @@
 \alias{makeRawMatrix}
 \title{Make Raw Matrix}
 \usage{
-makeRawMatrix(metaData, gef, study, inputFiles)
+makeRawMatrix(metaData, gef, study, input_files)
 }
 \arguments{
 \item{metaData}{list of study-specific meta data}
@@ -13,7 +13,7 @@ makeRawMatrix(metaData, gef, study, inputFiles)
 
 \item{study}{study accession eg \code{SDY269}}
 
-\item{inputFiles}{input file names}
+\item{input_files}{input file names}
 }
 \value{
 A data.table with a feature_id column and one column per biosample_accession

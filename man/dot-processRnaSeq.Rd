@@ -4,10 +4,10 @@
 \alias{.processRnaSeq}
 \title{Process RNA-seq}
 \usage{
-.processRnaSeq(inputFiles, study)
+.processRnaSeq(input_files, study)
 }
 \arguments{
-\item{inputFiles}{input file names}
+\item{input_files}{input file names}
 
 \item{study}{study accession eg \code{SDY269}}
 }

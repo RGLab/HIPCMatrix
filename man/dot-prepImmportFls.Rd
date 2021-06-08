@@ -4,7 +4,7 @@
 \alias{.prepImmportFls}
 \title{Prep ImmPort Files}
 \usage{
-.prepImmportFls(study, gef, metaData, inputFiles)
+.prepImmportFls(study, gef, metaData, input_files)
 }
 \arguments{
 \item{study}{study accession eg \code{SDY269}}
@@ -13,7 +13,7 @@
 
 \item{metaData}{list of study-specific meta data}
 
-\item{inputFiles}{input file names}
+\item{input_files}{input file names}
 }
 \value{
 path to raw, prepped input files

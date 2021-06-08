@@ -1,24 +1,24 @@
 
 #' write Single Matrix
 #'
-#' @param em matrix of gene expression
-#' @param baseDir path to base directory (via \code{.getBaseDir()})
+#' @param ge_tbl object containing gene expression values (matrix, data.frame, etc)
+#' @param supp_files_dir path to base directory (via \code{.get_supp_files_dir()})
 #' @param study study accession eg \code{SDY269}
-.writeSingleMx <- function(em, baseDir, study){
-  inputFiles <- file.path(baseDir, paste0(study, "_raw_expression.txt"))
-  dmp <- write.table(em, file = inputFiles, sep = "\t", quote = FALSE, row.names = FALSE)
-  return(inputFiles)
+.write_single_ge_mx <- function(ge_tbl, supp_files_dir, study){
+  input_files <- file.path(supp_files_dir, paste0(study, "_raw_expression.txt"))
+  fwrite(ge_tbl, file = input_files, sep = "\t", quote = FALSE, row.names = FALSE)
+  return(input_files)
 }
 
 #' fix headers
 #'
 #' Custom fixes for individual studies
 #'
-#' @param mxList list of matrices for one study
+#' @param ge_list list of matrices for one study
 #' @param study study accession eg \code{SDY269}
-.fixHeaders <- function(mxList, study){
+.fix_headers <- function(ge_list, study){
   if (study == "SDY224") {
-    mxList <- lapply(mxList, function(x){
+    ge_list <- lapply(ge_list, function(x){
       setnames(x, as.character(x[1,]))
       x <- x[-(1:2),]
       colnames(x)[[1]] <- "ID_REF"
@@ -28,7 +28,7 @@
     # Using mapping file provided by Hailong Meng at Yale, Dec 2018
     # since note in header of file is misleading due to gsm swaps made
     # later based on knowledge of switched samples.
-    mxList <- lapply(mxList, function(x){
+    ge_list <- lapply(ge_list, function(x){
       mp <- fread("/share/files/Studies/SDY400/@files/rawdata/gene_expression/SDY400_HeaderMapping.csv")
       setnames(x, colnames(x), as.character(x[2,]))
       x <- x[-(1:2),]
@@ -38,14 +38,14 @@
       return(x)
     })
   } else if (study == "SDY1325") {
-    mxList <- lapply(mxList, function(x){
+    ge_list <- lapply(ge_list, function(x){
       setnames(x, colnames(x), as.character(x[5,]))
       x <- x[6:nrow(x),]
       return(x)
     })
   } else if (study == "SDY1324") {
     # Custom header mapping provided by authors via P.Dunn Dec 2018.
-    mxList <- lapply(mxList, function(x){
+    ge_list <- lapply(ge_list, function(x){
       mp <- fread("/share/files/Studies/SDY1324/@files/rawdata/gene_expression/raw_counts/SDY1324_Header_Mapping.csv")
       accs <- grep("V1", colnames(x), invert = TRUE, value = TRUE)
       esNms <- mp$experimentAccession[ match(accs, mp$AuthorGivenId) ]
@@ -54,26 +54,26 @@
     })
   } else if (study == "SDY787") {
     # Fist number is unique id
-    mxList <- lapply(mxList, function(x) {
+    ge_list <- lapply(ge_list, function(x) {
       # Remove first "_" and everything following
       setnames(x, colnames(x), gsub("_.*$", "", colnames(x)))
     })
   }
-  return(mxList)
+  return(ge_list)
 }
 
 #' matrix list to flat file
 #'
-#' mxList to flat file. Used when samples are in different files on GEO
+#' ge_list to flat file. Used when samples are in different files on GEO
 #'
 #' @return path to raw, prepped input files
 #'
-#' @param mxList matrix list
-#' @param baseDir path to base directory (via \code{.getBaseDir()})
+#' @param ge_list list of gene expression tables (matrix, data.frame, etc)
+#' @param supp_files_dir path to base directory (via \code{.get_supp_files_dir()})
 #' @param study study accession eg \code{SDY269}
-.mxListToFlatFile <- function(mxList, baseDir, study){
-  em <- Reduce(f = function(x, y) {merge(x, y)}, mxList)
-  inputFiles <- .writeSingleMx(em, baseDir, study)
+.ge_list_to_flat_file <- function(ge_list, supp_files_dir, study){
+  ge_df <- Reduce(f = function(x, y) {merge(x, y)}, ge_list)
+  input_files <- .write_single_ge_mx(ge_df, supp_files_dir, study)
 }
 #######################################
 ###            MAPPING              ###
@@ -83,7 +83,7 @@
 #'
 #' @param exprs data.table of expression
 #'
-.mapFeatureIdCol <- function(exprs){
+.map_feature_id_col <- function(exprs){
   if (!any(grepl("feature_id", colnames(exprs)))) {
 
     # If Illumina from Immport
