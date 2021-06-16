@@ -82,41 +82,47 @@
 #' negative controls as identified by detection p-values
 #' to remove noise.
 #'
-#' @param rawFl file path to raw illumina file
+#' @param raw_file_path file path to raw illumina file
 #'
-.processIllumina <- function(rawFl){
-  em <- fread(rawFl)
+.process_illumina <- function(raw_file_path){
+  raw_dt <- fread(raw_file_path)
 
   # check for known issues that would hinder background correction
   # 1. Subjects with no fluorescence measurements
-  badSubs <- apply(em, 2, function(x){ all( x == 0 ) })
+  badSubs <- apply(raw_dt, 2, function(x){ all( x == 0 ) })
   if (any(badSubs)) {
     nms <- names(badSubs[ badSubs == TRUE ])
     es <- regmatches(nms, regexpr("(ES|GSM)\\d{6,7}", nms))
-    em <- em[ , grep(es, colnames(em), invert = TRUE), with = FALSE]
+    raw_dt <- raw_dt[ , grep(es, colnames(raw_dt), invert = TRUE), with = FALSE]
   }
 
   # 2. Control or misnamed probes (not unique) - e.g. "NEGATIVE"
-  em <- em[ grep("ILMN", em$ID_REF) ]
-  write.table(em, rawFl, sep = "\t", row.names = FALSE, quote = FALSE)
+  raw_dt <- raw_dt[ grep("ILMN", raw_dt$ID_REF) ]
+  write.table(raw_dt, raw_file_path, sep = "\t", row.names = FALSE, quote = FALSE)
 
   # Can only background correct using detection pvals.
   # Immport-derived files may already have this done in some cases.
-  if (any(grepl("Detection", colnames(em)))){
-    esList <- limma::read.ilmn(rawFl,
+  if (any(grepl("Detection", colnames(raw_dt)))){
+    # Get intensities
+    esList <- limma::read.ilmn(raw_file_path,
                                expr = "AVG_Signal",
                                probeid = "ID_REF")
-    em <- data.table(limma::nec(esList)$E, keep.rownames = TRUE)
+    # Background correction
+    raw_dt <- data.table(limma::nec(esList)$E, keep.rownames = TRUE)
   }
 
   # Fix names for future mapping if necessary as read.ilmn()
   # leaves a suffix on `<smpl>_AVG_Signal` to be `<smpl>_`
   tags <- "BS|GSM|ES"
-  if (any(grepl(tags, colnames(em)))) {
-    nmsVals <- grep(tags, colnames(em), value = TRUE)
+  if (any(grepl(tags, colnames(raw_dt)))) {
+    nmsVals <- grep(tags, colnames(raw_dt), value = TRUE)
     rep  <- gsub("_", "", nmsVals) # SDY162
-    setnames(em, nmsVals, rep)
+    setnames(raw_dt, nmsVals, rep)
   }
 
-  return(em)
+  return(raw_dt)
+}
+
+normalize_illumina <- function(bg_corrected_dt) {
+  normalize_microarray(bg_corrected_dt)
 }

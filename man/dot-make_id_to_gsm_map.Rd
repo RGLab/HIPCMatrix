@@ -2,30 +2,7 @@
 % Please edit documentation in R/GEOUtils.R
 \name{.make_id_to_gsm_map}
 \alias{.make_id_to_gsm_map}
-\title{#' make id to GSM map
-#'
-#' Create map of GSM accessions to study-given IDs from GEO
-#'
-#' @param gef result of ISCon$getDataset("gene_expression_files") for one run.
-#' @param metaData list of study-specific meta data
-#' @param study study accession eg \code{SDY269}
-.make_id_to_gsm_map <- function(gef, metaData, study){
-mp <- lapply(gef$geo_accession, function(x){
-tmp <- GEOquery::getGEO(x)
-nm <- tmp@header[\link{metaData$studyIdTerm}][\link{metaData$gsmMapIndex}]
-if (study \%in\% names(metaData$smplGsubTerms)) {
-nm <- gsub(metaData$smplGsubTerms[\link{study}]$old,
-metaData$smplGsubTerms[\link{study}]$new,
-nm)
-}
-return(c(x, nm))
-})
-mp <- data.frame(do.call(rbind, mp), stringsAsFactors = FALSE)
-colnames(mp) <- c("gsm","id")
-rownames(mp) <- NULL
-return(mp)
-}
-Make id to GSM map}
+\title{Make id to GSM map}
 \usage{
 .make_id_to_gsm_map(
   gsms,

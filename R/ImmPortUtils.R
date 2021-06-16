@@ -7,20 +7,25 @@
 #'
 #' @return path to raw, prepped input files
 #'
-.prepImmportFls <- function(study, gef, metaData, input_files){
+.prep_immport_files <- function(study,
+                              gef,
+                              metaData,
+                              input_files){
   supp_files_dir <- .get_supp_files_dir(study, gef)
-  if( metaData$platform == "Illumina") {
-    mxList <- lapply(input_files, function(path){
-      em <- fread(path)
-      em <- .subsetIlluminaEM(em)
-      em <- .prepIlluminaHeaders(em)
-    })
-  } else if (metaData$platform == "NA") {
-    mxList <- lapply(input_files, fread)
-    mxList <- .fixHeaders(mxList, study)
-  }
 
-  input_files <- .mxListToFlatFile(mxList, supp_files_dir, study)
+  if( metaData$platform == "Illumina" ) {
+    ge_list <- lapply(input_files, function(path){
+      raw_illumina_dt <- fread(path)
+      raw_illumina_dt <- .subset_raw_illumina_dt(raw_illumina_dt)
+      raw_illumina_dt <- .prep_illumina_headers(raw_illumina_dt)
+    })
+  } else
+    if ( metaData$platform == "NA" ) {
+      ge_list <- lapply(input_files, fread)
+      ge_list <- .fix_headers(ge_list, study)
+    }
+
+  input_files <- .ge_list_to_flat_file(ge_list, supp_files_dir, study)
   return(input_files)
 }
 
@@ -28,23 +33,25 @@
 
 #' Map experiment-sample or geo accessions to biosample accessions
 #'
-#' @param exprs data.table of expression
+#' @param exprs_dt data.table of gene expression with one column per sample,
+#' one row per feature.
+#' @param gef result of ISCon$getDataset("gene_expression_files") for one run.
 #'
-.mapAccToBs <- function(exprs, gef){
-  if (any(grepl("^(ES|GSM)\\d{6,7}$", colnames(exprs)))) {
-    colToUse <- ifelse( any(grepl("ES", colnames(exprs))),
+.map_sampleid_to_biosample_accession <- function(exprs_dt, gef){
+  if ( any(grepl("^(ES|GSM)\\d{6,7}$", colnames(exprs_dt))) ) {
+    col_to_use <- ifelse( any(grepl("ES", colnames(exprs_dt))),
                         "expsample_accession",
                         "geo_accession")
   } else {
-    colToUse <- "file_info_name"
+    col_to_use <- "file_info_name"
   }
-  nms <- grep("feature_id", colnames(exprs), value = TRUE, invert = TRUE)
-  rep <- gef$biosample_accession[ match(nms, gef[[colToUse]]) ]
+  sampleids <- grep("feature_id", colnames(exprs_dt), value = TRUE, invert = TRUE)
+  biosample_accessions <- gef$biosample_accession[ match(sampleids, gef[[col_to_use]]) ]
 
   # remove samples without matching biosample accession
-  nms <- nms[!is.na(rep)]
-  rep <- rep[!is.na(rep)]
+  sampleids <- sampleids[!is.na(biosample_accessions)]
+  biosample_accessions <- biosample_accessions[!is.na(biosample_accessions)]
 
-  setnames(exprs, nms, rep)
-  return(exprs)
+  setnames(exprs_dt, sampleids, biosample_accessions)
+  return(exprs_dt)
 }

@@ -7,7 +7,7 @@
 runCreateMx(
   labkey.url.base,
   study,
-  pipeline.root,
+  base_dir,
   analysis.directory,
   output.tsv,
   selectedBiosamples,
@@ -21,8 +21,6 @@ runCreateMx(
 
 \item{study}{Study accession}
 
-\item{pipeline.root}{pipeline.root}
-
 \item{analysis.directory}{analysis.directory}
 
 \item{output.tsv}{Name of output matrix}
@@ -35,6 +33,8 @@ cell type from one cohort)}
 \item{taskOutputParams}{taskOutputParams}
 
 \item{onCL}{running on command line? (T/F)}
+
+\item{pipeline.root}{pipeline.root}
 }
 \description{
 Runs all steps of creating matrix in ImmuneSpace.

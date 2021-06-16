@@ -1,10 +1,33 @@
+#' Get supplemental files directory
+#'
+#' Create run-specific base directory for supplementary files.
+#' Important that run specific directory is created to avoid overlap with previous runs.
+#' This done with unique cell_type * arm_accession string (aka cohort_type)
+#'
+#' @param study study accession eg \code{SDY269}
+#' @param gef result of ISCon$getDataset("gene_expression_files") for one run.
+.get_supp_files_dir <- function(study, gef){
+  supp_files_dir <- file.path("/share/files/Studies",
+                              study,
+                              "@files/rawdata/gene_expression/supp_files",
+                              paste0(unique(gef$type),
+                                     "_",
+                                     unique(gef$arm_accession)))
+  dir.create(supp_files_dir, recursive = TRUE)
+  return(supp_files_dir)
+}
 
-#' write Single Matrix
+#' Write raw expression to a file
+#'
+#' Writes \code{ge_tbl} to a (tsv-formatted) \code{.txt} file, using controlled
+#' format and file name.
+#'
+#' @return path to raw expression file
 #'
 #' @param ge_tbl object containing gene expression values (matrix, data.frame, etc)
 #' @param supp_files_dir path to base directory (via \code{.get_supp_files_dir()})
 #' @param study study accession eg \code{SDY269}
-.write_single_ge_mx <- function(ge_tbl, supp_files_dir, study){
+.write_raw_expression <- function(ge_tbl, supp_files_dir, study){
   input_files <- file.path(supp_files_dir, paste0(study, "_raw_expression.txt"))
   fwrite(ge_tbl, file = input_files, sep = "\t", quote = FALSE, row.names = FALSE)
   return(input_files)
@@ -73,7 +96,7 @@
 #' @param study study accession eg \code{SDY269}
 .ge_list_to_flat_file <- function(ge_list, supp_files_dir, study){
   ge_df <- Reduce(f = function(x, y) {merge(x, y)}, ge_list)
-  input_files <- .write_single_ge_mx(ge_df, supp_files_dir, study)
+  input_files <- .write_raw_expression(ge_df, supp_files_dir, study)
 }
 #######################################
 ###            MAPPING              ###
@@ -81,17 +104,21 @@
 
 #' Standardize probe column name
 #'
-#' @param exprs data.table of expression
+#' Different platforms use different names for the feature id column.
+#' This will update this column to be called \code{feature_id}
 #'
-.map_feature_id_col <- function(exprs){
-  if (!any(grepl("feature_id", colnames(exprs)))) {
+#' @param exprs_dt data.table of gene expression with one column per sample,
+#' one row per feature.
+#'
+.map_feature_id_col <- function(exprs_dt){
+  if ( !any(grepl("feature_id", colnames(exprs_dt))) ) {
 
     # If Illumina from Immport
-    prbCol <- grep("id_ref", colnames(exprs), ignore.case = TRUE)
+    prbCol <- grep("id_ref", colnames(exprs_dt), ignore.case = TRUE)
 
     # If RNAseq then accept gene* or V1 col
     if (length(prbCol) == 0) {
-      prbCol <- grep("gene|^V1$", colnames(exprs), ignore.case = TRUE)
+      prbCol <- grep("gene|^V1$", colnames(exprs_dt), ignore.case = TRUE)
     }
 
     # In case of features in rownames, e.g. from GEO
@@ -99,7 +126,33 @@
       prbCol <- "rn"
     }
 
-    setnames(exprs, prbCol, "feature_id")
+    setnames(exprs_dt, prbCol, "feature_id")
   }
-  return(exprs)
+  return(exprs_dt)
+}
+
+
+#' Summarize Matrix
+#'
+#' Summarize any duplicated genes so that there is
+#' one entry per gene.
+#'
+#' @details This function summarizes normalized expression values into a table
+#' with one entry per gene name by:
+#'   1. Map original feature names to gene symbols based on \code{feature_gene_map} table
+#'   2. Remove any features that did not map to a gene symbol
+#'   3. Summarize duplicated gene symbols by mean of the (normalized) values.
+#'
+#' @param norm_exprs data.table of normalized gene expression values
+#' @param feature_gene_map data.table mapping original gene id (eg probe id, ensembl id, gene alias)
+#' to gene symbol. It should have two columns: \code{featureid} (original) and \code{genesymbol} (updated).
+#'
+#' @export
+summarize_matrix <- function(norm_exprs, feature_gene_map){
+  em <- copy(norm_exprs)
+  em[ , gene_symbol := feature_gene_map[match(em$feature_id, feature_gene_map$featureid), genesymbol] ]
+  em <- em[ !is.na(gene_symbol) & gene_symbol != "NA" ]
+  sum_exprs <- em[ , lapply(.SD, mean),
+                   by = "gene_symbol",
+                   .SDcols = grep("^BS", colnames(em)) ]
 }

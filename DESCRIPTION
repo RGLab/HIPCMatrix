@@ -32,5 +32,8 @@ Suggests:
     hthgu133pluspmcdf,
     huex10stv2cdf,
     hursta2a520709cdf,
-    testthat (>= 3.0.0)
+    testthat (>= 3.0.0),
+    knitr,
+    rmarkdown
 Config/testthat/edition: 3
+VignetteBuilder: knitr
