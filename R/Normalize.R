@@ -83,12 +83,11 @@ normalize_microarray <- function(counts_dt,
            "It is likely already in log2 scale. ",
            "Run with force=TRUE if you still want to log2 transform")
     }
-    exprs_mx <- log2(exprs_mx)
+    exprs_mx <- log2(exprs_mx + 1)
   }
 
   norm_exprs <- preprocessCore::normalize.quantiles(exprs_mx)
   colnames(norm_exprs) <- cnames
-  norm_exprs <- pmax(norm_exprs, 1)
 
   norm_exprs <- data.table(norm_exprs)
   norm_exprs[ , feature_id := rnames ]
