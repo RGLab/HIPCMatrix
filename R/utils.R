@@ -4,12 +4,12 @@
 #' Important that run specific directory is created to avoid overlap with previous runs.
 #' This done with unique cell_type * arm_accession string (aka cohort_type)
 #'
-#' @param study study accession eg \code{SDY269}
+#' @param analysis_dir analysis directory
 #' @param gef result of ISCon$getDataset("gene_expression_files") for one run.
-.get_supp_files_dir <- function(study, gef){
-  supp_files_dir <- file.path("/share/files/Studies",
-                              study,
-                              "@files/rawdata/gene_expression/supp_files",
+.get_supp_files_dir <- function(analysis_dir,
+                                gef){
+  supp_files_dir <- file.path(analysis_dir, "
+                              supp_files",
                               paste0(unique(gef$type),
                                      "_",
                                      unique(gef$arm_accession)))
@@ -27,7 +27,7 @@
 #' @param ge_tbl object containing gene expression values (matrix, data.frame, etc)
 #' @param supp_files_dir path to base directory (via \code{.get_supp_files_dir()})
 #' @param study study accession eg \code{SDY269}
-.write_raw_expression <- function(ge_tbl, supp_files_dir, study){
+.write_raw_expression <- function(ge_tbl, supp_files_dir, study) {
   input_files <- file.path(supp_files_dir, paste0(study, "_raw_expression.txt"))
   fwrite(ge_tbl, file = input_files, sep = "\t", quote = FALSE, row.names = FALSE)
   return(input_files)
@@ -137,22 +137,151 @@
 #' Summarize any duplicated genes so that there is
 #' one entry per gene.
 #'
-#' @details This function summarizes normalized expression values into a table
-#' with one entry per gene name by:
-#'   1. Map original feature names to gene symbols based on \code{feature_gene_map} table
-#'   2. Remove any features that did not map to a gene symbol
-#'   3. Summarize duplicated gene symbols by mean of the (normalized) values.
+#' @details This function summarizes normalized expression values by mean
+#' into a table with one entry per gene name based on \code{feature_gene_map}.
+#' The input data should be in log2 space.
 #'
-#' @param norm_exprs data.table of normalized gene expression values
+#' @param ge_dt data.table of gene expression values. Features should be listed in
+#' \code{feature_id} column, with additional columns for each sample.
 #' @param feature_gene_map data.table mapping original gene id (eg probe id, ensembl id, gene alias)
 #' to gene symbol. It should have two columns: \code{featureid} (original) and \code{genesymbol} (updated).
 #'
 #' @export
-summarize_matrix <- function(norm_exprs, feature_gene_map){
-  em <- copy(norm_exprs)
+summarize_by_gene_symbol <- function(ge_dt,
+                             feature_gene_map){
+  em <- copy(mx)
   em[ , gene_symbol := feature_gene_map[match(em$feature_id, feature_gene_map$featureid), genesymbol] ]
   em <- em[ !is.na(gene_symbol) & gene_symbol != "NA" ]
   sum_exprs <- em[ , lapply(.SD, mean),
                    by = "gene_symbol",
                    .SDcols = grep("^BS", colnames(em)) ]
 }
+
+#' Write matrix to file system
+#'
+#' @details Writes four versions of flat tsv files:
+#'   1. \code{<matrix_name>.raw.tsv}: raw, background-corrected values
+#'   2. \code{<matrix_name>.tsv}: normalized values
+#'   3. \code{<matrix_name>.summary.tsv}: normalized values, summarized by gene symbol
+#'   (based on current annotation)
+#'   4. \code{<matrix_name>.summary.orig}: normalized values, summarized by gene symbol
+#'   (based on original annotation)
+#'
+#' @param pipeline.root pipeline.root
+#' @param matrix_name Name of matrix
+#' @param exprs data.table of raw (background-corrected) expression (from \code{makeRawMatrix()})
+#' @param norm_exprs data.table of normalized expression (from \code{normalizeMatrix()})
+#' @param sum_exprs data.table of summarized expression (from \code{summarizeMatrix()})
+#' @param verbose Write verbose print statements?
+#'
+#' @export
+write_matrix <- function(output_dir,
+                         matrix_name,
+                         exprs,
+                         norm_exprs,
+                         sum_exprs,
+                         verbose = FALSE){
+
+  .write_em <- function(df, file_name, verbose){
+    if ( verbose ) message("Writing ", file_name, "...")
+    fwrite(df,
+           file = file.path(output_dir,
+                            file_name),
+           sep = "\t",
+           quote = FALSE,
+           row.names = FALSE)
+  }
+
+  # Raw EM
+  .write_em(exprs, paste0(matrix_name, ".tsv.raw"), verbose)
+
+  # Normalized EM
+  .write_em(norm_exprs, paste0(matrix_name, ".tsv"), verbose)
+
+  # summary EM
+  .write_em(sum_exprs, paste0(matrix_name, ".tsv.summary"), verbose)
+
+  # original summary EM assuming run created with _orig FasId
+  .write_em(sum_exprs, paste0(matrix_name, ".tsv.summary.orig"), verbose)
+
+}
+
+
+#' Make Raw Matrix
+#'
+#' @return A data.table containing raw counts or background-corrected probe
+#' intensities with a feature_id column and one column per biosample_accession
+#'
+#' @param meta_data list of study-specific meta data
+#' @param study study accession eg \code{SDY269}
+#' @param gef result of ISCon$getDataset("gene_expression_files") for one run.
+#' @param input_files input file names
+#' @export
+make_raw_matrix <- function(meta_data,
+                            gef,
+                            study,
+                            input_files,
+                            analysis_dir) {
+
+  # Get raw files from GEO or prepare ImmPort flat files
+  # At end of this step, there should be a single "cohort_type_raw_expression.txt"
+  # file for non-affymetrix studies
+  if ( meta_data$file_location %in% c("gsm_soft", "gsm_supp_files", "gse_supp_files") ) {
+    input_files <- .prep_geo_files(study,
+                                   gef,
+                                   meta_data,
+                                   input_files,
+                                   analysis_dir)
+  } else {
+    input_files <- .prep_immport_files(study,
+                                       gef,
+                                       platform,
+                                       input_files,
+                                       analysis_dir)
+  }
+
+  # Generate background corrected raw matrices for affy and illumina
+  # For RNAseq pass through raw counts file.
+  exprs_dt <- switch(
+    meta_data$platform,
+    "Affymetrix" = .process_affy(input_files),
+    "Illumina" = .process_illumina(input_files),
+    "NA" = .process_rna_seq(input_files),
+    fread(input_files)
+  )
+
+
+
+  # Ensure probe column is named 'feature_id'
+  exprs_dt <- .map_feature_id_col(exprs_dt)
+
+  # Ensure all probes have names. Not a problem for most studies.
+  # Note that values can still be NA here and may be due to a handful
+  # of samples having problems (e.g. SDY224 / SDY212).  These NA values
+  # are removed during normalization.
+  exprs_dt <- exprs_dt[ !is.na(feature_id) & feature_id != "" ]
+
+  # Map expsample or geo accession to biosample accession
+  exprs_dt <- .map_sampleid_to_biosample_accession(exprs_dt, gef)
+
+  # Subset to biosamples in selected_biosamples from UI
+  exprs_dt <- exprs_dt[ , colnames(exprs_dt) %in% c("feature_id", gef$biosample_accession),
+                        with = FALSE ]
+
+  # Check that all gef samples are in the matrix - may not be the case if some
+  # were removed for QC issues.  User should re-run matrix with these samples
+  # removed.
+  if ( !all(gef$biosample_accession %in% colnames(exprs_dt)) ) {
+    stop("Some selected biosamples are not found in raw-matrix.",
+         "These may have been removed for QC issues. Please check and re-run")
+  }
+
+  # Ensure colOrder
+  sampleids <- grep("feature_id", names(exprs_dt), invert = TRUE)
+  feature_id <- grep("feature_id", names(exprs_dt))
+  setcolorder(exprs_dt, c(feature_id, sampleids))
+
+  return(exprs_dt)
+}
+
+

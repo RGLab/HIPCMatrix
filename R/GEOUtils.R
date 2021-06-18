@@ -67,7 +67,7 @@
 #' Make id to GSM map
 #'
 #' Create map of GSM accessions to ID's provided in GSE. If needed, appropriate
-#' info for the matrix will be returned by \code{getMetaData}.
+#' info for the matrix will be returned by \code{get_meta_data}.
 #'
 #' @param gsms Input vector of gsm accession
 #' @param study_id_term Term from getGEO(gsm) header to use for extracting
@@ -112,23 +112,28 @@
 #'
 #' @param study study accession eg \code{SDY269}
 #' @param gef result of ISCon$getDataset("gene_expression_files") for one run.
-#' @param metaData list of study-specific meta data
+#' @param meta_data list of study-specific meta data
 #' @param input_files input file names
 #'
 #' @return path to raw, prepped input files. tsv for everyone except affy, which
 #' will be the path to CEL files.
 #'
 #' @export
-.prep_geo_files <- function(study, gef, metaData, input_files){
-  supp_files_dir <- .get_supp_files_dir(study, gef)
+.prep_geo_files <- function(study,
+                            gef,
+                            meta_data,
+                            input_files,
+                            analysis_dir){
+  supp_files_dir <- .get_supp_files_dir(analysis_dir,
+                                        gef)
 
   # In GSM SOFT File (currently only SDY1289 which is Illumina)
-  if ( metaData$file_location == "gsm_soft" ) {
+  if ( meta_data$file_location == "gsm_soft" ) {
 
     ge_df_list <- lapply(gef$geo_accession, function(gsm){
       res <- .getGEO_custom(gsm, supp_files_dir)
       ge_df <- res@dataTable@table
-      ge_df <- ge_df[ , colnames(tbl) %in% c("ID_REF", metaData$gsm_table_var_name) ]
+      ge_df <- ge_df[ , colnames(tbl) %in% c("ID_REF", meta_data$gsm_table_var_name) ]
       colnames(ge_df)[[2]] <- gsm
       return(ge_df)
     })
@@ -137,19 +142,19 @@
 
   } else
     # In GSM Supp file (most common )
-    if ( metaData$file_location == "gsm_supp_files" ) {
+    if ( meta_data$file_location == "gsm_supp_files" ) {
 
-      if ( metaData$platform == "Illumina" ) {
+      if ( meta_data$platform == "Illumina" ) {
 
         ge_list <- lapply(gef$geo_accession, function(gsm) {
           path_gz <- .get_geo_supp_files(gsm, supp_files_dir)
           path <- gsub("\\.gz", "", path_gz)
           GEOquery::gunzip(path_gz, path, overwrite = TRUE)
 
-          if ( !is.null(metaData$illumina_manifest_file) ) {
+          if ( !is.null(meta_data$illumina_manifest_file) ) {
 
             res <- limma::read.idat(idatfiles = path,
-                                    bgxfile = metaData$illumina_manifest_file)
+                                    bgxfile = meta_data$illumina_manifest_file)
             raw_illumina_dt <- res$E
             pvals <- limma::detectionPValues(res)
             raw_illumina_dt <- data.table(gsm = raw_illumina_dt[,1],
@@ -177,7 +182,7 @@
         })
 
       } else
-        if ( metaData$platform == "Affymetrix" ) {
+        if ( meta_data$platform == "Affymetrix" ) {
 
           lapply(gef$geo_accession,
                  .get_geo_supp_files,
@@ -186,7 +191,7 @@
 
           # Stanford custom HEEBO
         } else
-          if ( grepl("Stanford", metaData$platform) ) {
+          if ( grepl("Stanford", meta_data$platform) ) {
 
             ge_list <- lapply(gef$geo_accession, function(gsm){
               path <- .get_geo_supp_files(gsm, supp_files_dir)
@@ -198,7 +203,7 @@
             })
 
           } else
-            if ( metaData$platform == "NA" ){
+            if ( meta_data$platform == "NA" ){
 
               ge_list <- lapply(gef$geo_accession, function(gsm){
                 path <- .get_geo_supp_files(gsm, supp_files_dir)
@@ -211,12 +216,12 @@
 
       # InputFiles for Affy will just be a list of CEL files. All others
       # should be written to one "raw" matrix (counts or probe intensities)
-      if (metaData$platform != "Affymetrix"){
+      if (meta_data$platform != "Affymetrix"){
         input_files <- .ge_list_to_flat_file(ge_list, supp_files_dir, study)
       }
 
     } else
-      if ( metaData$file_location == "gse_supp_files" ) {
+      if ( meta_data$file_location == "gse_supp_files" ) {
 
         gse_accessions <- unique(unlist(lapply(gef$geo_accession, function(x) {
           gsm <- .getGEO_custom(x, supp_files_dir)
@@ -231,7 +236,7 @@
         ge_list <- lapply(input_files, fread)
         ge_list <- .fix_headers(ge_list, study)
 
-        id_mapping_info <- metaData$id_to_gse_mapping_info
+        id_mapping_info <- meta_data$id_to_gse_mapping_info
         if ( !is.null(id_mapping_info) ) {
           id_map <- .make_id_to_gsm_map(gef$geo_accession,
                                         study_id_term = id_mapping_info$study_id_term,
@@ -245,7 +250,7 @@
         # address header issues prior to combination otherwise
         # untreated "Detection Pval" cols will cause dup error
         # during merge. Note: SDY400 handled in fixHeaders
-        if ( metaData$platform == "Illumina" ) {
+        if ( meta_data$platform == "Illumina" ) {
 
           ge_list <- lapply(ge_list, function(raw_illumina_dt) {
             raw_illumina_dt <- .subset_raw_illumina_dt(raw_illumina_dt)
@@ -281,7 +286,7 @@
         # Case 7: RNAseq in gse supp files
         # Header mapping assumes that names are in getGEO(gsm) object.
         # Need to check on a per study basis and tweak if need be.
-        if ( metaData$platform == "NA" ) {
+        if ( meta_data$platform == "NA" ) {
           ge_df <- ge_df[ , colnames(ge_df) %in% c("GENES","V1", id_map), with = FALSE ]
           ids <- grep("GENES|V1", colnames(ge_df), invert = TRUE, value = TRUE)
           gsms <- names(id_map)[ which(id_map == ids) ]

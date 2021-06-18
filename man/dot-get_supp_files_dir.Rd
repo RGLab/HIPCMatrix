@@ -4,10 +4,10 @@
 \alias{.get_supp_files_dir}
 \title{Get supplemental files directory}
 \usage{
-.get_supp_files_dir(study, gef)
+.get_supp_files_dir(analysis_dir, gef)
 }
 \arguments{
-\item{study}{study accession eg \code{SDY269}}
+\item{analysis_dir}{analysis directory}
 
 \item{gef}{result of ISCon$getDataset("gene_expression_files") for one run.}
 }

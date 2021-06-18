@@ -2,25 +2,28 @@
 #'
 #' @param study study accession eg \code{SDY269}
 #' @param gef result of ISCon$getDataset("gene_expression_files") for one run.
-#' @param metaData list of study-specific meta data
+#' @param meta_data list of study-specific meta data
 #' @param input_files input file names
 #'
 #' @return path to raw, prepped input files
 #'
 .prep_immport_files <- function(study,
-                              gef,
-                              metaData,
-                              input_files){
-  supp_files_dir <- .get_supp_files_dir(study, gef)
+                                gef,
+                                platform,
+                                input_files,
+                                analysis_dir){
 
-  if( metaData$platform == "Illumina" ) {
+  supp_files_dir <- .get_supp_files_dir(analysis_dir,
+                                        gef)
+
+  if( platform == "Illumina" ) {
     ge_list <- lapply(input_files, function(path){
       raw_illumina_dt <- fread(path)
       raw_illumina_dt <- .subset_raw_illumina_dt(raw_illumina_dt)
       raw_illumina_dt <- .prep_illumina_headers(raw_illumina_dt)
     })
   } else
-    if ( metaData$platform == "NA" ) {
+    if ( platform == "NA" ) {
       ge_list <- lapply(input_files, fread)
       ge_list <- .fix_headers(ge_list, study)
     }

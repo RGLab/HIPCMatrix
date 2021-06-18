@@ -5,36 +5,48 @@
 \title{Run Create Matrix}
 \usage{
 runCreateMx(
-  labkey.url.base,
   study,
-  base_dir,
-  analysis.directory,
-  output.tsv,
-  selectedBiosamples,
-  fasId,
-  taskOutputParams,
-  onCL = FALSE
+  matrix_name,
+  selected_biosamples,
+  fas_id,
+  labkey.url.base,
+  base_dir = file.path("/share", "files", "Studies", study, "@files"),
+  output_dir = file.path(base_dir, "analysis", "exprs_matrices"),
+  analysis_dir = file.path(base_dir, "rawdata", "gene_expression"),
+  debug_dir = file.path(analysis_dir, "create-matrix", matrix_name),
+  verbose = FALSE
 )
 }
 \arguments{
-\item{labkey.url.base}{labkey.url.base}
-
 \item{study}{Study accession}
 
-\item{analysis.directory}{analysis.directory}
+\item{matrix_name}{Name of the matrix}
 
-\item{output.tsv}{Name of output matrix}
+\item{selected_biosamples}{String listing biosample accessions to include,
+separated by commas (should be from one cell type from one cohort)}
 
-\item{selectedBiosamples}{List of biosamples (should be from one
-cell type from one cohort)}
+\item{fas_id}{Feature Annotation Set ID}
 
-\item{fasId}{Feature Annotation Set ID}
+\item{labkey.url.base}{labkey.url.base}
+
+\item{base_dir}{Base directory for all analysis and output files.
+If \code{output_dir}, \code{analysis_dir}, \code{debug_dir} are not
+defined, they will be created under \code{base_dir}. When running in
+the HIPCMatrix module on ImmuneSpace servers,
+this should be the same as \code{pipeline.root}.}
+
+\item{output_dir}{Directory to write final matrices. On ImmuneSpace servers:
+\verb{/share/files/Studies/<study_accession>/@files/analysis/exprs_matrices}}
+
+\item{analysis_dir}{Directory to write intermediate files. On servers,
+\verb{/share/files/Studies/<study_accession>/@files/rawdata/gene_expression}}
+
+\item{debug_dir}{Directory to write debug files. On servers,
+it will be the same as \code{analysis.directory} in the HIPCMatrix pipeline,}
+
+\item{verbose}{Print verbose debug statements?}
 
 \item{taskOutputParams}{taskOutputParams}
-
-\item{onCL}{running on command line? (T/F)}
-
-\item{pipeline.root}{pipeline.root}
 }
 \description{
 Runs all steps of creating matrix in ImmuneSpace.

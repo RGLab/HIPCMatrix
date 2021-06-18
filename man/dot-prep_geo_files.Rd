@@ -4,14 +4,14 @@
 \alias{.prep_geo_files}
 \title{Prep GEO files}
 \usage{
-.prep_geo_files(study, gef, metaData, input_files)
+.prep_geo_files(study, gef, meta_data, input_files, analysis_dir)
 }
 \arguments{
 \item{study}{study accession eg \code{SDY269}}
 
 \item{gef}{result of ISCon$getDataset("gene_expression_files") for one run.}
 
-\item{metaData}{list of study-specific meta data}
+\item{meta_data}{list of study-specific meta data}
 
 \item{input_files}{input file names}
 }

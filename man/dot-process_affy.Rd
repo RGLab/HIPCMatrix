@@ -4,14 +4,10 @@
 \alias{.process_affy}
 \title{Process Affy}
 \usage{
-.process_affy(input_files, gef, metaData)
+.process_affy(input_files)
 }
 \arguments{
 \item{input_files}{input file names}
-
-\item{gef}{result of \code{ISCon$getDataset("gene_expression_files")} for one run.}
-
-\item{metaData}{list of study-specific meta data}
 }
 \value{
 background-corrected data.table of probe intensities

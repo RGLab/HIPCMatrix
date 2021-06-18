@@ -27,5 +27,5 @@ of the form \code{list(old = "", new = "")}}
 }
 \description{
 Create map of GSM accessions to ID's provided in GSE. If needed, appropriate
-info for the matrix will be returned by \code{getMetaData}.
+info for the matrix will be returned by \code{get_meta_data}.
 }

@@ -4,13 +4,13 @@
 \alias{normalize_matrix}
 \title{Normalize matrix}
 \usage{
-normalize_matrix(exprs_dt, metaData)
+normalize_matrix(exprs_dt, platform)
 }
 \arguments{
 \item{exprs_dt}{data.table with raw, background-corrected expression. One
 column per sample, one row per feature.}
 
-\item{metaData}{list of study-specific meta data}
+\item{meta_data}{list of study-specific meta data}
 }
 \description{
 Normalize matrix

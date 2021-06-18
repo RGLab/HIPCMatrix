@@ -4,12 +4,16 @@
 \alias{normalize_microarray}
 \title{Normalize microarray data}
 \usage{
-normalize_microarray(counts_dt, log2_transform = TRUE)
+normalize_microarray(counts_dt, log2_transform = TRUE, force = FALSE)
 }
 \arguments{
-\item{log2_transform}{Should log2 transform be performed before normalization?
+\item{log2_transform}{(boolean) Should log2 transform be performed before normalization?
 This should be FALSE for affy data which was read using RMA, which is already
 in log2 scale.}
+
+\item{force}{(boolean) Force log2 transform. If \code{log2_transform} is
+\code{TRUE}, this function will error if \code{counts_dt} does not have
+values greater than 100, unless \code{force = TRUE}.}
 
 \item{bg_corrected_dt}{data.table with background-corrected microarray
 expression data}

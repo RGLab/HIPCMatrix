@@ -4,16 +4,16 @@
 \alias{.prep_immport_files}
 \title{Prep ImmPort Files}
 \usage{
-.prep_immport_files(study, gef, metaData, input_files)
+.prep_immport_files(study, gef, platform, input_files, analysis_dir)
 }
 \arguments{
 \item{study}{study accession eg \code{SDY269}}
 
 \item{gef}{result of ISCon$getDataset("gene_expression_files") for one run.}
 
-\item{metaData}{list of study-specific meta data}
-
 \item{input_files}{input file names}
+
+\item{meta_data}{list of study-specific meta data}
 }
 \value{
 path to raw, prepped input files

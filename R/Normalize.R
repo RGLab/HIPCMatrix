@@ -52,12 +52,17 @@ normalize_rnaseq <- function(counts_dt) {
 #'
 #' @param bg_corrected_dt data.table with background-corrected microarray
 #' expression data
-#' @param log2_transform Should log2 transform be performed before normalization?
+#' @param log2_transform (boolean) Should log2 transform be performed before normalization?
 #' This should be FALSE for affy data which was read using RMA, which is already
 #' in log2 scale.
+#' @param force (boolean) Force log2 transform. If \code{log2_transform} is
+#' \code{TRUE}, this function will error if \code{counts_dt} does not have
+#' values greater than 100, unless \code{force = TRUE}.
 #'
 #' @export
-normalize_microarray <- function(counts_dt, log2_transform = TRUE) {
+normalize_microarray <- function(counts_dt,
+                                 log2_transform = TRUE,
+                                 force = FALSE) {
 
   if (sum(is.na(exprs_dt)) > 0) {
     stop("Missing values found.")
@@ -72,7 +77,12 @@ normalize_microarray <- function(counts_dt, log2_transform = TRUE) {
   cnames <- colnames(exprs_mx)
 
   # Do log2 transformation BEFORE normalization.
-  if (log2_transform) {
+  if ( log2_transform ) {
+    if ( max(exprs_mx) < 100 & !force) {
+      stop("max(exprs_mx) < 100. ",
+           "It is likely already in log2 scale. ",
+           "Run with force=TRUE if you still want to log2 transform")
+    }
     exprs_mx <- log2(exprs_mx)
   }
 
@@ -95,16 +105,16 @@ normalize_microarray <- function(counts_dt, log2_transform = TRUE) {
 #'
 #' @param exprs_dt data.table with raw, background-corrected expression. One
 #' column per sample, one row per feature.
-#' @param metaData list of study-specific meta data
+#' @param meta_data list of study-specific meta data
 #'
-normalize_matrix <- function(exprs_dt, metaData) {
+normalize_matrix <- function(exprs_dt, platform) {
   switch(
-    metaData$platform,
+    platform,
     "Illumina" = normalize_microarray(exprs_dt, log2_transform = TRUE),
     "Affymetrix" = normalize_microarray(exprs_dt, log2_transform = FALSE),
     "NA" = normalize_rnaseq(exprs_dt),
     "Stanford Functional Genomics Facility" = normalize_microarray(exprs_dt, log2_transform = FALSE),
-    stop("Did not recognize platform: ", metaData$platform)
+    stop("Did not recognize platform: ", platform)
   )
 }
 
