@@ -36,4 +36,9 @@ test_that("write_matrix", {
                         sum_exprs))
 })
 
-
+test_that("get_supp_files_dir", {
+  analysis_dir <- tempdir()
+  gef <- data.table(type = "PBMC", arm_accession = 1)
+  supp_files_dir <- .get_supp_files_dir(analysis_dir, gef)
+  expect_equal(supp_files_dir, file.path(analysis_dir, "supp_files", "PBMC_1"))
+})

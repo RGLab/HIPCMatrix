@@ -64,7 +64,7 @@ runCreateMx <- function(study,
   }
 
   # Check that output filepath exists before starting run
-  if ( !dir.exists(ouput_dir) ) {
+  if ( !dir.exists(output_dir) ) {
     dir.create(output_dir, recursive = TRUE)
   }
 

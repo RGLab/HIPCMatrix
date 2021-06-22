@@ -4,7 +4,7 @@
 \alias{normalize_matrix}
 \title{Normalize matrix}
 \usage{
-normalize_matrix(exprs_dt, platform)
+normalize_matrix(exprs_dt, platform, verbose = FALSE)
 }
 \arguments{
 \item{exprs_dt}{data.table with raw, background-corrected expression. One

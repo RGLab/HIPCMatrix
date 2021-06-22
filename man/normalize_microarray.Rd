@@ -4,9 +4,17 @@
 \alias{normalize_microarray}
 \title{Normalize microarray data}
 \usage{
-normalize_microarray(counts_dt, log2_transform = TRUE, force = FALSE)
+normalize_microarray(
+  exprs_mx,
+  log2_transform = TRUE,
+  force = FALSE,
+  verbose = FALSE
+)
 }
 \arguments{
+\item{exprs_mx}{matrix with background-corrected microarray
+expression data, one column per sample, one row per feature.}
+
 \item{log2_transform}{(boolean) Should log2 transform be performed before normalization?
 This should be FALSE for affy data which was read using RMA, which is already
 in log2 scale.}
@@ -14,12 +22,9 @@ in log2 scale.}
 \item{force}{(boolean) Force log2 transform. If \code{log2_transform} is
 \code{TRUE}, this function will error if \code{counts_dt} does not have
 values greater than 100, unless \code{force = TRUE}.}
-
-\item{bg_corrected_dt}{data.table with background-corrected microarray
-expression data}
 }
 \value{
-matrix with normalized expression values.
+a matrix with one row per feature and one column per sample.
 }
 \description{
 Normalize across samples to correct for technical variation using

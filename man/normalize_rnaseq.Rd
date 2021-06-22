@@ -4,12 +4,16 @@
 \alias{normalize_rnaseq}
 \title{Normalize raw RNA-seq data}
 \usage{
-normalize_rnaseq(counts_dt)
+normalize_rnaseq(counts_mx, verbose = FALSE)
 }
 \arguments{
-\item{counts_dt}{data.table with raw counts, one column per sample, one
+\item{counts_mx}{matrix with raw counts, one column per sample, one
 row per feature}
 }
+\value{
+a matrix with one row per feature and one column per sample.
+}
 \description{
-Normalize raw RNA-seq data
+RNA data will be normalized using the variance stabilizing transformation,
+as implemented by the \code{DESeq2::vst} function.
 }

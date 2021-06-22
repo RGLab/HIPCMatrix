@@ -8,8 +8,8 @@
 #' @param gef result of ISCon$getDataset("gene_expression_files") for one run.
 .get_supp_files_dir <- function(analysis_dir,
                                 gef){
-  supp_files_dir <- file.path(analysis_dir, "
-                              supp_files",
+  supp_files_dir <- file.path(analysis_dir,
+                              "supp_files",
                               paste0(unique(gef$type),
                                      "_",
                                      unique(gef$arm_accession)))
