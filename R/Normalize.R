@@ -14,7 +14,12 @@ normalize_rnaseq <- function(counts_mx,
 
   if (verbose) message(" --- normalize_rnaseq --- ")
   if (verbose) message("Normalizing counts data using variance stabilizing transformation...")
-
+  if (sum(is.na(counts_mx)) > 0) {
+    stop("Missing values found.")
+  }
+  if ( sum(duplicated(colnames(mx))) > 0 ) {
+    warning("Duplicate column name: ", colnames(mx)[duplicated(colnames(mx))])
+  }
   # newCountDataSet does not take duplicated column names, so assign temporary unique names
   original_colnames <- colnames(counts_mx)
   colnames(counts_mx) <- seq_len(ncol(counts_mx))
@@ -54,7 +59,12 @@ normalize_microarray <- function(exprs_mx,
                                  force = FALSE,
                                  verbose = FALSE) {
   if (verbose) message(" --- normalize_microarray --- ")
-
+  if (sum(is.na(exprs_mx)) > 0) {
+    stop("Missing values found.")
+  }
+  if ( sum(duplicated(colnames(mx))) > 0 ) {
+    warning("Duplicate column name: ", colnames(mx)[duplicated(colnames(mx))])
+  }
   # normalize.quantiles removes row and column names
   cnames <- colnames(exprs_mx)
   rnames <- rownames(exprs_mx)
@@ -91,8 +101,10 @@ normalize_microarray <- function(exprs_mx,
 #' @export
 normalize_matrix <- function(exprs_dt, platform, verbose = FALSE) {
 
-  if (sum(is.na(exprs_dt)) > 0) {
-    stop("Missing values found.")
+  badRows <- rowSums(is.na(exprs_dt)) > 0
+  if ( sum(badRows) > 0 ) {
+    warning("Removing ", sum(badRows), " rows with missing values")
+    exprs_dt <- exprs_dt[complete.cases(exprs_dt)]
   }
 
   ## Prepare matrix
