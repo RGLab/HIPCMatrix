@@ -9,12 +9,14 @@ runCreateMx(
   matrix_name,
   selected_biosamples,
   fas_id,
-  labkey.url.base,
+  labkey.url.base = "https://www.immunespace.org/",
   base_dir = file.path("/share", "files", "Studies", study, "@files"),
   output_dir = file.path(base_dir, "analysis", "exprs_matrices"),
   analysis_dir = file.path(base_dir, "rawdata", "gene_expression"),
   debug_dir = file.path(analysis_dir, "create-matrix", matrix_name),
-  verbose = FALSE
+  taskOutputParams = NULL,
+  verbose = FALSE,
+  snapshot = FALSE
 )
 }
 \arguments{
@@ -44,9 +46,11 @@ this should be the same as \code{pipeline.root}.}
 \item{debug_dir}{Directory to write debug files. On servers,
 it will be the same as \code{analysis.directory} in the HIPCMatrix pipeline,}
 
+\item{taskOutputParams}{taskOutputParams}
+
 \item{verbose}{Print verbose debug statements?}
 
-\item{taskOutputParams}{taskOutputParams}
+\item{snapshot}{write copies of source files to \code{debug_dir}?}
 }
 \description{
 Runs all steps of creating matrix in ImmuneSpace.

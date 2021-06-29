@@ -42,11 +42,27 @@ meta_data_list <- list(
 
     # custom: Use some other custom file. Will have to be pulled from
     # ImmuneSpace server. This is generally a custom file provided by
-    # immport as they wait for files to be updated in GEO or immport
+    # immport as they wait for files to be updated in GEO or immport.
+    # SDY1529 has a custom file for baseline samples only.
     custom = c("SDY224", "SDY1324", "SDY1529"),
 
     # No raw data in any location
     not_available = c()
+  ),
+
+  custom_file_info = list(
+    SDY224 = list(
+      directory = "",
+      file_identifier_regex = "reads"
+    ),
+    SDY1324 = list(
+      directory = "raw_counts",
+      file_identifier_regex = "RawCounts"
+    ),
+    SDY1529 = list(
+      directory = "author_data",
+      file_identifier_regex = "GA"
+    )
   ),
 
 
