@@ -17,6 +17,10 @@
   return(supp_files_dir)
 }
 
+log_message <- function(msg) {
+  message(sprintf("[%s] %s", Sys.time(), msg))
+}
+
 #' Write raw expression to a file
 #'
 #' Writes \code{ge_tbl} to a (tsv-formatted) \code{.txt} file, using controlled
@@ -40,14 +44,14 @@
 #' @param ge_list list of matrices for one study
 #' @param study study accession eg \code{SDY269}
 .fix_headers <- function(ge_list, study){
-  if (study == "SDY224") {
+  if ( study == "SDY224" ) {
     ge_list <- lapply(ge_list, function(x){
       setnames(x, as.character(x[1,]))
       x <- x[-(1:2),]
       colnames(x)[[1]] <- "ID_REF"
       return(x)
     })
-  } else if (study == "SDY400") {
+  } else if ( study == "SDY400" ) {
     # Using mapping file provided by Hailong Meng at Yale, Dec 2018
     # since note in header of file is misleading due to gsm swaps made
     # later based on knowledge of switched samples.
@@ -60,19 +64,19 @@
       setnames(x, smpls, titles)
       return(x)
     })
-  } else if (study == "SDY1325") {
+  } else if ( study == "SDY1325" ) {
     ge_list <- lapply(ge_list, function(x){
       setnames(x, colnames(x), as.character(x[5,]))
       x <- x[6:nrow(x),]
       return(x)
     })
-  } else if (study == "SDY1324") {
+  } else if ( study == "SDY1324" ) {
     # Custom header mapping provided by authors via P.Dunn Dec 2018.
     ge_list <- lapply(ge_list, function(x){
       mp <- fread("/share/files/Studies/SDY1324/@files/rawdata/gene_expression/raw_counts/SDY1324_Header_Mapping.csv")
       accs <- grep("V1", colnames(x), invert = TRUE, value = TRUE)
       esNms <- mp$experimentAccession[ match(accs, mp$AuthorGivenId) ]
-      setnames(x, accs, esNms)
+      setnames(x, accs[!is.na(esNms)], esNms[!is.na(esNms)])
       return(x)
     })
   } else if (study == "SDY787") {
@@ -102,34 +106,6 @@
 ###            MAPPING              ###
 #######################################
 
-#' Standardize probe column name
-#'
-#' Different platforms use different names for the feature id column.
-#' This will update this column to be called \code{feature_id}
-#'
-#' @param exprs_dt data.table of gene expression with one column per sample,
-#' one row per feature.
-#'
-.map_feature_id_col <- function(exprs_dt){
-  if ( !any(grepl("feature_id", colnames(exprs_dt))) ) {
-
-    # If Illumina from Immport
-    prbCol <- grep("id_ref", colnames(exprs_dt), ignore.case = TRUE)
-
-    # If RNAseq then accept gene* or V1 col
-    if (length(prbCol) == 0) {
-      prbCol <- grep("gene|^V1$", colnames(exprs_dt), ignore.case = TRUE)
-    }
-
-    # In case of features in rownames, e.g. from GEO
-    if (length(prbCol) == 0) {
-      prbCol <- "rn"
-    }
-
-    setnames(exprs_dt, prbCol, "feature_id")
-  }
-  return(exprs_dt)
-}
 
 
 #' Summarize Matrix
@@ -149,7 +125,7 @@
 #' @export
 summarize_by_gene_symbol <- function(ge_dt,
                              feature_gene_map){
-  em <- copy(mx)
+  em <- copy(ge_dt)
   em[ , gene_symbol := feature_gene_map[match(em$feature_id, feature_gene_map$featureid), genesymbol] ]
   em <- em[ !is.na(gene_symbol) & gene_symbol != "NA" ]
   sum_exprs <- em[ , lapply(.SD, mean),
@@ -207,81 +183,71 @@ write_matrix <- function(output_dir,
 }
 
 
-#' Make Raw Matrix
-#'
-#' @return A data.table containing raw counts or background-corrected probe
-#' intensities with a feature_id column and one column per biosample_accession
-#'
-#' @param meta_data list of study-specific meta data
-#' @param study study accession eg \code{SDY269}
-#' @param gef result of ISCon$getDataset("gene_expression_files") for one run.
-#' @param input_files input file names
-#' @export
-make_raw_matrix <- function(meta_data,
-                            gef,
-                            study,
-                            input_files,
-                            analysis_dir) {
-
-  # Get raw files from GEO or prepare ImmPort flat files
-  # At end of this step, there should be a single "cohort_type_raw_expression.txt"
-  # file for non-affymetrix studies
-  if ( meta_data$file_location %in% c("gsm_soft", "gsm_supp_files", "gse_supp_files") ) {
-    input_files <- .prep_geo_files(study,
-                                   gef,
-                                   meta_data,
-                                   input_files,
-                                   analysis_dir)
-  } else {
-    input_files <- .prep_immport_files(study,
-                                       gef,
-                                       platform,
-                                       input_files,
-                                       analysis_dir)
-  }
-
-  # Generate background corrected raw matrices for affy and illumina
-  # For RNAseq pass through raw counts file.
-  exprs_dt <- switch(
-    meta_data$platform,
-    "Affymetrix" = .process_affy(input_files),
-    "Illumina" = .process_illumina(input_files),
-    "NA" = .process_rna_seq(input_files),
-    fread(input_files)
+parse_pipeline_inputs <- function(pipeline_inputs) {
+  list(
+    study = gsub("/Studies/", "", pipeline_inputs$labkey.url.path),
+    matrix_name = gsub("\\.tsv", "", pipeline_inputs$output.tsv),
+    selected_biosamples = pipeline_inputs$selectedBiosamples,
+    fas_id = pipeline_inputs$fasId,
+    labkey.url.base = pipeline_inputs$labkey.url.base,
+    base_dir = pipeline_inputs$pipeline.root,
+    taskOutputParams = pipeline_inputs$taskOutputParams,
+    verbose = TRUE
   )
-
-
-
-  # Ensure probe column is named 'feature_id'
-  exprs_dt <- .map_feature_id_col(exprs_dt)
-
-  # Ensure all probes have names. Not a problem for most studies.
-  # Note that values can still be NA here and may be due to a handful
-  # of samples having problems (e.g. SDY224 / SDY212).  These NA values
-  # are removed during normalization.
-  exprs_dt <- exprs_dt[ !is.na(feature_id) & feature_id != "" ]
-
-  # Map expsample or geo accession to biosample accession
-  exprs_dt <- .map_sampleid_to_biosample_accession(exprs_dt, gef)
-
-  # Subset to biosamples in selected_biosamples from UI
-  exprs_dt <- exprs_dt[ , colnames(exprs_dt) %in% c("feature_id", gef$biosample_accession),
-                        with = FALSE ]
-
-  # Check that all gef samples are in the matrix - may not be the case if some
-  # were removed for QC issues.  User should re-run matrix with these samples
-  # removed.
-  if ( !all(gef$biosample_accession %in% colnames(exprs_dt)) ) {
-    stop("Some selected biosamples are not found in raw-matrix.",
-         "These may have been removed for QC issues. Please check and re-run")
-  }
-
-  # Ensure colOrder
-  sampleids <- grep("feature_id", names(exprs_dt), invert = TRUE)
-  feature_id <- grep("feature_id", names(exprs_dt))
-  setcolorder(exprs_dt, c(feature_id, sampleids))
-
-  return(exprs_dt)
 }
 
 
+get_input_params <- function(con = CreateConnection(""),
+                             matrix_name) {
+  # First make sure the matrix exists
+  stopifnot(matrix_name %in% con$listGEMatrices()$name)
+
+  # First check for inputParams
+  baseUrl <- con$config$labkey.url.base
+  study <- con$listGEMatrices()[name == matrix_name, folder]
+  if ( Rlabkey::labkey.webdav.pathExists(
+    baseUrl = con$config$labkey.url.base,
+    folderPath = paste0("Studies/", study),
+    remoteFilePath = file.path("rawdata",
+                               "gene_expression",
+                               "create-matrix",
+                               matrix_name,
+                               "create-matrix-vars.tsv"),
+    fileSet='@files'
+  ) ) {
+    local_path <- tempfile()
+    Rlabkey::labkey.webdav.get(baseUrl = con$config$labkey.url.base,
+                               folderPath = paste0("Studies/", study),
+                               remoteFilePath = file.path("rawdata",
+                                                          "gene_expression",
+                                                          "create-matrix",
+                                                          matrix_name,
+                                                          "create-matrix-vars.tsv"),
+                               localFilePath = local_path,
+                               fileSet='@files')
+    input_params <- fread(local_path)
+    return(parse_pipeline_inputs(input_params))
+  } else {
+    # Get biosamples and fasID
+    input_samples <- Rlabkey::labkey.selectRows(
+      baseUrl = con$config$labkey.url.base,
+      folderPath = paste0("Studies/", study),
+      schemaName = "assay.ExpressionMatrix.matrix",
+      queryName = "inputSamples_computed",
+      colSelect = c("Biosample", "Run/featureSet"),
+      colFilter = makeFilter(c("Run/Name", "EQUAL", matrix_name)),
+      colNameOpt = "fieldname"
+    )
+    selected_biosamples <- paste0(input_samples$Biosample, collapse = ",")
+    fas_id <- unique(input_samples$`Run/featureSet`)
+    return(list(
+      study = study,
+      matrix_name = matrix_name,
+      selected_biosamples = selected_biosamples,
+      fas_id = fas_id,
+      labkey.url.base = baseUrl,
+      base_dir = file.path("/share", "files", "Studies", study, "@files"),
+      verbose = TRUE
+    ))
+  }
+}

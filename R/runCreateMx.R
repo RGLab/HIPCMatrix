@@ -1,6 +1,6 @@
 
 #-------------------------------
-# PIPELINE WRAPPER
+# Run EVERYTHING
 #-------------------------------
 
 # onCL means onCommandLine and avoids writing out extra
@@ -28,6 +28,7 @@
 #' @param fas_id Feature Annotation Set ID
 #' @param taskOutputParams taskOutputParams
 #' @param verbose Print verbose debug statements?
+#' @param snapshot write copies of source files to `debug_dir`?
 #'
 #' @import ImmuneSpaceR
 #' @import Rlabkey
@@ -37,7 +38,8 @@
 runCreateMx <- function(study,
                         matrix_name,
                         selected_biosamples,
-                        fas_id,labkey.url.base,
+                        fas_id,
+                        labkey.url.base = "https://www.immunespace.org/",
                         base_dir = file.path("/share",
                                              "files",
                                              "Studies",
@@ -52,15 +54,18 @@ runCreateMx <- function(study,
                         debug_dir = file.path(analysis_dir,
                                               "create-matrix",
                                               matrix_name),
-                        #TODO: Include taskOutputParams?
-                        verbose = FALSE) {
+                        taskOutputParams = NULL,
+                        verbose = FALSE,
+                        snapshot = FALSE) {
 
+  if ( verbose ) message("Running runCreateMx using HIPCMatrix version ",
+                         packageVersion("HIPCMatrix"))
   # -------------------------------- RETRIEVE INPUTS ----------------------------------
   # For printing and con
   stopifnot(grepl("^SDY\\d+$", study))
 
   if ( verbose ) {
-    print(paste(study, matrix_name))
+    message(matrix_name)
   }
 
   # Check that output filepath exists before starting run
@@ -69,6 +74,7 @@ runCreateMx <- function(study,
   }
 
   # Check that feature2gene mapping is available prior to doing work
+  # TODO: Why?
   co <- labkey.setCurlOptions(ssl_verifyhost = 2, sslversion = 1)
 
   FAS_filter <- makeFilter(c("FeatureAnnotationSetId/RowId",
@@ -111,44 +117,21 @@ runCreateMx <- function(study,
 
   meta_data <- get_meta_data(study = study,
                              gef = gef,
-                             fas_id = fas_id)
+                             fas_id = fas_id,
+                             baseUrl = con$config$labkey.url.base)
 
   # ----------------------------- PROCESSING -------------------------------------
 
-  # Identify correct input_files
-  if ( meta_data$file_location == "immport" ) {
 
-    input_files <- gef$file_info_name[ grep("cel$|txt$|tsv$|csv$",
-                                            gef$file_info_name,
-                                            ignore.case = TRUE)]
-    input_files <- file.path(analysis_dir, input_files)
-    input_files <- unique(input_files[ file.exists(input_files) ])
-
-  } else if ( meta_data$file_location == "custom" ) {
-
-    # TODO: Handle special case
-    raw_dir <- paste0(analysis_dir,
-                      ifelse(meta_data$specialCase, "author_data", "raw_counts"))
-
-    input_files <- list.files(raw_dir, full.names = TRUE)
-
-    uniqueSubString <- ifelse(specialCase, "GA", "Header")
-    # TODO: Is this a bug?????
-    input_files <- input_files[ grep("uniqueSubString", input_files, invert = TRUE) ]
-
-  } else {
-
-    input_files <- NA
-    gef <- gef[ !is.na(gef$geo_accession), ]
-
-  }
+  input_files <- retrieve_input_files(study = study,
+                                      gef = gef,
+                                      meta_data = meta_data,
+                                      analysis_dir = analysis_dir)
 
   # Create three versions of matrix
-  exprs <- make_raw_matrix(meta_data = meta_data,
+  exprs <- make_raw_matrix(platform = meta_data$platform,
                            gef = gef,
-                           study = study,
-                           input_files = input_files,
-                           analysis_dir = analysis_dir)
+                           input_files = input_files)
 
   norm_exprs <- normalize_matrix(exprs,
                                  meta_data$platform)
@@ -165,7 +148,7 @@ runCreateMx <- function(study,
                verbose = verbose)
 
   # This file gets cleaned up anyway, so not worrying about it onCL
-  if (onCL == FALSE) {
+  if (!is.null(taskOutputParams)) {
     outProps = file(description = taskOutputParams, open = "w")
     cat(file = outProps, sep="", "name\tvalue\n")
     cat(file = outProps, sep="", "assay run property, cohort\t", unique(gef$cohort), "\n")
@@ -173,38 +156,40 @@ runCreateMx <- function(study,
     close(con = outProps)
   }
 
-  # create copy of CM.R script from run time, after checking to be sure analysis
-  # directory is in place. It is missing from some studies for some reason.
-  if (!dir.exists(debug_dir)) {
-    dir.create(debug_dir, recursive = TRUE)
+  if (snapshot) {
+    # create copy of CM.R script from run time, after checking to be sure analysis
+    # directory is in place. It is missing from some studies for some reason.
+    if (!dir.exists(debug_dir)) {
+      dir.create(debug_dir, recursive = TRUE)
+    }
+
+    # Allow for work on server or local
+    LKModules <- "~/LabKeyModules"
+
+    file.copy(from = file.path(LKModules, "HIPCMatrix/pipeline/tasks/create-matrix.R"),
+              to = file.path(debug_dir, paste0(output.tsv, "-create-matrix-snapshot.R")))
+
+    writeLines(packageVersion("HIPCMatrix"),
+               file.path(debug_dir, paste0(output.tsv, "-HIPCMatrix-version.R")))
+
+    # write out tsv of vars to make later replication of results easier
+    varDf <- data.frame(labkey.url.base = labkey.url.base,
+                        labkey.url.path = labkey.url.path,
+                        pipeline.root = pipeline.root,
+                        analysis.directory = analysis.directory,
+                        selected_biosamples = selected_biosamples,
+                        fas_id = fas_id,
+                        taskOutputParams = taskOutputParams,
+                        output.tsv = output.tsv,
+                        stringsAsFactors = FALSE)
+
+
+    fwrite(varDf,
+           file = file.path(debug_dir, "create-matrix-vars.tsv"),
+           sep = "\t",
+           quote = FALSE,
+           row.names = FALSE)
   }
 
-  # Allow for work on server or local
-  LKModules <- "~/LabKeyModules"
-
-  file.copy(from = file.path(LKModules, "HIPCMatrix/pipeline/tasks/create-matrix.R"),
-            to = file.path(debug_dir, paste0(output.tsv, "-create-matrix-snapshot.R")))
-
-  # TODO: Record version (or commit hash?) of HIPCMatrix package instead
-  file.copy(from = file.path(LKModules, "HIPCMatrix/pipeline/tasks/runCreateMx.R"),
-            to = paste0(debug_dir, paste0(output.tsv, "-runCM-snapshot.R")))
-
-  # write out tsv of vars to make later replication of results easier
-  varDf <- data.frame(labkey.url.base = labkey.url.base,
-                      labkey.url.path = labkey.url.path,
-                      pipeline.root = pipeline.root,
-                      analysis.directory = analysis.directory,
-                      selected_biosamples = selected_biosamples,
-                      fas_id = fas_id,
-                      taskOutputParams = taskOutputParams,
-                      output.tsv = output.tsv,
-                      stringsAsFactors = FALSE)
-
-
-  fwrite(varDf,
-         file = file.path(debug_dir, "create-matrix-vars.tsv"),
-         sep = "\t",
-         quote = FALSE,
-         row.names = FALSE)
 }
 

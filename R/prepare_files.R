@@ -28,7 +28,8 @@ retrieve_input_files <- function(study,
     input_files <- file.path(analysis_dir, input_files)
     input_files <- unique(input_files[ file.exists(input_files) ])
 
-  } else if ( meta_data$file_location == "custom" ) {
+  } else
+    if ( meta_data$file_location == "custom" ) {
 
     raw_dir <- file.path(analysis_dir, meta_data$custom_file_info$directory)
     if (verbose) message("Using custom files in ", raw_dir)
@@ -337,6 +338,7 @@ retrieve_input_files <- function(study,
                                  .get_geo_supp_files,
                                  supp_files_dir = supp_files_dir,
                                  reload = reload)
+
         input_files <- .select_input_files(supp_files_dir)
 
         ge_list <- lapply(input_files, fread)

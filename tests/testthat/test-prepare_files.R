@@ -1,5 +1,11 @@
 .prep_geo_files <- HIPCMatrix:::.prep_geo_files
 
+test_that("select_input_files selects the correct files", {
+  supp_files_dir <- "test_data/sdy787/supp_files/T cell_ARM3144"
+  expect_equal(HIPCMatrix:::.select_input_files(supp_files_dir),
+               file.path(supp_files_dir, "GSE113891_PT_all_Count.tsv"))
+})
+
 test_that("immport files are loaded correctly", {
   # SDY1630: RNA-seq
   study <- "SDY1630"
@@ -87,16 +93,16 @@ test_that(".prep_geo_files GSM SOFT", {
 test_that(".prep_geo_files GSM supp illumina", {
   meta_data <- get_meta_data("SDY180")
   gef <- con_all$getDataset("gene_expression_files",
-                            colFilter = Rlabkey:::makeFilter(c("biosample_accession", "IN", "BS662409")),
+                            colFilter = Rlabkey:::makeFilter(c("biosample_accession", "IN", "BS662409;BS662402")),
                             original_view = TRUE)[!is.na(geo_accession)]
   analysis_dir <- "test_data/sdy180"
   expect_message(input_files <- .prep_geo_files("SDY180",
-                                              gef,
-                                              meta_data,
-                                              input_files = NA,
-                                              analysis_dir,
-                                              verbose = TRUE,
-                                              reload = FALSE),
+                                                gef,
+                                                meta_data,
+                                                input_files = NA,
+                                                analysis_dir,
+                                                verbose = TRUE,
+                                                reload = FALSE),
                  "Downloading GSM supp files to test_data/sdy180/supp_files/Whole blood_ARM773")
   expect_equal(input_files, "test_data/sdy180/supp_files/Whole blood_ARM773/SDY180_raw_expression.txt")
 })
@@ -154,6 +160,7 @@ test_that(".prep_geo_files GSE supp illumina", {
                  "Using saved supp files for GSE101710")
   expect_true(grepl("SDY640_raw_expression.txt", input_files))
 })
+
 test_that(".prep_geo_files GSE supp rnaseq", {
   meta_data <- get_meta_data("SDY787")
   gef <- readRDS("test_data/sdy787/SDY787_gef.rds")[1, ]
@@ -167,20 +174,4 @@ test_that(".prep_geo_files GSE supp rnaseq", {
                                               reload = FALSE),
                  "Using locally cached version of GSM3122900")
   expect_equal(input_files, "test_data/sdy787/supp_files/T cell_ARM3144/SDY787_raw_expression.txt")
-})
-
-
-get_platform <- function(study) {
-  unique(Rlabkey::labkey.selectRows(baseUrl = labkey.url.base,
-                                    folderPath = paste0("Studies/", study),
-                                    schemaName = "assay.ExpressionMatrix.matrix",
-                                    queryName = "Runs",
-                                    colNameOpt = "fieldname",
-                                    colSelect = "featureSet/Vendor")$`featureSet/Vendor`)
-}
-
-test_that("select_input_files selects the correct files", {
-  supp_files_dir <- "test_data/sdy787/supp_files/T cell_ARM3144"
-  expect_equal(HIPCMatrix:::.select_input_files(supp_files_dir),
-               file.path(supp_files_dir, "GSE113891_PT_all_Count.tsv"))
 })

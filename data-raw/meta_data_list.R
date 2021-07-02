@@ -17,17 +17,17 @@ meta_data_list <- list(
     # gsm_supp_files: Usually refers to Affymetrix studies that have the CEL.gz files
     # loaded into GEO as a supplementary file to the single GSM accession as opposed to
     # the Illumina that often have a single tsv.gz file in the series accession (GSE)
-    gsm_supp_files = c("SDY80", "SDY113", "SDY180", "SDY269",
+    gsm_supp_files = c("SDY56", "SDY61", "SDY80", "SDY113", "SDY180",
+                       "SDY269","SDY1086", "SDY1412", "SDY1267",
                        "SDY406", "SDY984", "SDY1260", "SDY1264",
                        "SDY1293", "SDY270", "SDY1291", "SDY212",
                        "SDY315", "SDY305", "SDY1328", "SDY1368",
-                       "SDY1370", "SDY1119", "SDY1294", "SDY1256",
-                       "SDY1412", "SDY1267", "SDY1086"),
+                       "SDY1370", "SDY1119", "SDY1294", "SDY1256"),
 
     # gse_supp_files: Mostly illumina and RNA-seq. All data is included in
     # GSE supp files.
-    gse_supp_files = c("SDY61", "SDY144", "SDY63", "SDY400", "SDY404",
-                       "SDY520", "SDY640", "SDY56", "SDY789", "SDY820",
+    gse_supp_files = c("SDY144", "SDY63", "SDY400", "SDY404",
+                       "SDY520", "SDY640", "SDY789", "SDY820",
                        "SDY522", "SDY888", "SDY1276",
                        "SDY1325", "SDY1364", "SDY1373", "SDY1092",
                        "SDY903", "SDY787", "SDY1529"),

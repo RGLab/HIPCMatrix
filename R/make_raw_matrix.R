@@ -152,7 +152,9 @@ make_raw_matrix <- function(platform,
 #'
 #' @param raw_file_path file path to raw illumina file
 #'
-.process_illumina <- function(raw_file_path){
+.process_illumina <- function(raw_file_path,
+                              verbose = FALSE) {
+  if (verbose) message("Processing illumina files...")
   raw_dt <- fread(raw_file_path)
 
   # check for known issues that would hinder background correction
@@ -212,8 +214,11 @@ make_raw_matrix <- function(platform,
   # from limma package.
   wd <- getwd()
   setwd("/") # b/c filepaths are absolute and justRMA prepends wd
-  eset <- affy::justRMA(filenames = input_files, normalize = FALSE, background = TRUE)
+  eset <- try(affy::justRMA(filenames = input_files, normalize = FALSE, background = TRUE),
+              silent = TRUE)
   setwd(wd)
+  if ("try-error" %in% class(eset)) stop(eset)
+
   exprs_dt <- data.table(Biobase::exprs(eset), keep.rownames = TRUE)
   setnames(exprs_dt, "rn", "feature_id")
 
@@ -243,6 +248,34 @@ make_raw_matrix <- function(platform,
 }
 
 
+#' Standardize probe column name
+#'
+#' Different platforms use different names for the feature id column.
+#' This will update this column to be called \code{feature_id}
+#'
+#' @param exprs_dt data.table of gene expression with one column per sample,
+#' one row per feature.
+#'
+.map_feature_id_col <- function(exprs_dt){
+  if ( !any(grepl("feature_id", colnames(exprs_dt))) ) {
+
+    # If Illumina from Immport
+    prbCol <- grep("id_ref", colnames(exprs_dt), ignore.case = TRUE)
+
+    # If RNAseq then accept gene* or V1 col
+    if (length(prbCol) == 0) {
+      prbCol <- grep("gene|^V1$", colnames(exprs_dt), ignore.case = TRUE)
+    }
+
+    # In case of features in rownames, e.g. from GEO
+    if (length(prbCol) == 0) {
+      prbCol <- "rn"
+    }
+
+    setnames(exprs_dt, prbCol, "feature_id")
+  }
+  return(exprs_dt)
+}
 
 #' Process Two Color Array
 #'
