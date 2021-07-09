@@ -13,7 +13,10 @@
                               paste0(unique(gef$type),
                                      "_",
                                      unique(gef$arm_accession)))
-  dir.create(supp_files_dir, recursive = TRUE)
+  if ( !dir.exists(supp_files_dir) ) {
+    dir.create(supp_files_dir,
+               recursive = TRUE)
+  }
   return(supp_files_dir)
 }
 
@@ -118,13 +121,14 @@ log_message <- function(msg) {
 #' The input data should be in log2 space.
 #'
 #' @param ge_dt data.table of gene expression values. Features should be listed in
-#' \code{feature_id} column, with additional columns for each sample.
+#' \code{feature_id} column, with additional columns for each sample. Samples
+#' should be labelled by biosample id.
 #' @param feature_gene_map data.table mapping original gene id (eg probe id, ensembl id, gene alias)
 #' to gene symbol. It should have two columns: \code{featureid} (original) and \code{genesymbol} (updated).
 #'
 #' @export
 summarize_by_gene_symbol <- function(ge_dt,
-                             feature_gene_map){
+                                     feature_gene_map){
   em <- copy(ge_dt)
   em[ , gene_symbol := feature_gene_map[match(em$feature_id, feature_gene_map$featureid), genesymbol] ]
   em <- em[ !is.na(gene_symbol) & gene_symbol != "NA" ]

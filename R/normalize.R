@@ -17,8 +17,8 @@ normalize_rnaseq <- function(counts_mx,
   if (sum(is.na(counts_mx)) > 0) {
     stop("Missing values found.")
   }
-  if ( sum(duplicated(colnames(mx))) > 0 ) {
-    warning("Duplicate column name: ", colnames(mx)[duplicated(colnames(mx))])
+  if ( sum(duplicated(colnames(counts_mx))) > 0 ) {
+    warning("Duplicate column name: ", colnames(counts_mx)[duplicated(colnames(counts_mx))])
   }
   # newCountDataSet does not take duplicated column names, so assign temporary unique names
   original_colnames <- colnames(counts_mx)
@@ -63,8 +63,8 @@ normalize_microarray <- function(exprs_mx,
   if (sum(is.na(exprs_mx)) > 0) {
     stop("Missing values found.")
   }
-  if ( sum(duplicated(colnames(mx))) > 0 ) {
-    warning("Duplicate column name: ", colnames(mx)[duplicated(colnames(mx))])
+  if ( sum(duplicated(colnames(exprs_mx))) > 0 ) {
+    warning("Duplicate column name: ", colnames(exprs_mx)[duplicated(colnames(exprs_mx))])
   }
   # normalize.quantiles removes row and column names
   cnames <- colnames(exprs_mx)

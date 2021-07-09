@@ -4,7 +4,7 @@
 \alias{.process_illumina}
 \title{Process Illumina}
 \usage{
-.process_illumina(raw_file_path)
+.process_illumina(raw_file_path, verbose = FALSE)
 }
 \arguments{
 \item{raw_file_path}{file path to raw illumina file}

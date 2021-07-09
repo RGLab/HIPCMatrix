@@ -8,7 +8,8 @@ summarize_by_gene_symbol(ge_dt, feature_gene_map)
 }
 \arguments{
 \item{ge_dt}{data.table of gene expression values. Features should be listed in
-\code{feature_id} column, with additional columns for each sample.}
+\code{feature_id} column, with additional columns for each sample. Samples
+should be labelled by biosample id.}
 
 \item{feature_gene_map}{data.table mapping original gene id (eg probe id, ensembl id, gene alias)
 to gene symbol. It should have two columns: \code{featureid} (original) and \code{genesymbol} (updated).}
