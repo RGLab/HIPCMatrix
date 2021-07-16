@@ -39,7 +39,7 @@ jobs:
       - name: Install BiocManager
         run: |
           remotes::install_cran("BiocManager")
-          BiocManager::install(version =  BiocManager::version(), ask = FALSE)
+          BiocManager::install(c('affy', 'Biobase', 'DESeq2', 'GEOquery', 'illuminaio','ImmuneSpaceR', 'limma', 'preprocessCore'), version =  BiocManager::version(), ask = FALSE)
         shell: Rscript {0}
 
       - name: Install dependencies
