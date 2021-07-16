@@ -36,11 +36,16 @@ jobs:
           key: ${{ runner.os }}-${{ hashFiles('.github/R-version') }}-1-${{ hashFiles('.github/depends.Rds') }}
           restore-keys: ${{ runner.os }}-${{ hashFiles('.github/R-version') }}-1-
 
+      - name: Install BiocManager
+        run: |
+          remotes::install_cran("BiocManager")
+          BiocManager::install(version =  BiocManager::version(), ask = FALSE)
+        shell: Rscript {0}
+
       - name: Install dependencies
         run: |
-          install.packages(c("remotes", "rcmdcheck"))
-          remotes::install_cran("BiocManager")
           remotes::install_deps(dependencies = TRUE)
+          remotes::install_cran("rcmdcheck")
         shell: Rscript {0}
 
       - name: Check
