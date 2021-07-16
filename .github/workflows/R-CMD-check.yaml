@@ -23,6 +23,7 @@ jobs:
 
       - name: Install BiocManager
         run: |
+          install.packages('remotes')
           remotes::install_cran("BiocManager")
           BiocManager::install(version =  BiocManager::version(), ask = FALSE)
         shell: Rscript {0}
