@@ -21,25 +21,10 @@ jobs:
 
       - uses: r-lib/actions/setup-r@v1
 
-      - name: Query dependencies
-        run: |
-          install.packages('remotes')
-          saveRDS(remotes::dev_package_deps(dependencies = TRUE), ".github/depends.Rds", version = 2)
-          writeLines(sprintf("R-%i.%i", getRversion()$major, getRversion()$minor), ".github/R-version")
-        shell: Rscript {0}
-
-      - name: Cache R packages
-        if: runner.os != 'Windows'
-        uses: actions/cache@v2
-        with:
-          path: ${{ env.R_LIBS_USER }}
-          key: ${{ runner.os }}-${{ hashFiles('.github/R-version') }}-1-${{ hashFiles('.github/depends.Rds') }}
-          restore-keys: ${{ runner.os }}-${{ hashFiles('.github/R-version') }}-1-
-
       - name: Install BiocManager
         run: |
           remotes::install_cran("BiocManager")
-          BiocManager::install(c('affy', 'Biobase', 'DESeq2', 'GEOquery', 'illuminaio','ImmuneSpaceR', 'limma', 'preprocessCore'), version =  BiocManager::version(), ask = FALSE)
+          BiocManager::install(version =  BiocManager::version(), ask = FALSE)
         shell: Rscript {0}
 
       - name: Install dependencies
