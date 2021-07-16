@@ -4,7 +4,7 @@
 \alias{.process_affy}
 \title{Process Affy}
 \usage{
-.process_affy(input_files)
+.process_affy(input_files, verbose = FALSE)
 }
 \arguments{
 \item{input_files}{input file names}

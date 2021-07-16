@@ -21,7 +21,7 @@ retrieve_input_files <- function(study,
 
   # Identify correct input_files
   if ( meta_data$file_location == "immport" ) {
-    if (verbose) message("Using immport files in ", analysis_dir)
+    if (verbose) log_message("Using immport files in ", analysis_dir)
     input_files <- gef$file_info_name[ grep("cel$|txt$|tsv$|csv$",
                                             gef$file_info_name,
                                             ignore.case = TRUE)]
@@ -32,7 +32,7 @@ retrieve_input_files <- function(study,
     if ( meta_data$file_location == "custom" ) {
 
     raw_dir <- file.path(analysis_dir, meta_data$custom_file_info$directory)
-    if (verbose) message("Using custom files in ", raw_dir)
+    if (verbose) log_message("Using custom files in ", raw_dir)
 
     input_files <- list.files(raw_dir, full.names = TRUE)
     input_files <- input_files[ grep(meta_data$custom_file_info$file_identifier_regex, input_files) ]
@@ -219,7 +219,7 @@ retrieve_input_files <- function(study,
   # In GSM SOFT File (currently only SDY1289 which is Illumina)
   if ( meta_data$file_location == "gsm_soft" ) {
 
-    if (verbose) message("Downloading GSM soft files to ", supp_files_dir)
+    if (verbose) log_message("Downloading GSM soft files to ", supp_files_dir)
     ge_df_list <- lapply(gef$geo_accession, function(gsm){
       res <- .getGEO_custom(gsm, supp_files_dir)
       ge_df <- res@dataTable@table
@@ -233,12 +233,12 @@ retrieve_input_files <- function(study,
   } else
     # In GSM Supp file (most common )
     if ( meta_data$file_location == "gsm_supp_files" ) {
-      if (verbose) message("Downloading GSM supp files to ", supp_files_dir)
+      if (verbose) log_message("Downloading GSM supp files to ", supp_files_dir)
 
       if ( meta_data$platform == "Illumina" ) {
 
         ge_list <- lapply(gef$geo_accession, function(gsm) {
-          message("----- ", gsm, " -----")
+          if (verbose) log_message("----- ", gsm, " -----")
           file_gz <- .get_geo_supp_files(gsm,
                                          supp_files_dir,
                                          reload = reload)
@@ -254,7 +254,7 @@ retrieve_input_files <- function(study,
             if ( !file.exists(manifest_path) ) {
               manifest_url <- paste0("https://github.com/RGLab/UpdateAnno/raw/main/CreateMatrixAssets/IlluminaManifests/",
                                      meta_data$illumina_manifest_file)
-              download.file(url = manifest_url, destfile = manifest_path, quiet = TRUE)
+              utils::download.file(url = manifest_url, destfile = manifest_path, quiet = TRUE)
             }
 
             res <- limma::read.idat(idatfiles = file_path,
@@ -328,7 +328,7 @@ retrieve_input_files <- function(study,
     } else
       if ( meta_data$file_location == "gse_supp_files" ) {
 
-        if (verbose) message("Downloading GSE supp files to ", supp_files_dir)
+        if (verbose) log_message("Downloading GSE supp files to ", supp_files_dir)
         gse_accessions <- unique(unlist(lapply(gef$geo_accession, function(x) {
           gsm <- .getGEO_custom(x, supp_files_dir)
           gsm@header$series_id
@@ -430,7 +430,7 @@ retrieve_input_files <- function(study,
   supp_files_dir <- .get_supp_files_dir(analysis_dir,
                                         gef)
 
-  message("Preparing immport files from ", analysis_dir)
+  if (verbose) log_message("Preparing immport files from ", analysis_dir)
 
   if( platform == "Illumina" ) {
     ge_list <- lapply(input_files, function(path){

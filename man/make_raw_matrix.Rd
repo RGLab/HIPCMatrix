@@ -4,7 +4,7 @@
 \alias{make_raw_matrix}
 \title{Make Raw Matrix}
 \usage{
-make_raw_matrix(platform, gef, input_files)
+make_raw_matrix(platform, gef, input_files, verbose = FALSE)
 }
 \arguments{
 \item{platform}{Illumina, Affymetrix, or NA}

@@ -12,8 +12,8 @@
 normalize_rnaseq <- function(counts_mx,
                              verbose = FALSE) {
 
-  if (verbose) message(" --- normalize_rnaseq --- ")
-  if (verbose) message("Normalizing counts data using variance stabilizing transformation...")
+  if (verbose) log_message(" --- normalize_rnaseq --- ")
+  if (verbose) log_message("Normalizing counts data using variance stabilizing transformation...")
   if (sum(is.na(counts_mx)) > 0) {
     stop("Missing values found.")
   }
@@ -59,7 +59,7 @@ normalize_microarray <- function(exprs_mx,
                                  force = FALSE,
                                  verbose = FALSE) {
 
-  if (verbose) message(" --- normalize_microarray --- ")
+  if (verbose) log_message(" --- normalize_microarray --- ")
   if (sum(is.na(exprs_mx)) > 0) {
     stop("Missing values found.")
   }
@@ -78,12 +78,12 @@ normalize_microarray <- function(exprs_mx,
              "It is likely already in log2 scale. ",
              "Run with force=TRUE if you still want to log2 transform")
       } else if ( verbose ) {
-        message("max(exprs_mx) < 100. Forcing log2 transform... ")
+        log_message("max(exprs_mx) < 100. Forcing log2 transform... ")
       }
-    if (verbose) message("log2-transforming exprs_mx")
+    if (verbose) log_message("log2-transforming exprs_mx")
     exprs_mx <- log2(exprs_mx + 1)
   }
-  if (verbose) message("Performing quantile normalization...")
+  if (verbose) log_message("Performing quantile normalization...")
   norm_exprs <- preprocessCore::normalize.quantiles(exprs_mx)
 
   colnames(norm_exprs) <- cnames
@@ -105,7 +105,7 @@ normalize_matrix <- function(exprs_dt, platform, verbose = FALSE) {
   badRows <- rowSums(is.na(exprs_dt)) > 0
   if ( sum(badRows) > 0 ) {
     warning("Removing ", sum(badRows), " rows with missing values")
-    exprs_dt <- exprs_dt[complete.cases(exprs_dt)]
+    exprs_dt <- exprs_dt[stats::complete.cases(exprs_dt)]
   }
 
   ## Prepare matrix

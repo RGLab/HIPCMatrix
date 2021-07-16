@@ -29,6 +29,7 @@ test_that("map_feature_id_col correctly maps feature id column", {
   expect_true(all(c("feature_id", "GSM1", "GSM2") == names(.map_feature_id_col(copy(exprs_dt)))))
 })
 
+
 test_that("process_illumina handles subjects with no expression", {
   raw_illumina <- fread("test_data/sdy180/supp_files/Whole blood_ARM773/SDY180_raw_expression.txt")
   raw_illumina[, GSM744991.AVG_Signal.AVG_Signal := 0]
@@ -63,4 +64,34 @@ test_that("process_affy returns one column per sample", {
   affy_processed <- .process_affy(input_files)
   expect_equal(ncol(affy_processed), length(input_files) + 1)
   expect_equal(names(affy_processed)[1], "feature_id")
+})
+
+
+test_that("make_raw_matrix outputs correct messages", {
+  gef <- con_all$getDataset("gene_expression_files",
+                            colFilter = Rlabkey:::makeFilter(c("biosample_accession", "IN", "BS662409;BS662402")),
+                            original_view = TRUE)[!is.na(geo_accession)]
+  expect_message(processed_illumina <- make_raw_matrix(platform = "Illumina",
+                                                       gef = gef,
+                                                       input_files = "test_data/sdy180/supp_files/Whole blood_ARM773/SDY180_raw_expression.txt",
+                                                       verbose = TRUE),
+                 "Processing illumina files")
+  expect_failure(expect_message(processed_illumina <- make_raw_matrix(platform = "Illumina",
+                                                        gef = gef,
+                                                        input_files = "test_data/sdy180/supp_files/Whole blood_ARM773/SDY180_raw_expression.txt",
+                                                        verbose = FALSE),
+                 "processing illumina files"))
+
+  gef <- readRDS("test_data/sdy112/SDY112_gef.rds")
+  input_files <- normalizePath(HIPCMatrix:::.select_input_files("test_data/sdy112"))
+  expect_message(processed_affy <- make_raw_matrix(platform = "Affymetrix",
+                                                   gef = gef,
+                                                   input_files = input_files,
+                                                   verbose = TRUE),
+                 "Processing 2 CEL files")
+
+  # RNA-seq just reads in tsv. No additional processing needed.
+  # Except maybe check that it is raw counts.
+
+
 })

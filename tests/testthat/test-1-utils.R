@@ -36,6 +36,14 @@ test_that("write_matrix", {
                         sum_exprs))
 })
 
+test_that("log_message", {
+  name <- "Helen"
+  expect_message(HIPCMatrix:::log_message("Hello ", name),
+                 "Hello Helen")
+  expect_message(HIPCMatrix:::log_message("Hello ", name),
+                 "\\[\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}\\]")
+})
+
 test_that("get_supp_files_dir", {
   analysis_dir <- tempdir()
   gef <- data.table(type = "PBMC", arm_accession = 1)

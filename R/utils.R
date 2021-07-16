@@ -20,8 +20,8 @@
   return(supp_files_dir)
 }
 
-log_message <- function(msg) {
-  message(sprintf("[%s] %s", Sys.time(), msg))
+log_message <- function(...) {
+  message(sprintf("[%s] %s", Sys.time(), paste0(..., collapse = "")))
 }
 
 #' Write raw expression to a file
@@ -163,7 +163,7 @@ write_matrix <- function(output_dir,
                          verbose = FALSE){
 
   .write_em <- function(df, file_name, verbose){
-    if ( verbose ) message("Writing ", file_name, "...")
+    if ( verbose ) log_message("Writing ", file_name, "...")
     fwrite(df,
            file = file.path(output_dir,
                             file_name),

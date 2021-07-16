@@ -58,14 +58,14 @@ runCreateMx <- function(study,
                         verbose = FALSE,
                         snapshot = FALSE) {
 
-  if ( verbose ) message("Running runCreateMx using HIPCMatrix version ",
-                         packageVersion("HIPCMatrix"))
+  if ( verbose ) log_message("Running runCreateMx using HIPCMatrix version ",
+                         utils::packageVersion("HIPCMatrix"))
   # -------------------------------- RETRIEVE INPUTS ----------------------------------
   # For printing and con
   stopifnot(grepl("^SDY\\d+$", study))
 
   if ( verbose ) {
-    message(matrix_name)
+    log_message(matrix_name)
   }
 
   # Check that output filepath exists before starting run
@@ -167,21 +167,24 @@ runCreateMx <- function(study,
     LKModules <- "~/LabKeyModules"
 
     file.copy(from = file.path(LKModules, "HIPCMatrix/pipeline/tasks/create-matrix.R"),
-              to = file.path(debug_dir, paste0(output.tsv, "-create-matrix-snapshot.R")))
+              to = file.path(debug_dir, paste0(matrix_name, "-create-matrix-snapshot.R")))
 
-    writeLines(packageVersion("HIPCMatrix"),
-               file.path(debug_dir, paste0(output.tsv, "-HIPCMatrix-version.R")))
+    writeLines(utils::packageVersion("HIPCMatrix"),
+               file.path(debug_dir, paste0(matrix_name, "-HIPCMatrix-version.R")))
 
     # write out tsv of vars to make later replication of results easier
-    varDf <- data.frame(labkey.url.base = labkey.url.base,
-                        labkey.url.path = labkey.url.path,
-                        pipeline.root = pipeline.root,
-                        analysis.directory = analysis.directory,
+    varDf <- data.table(study = study,
+                        matrix_name = matrix_name,
                         selected_biosamples = selected_biosamples,
                         fas_id = fas_id,
+                        labkey.url.base = labkey.url.base,
+                        base_dir = base_dir,
+                        output_dir = output_dir,
+                        analysis_dir = analysis_dir,
+                        debug_dir = debug_dir,
                         taskOutputParams = taskOutputParams,
-                        output.tsv = output.tsv,
-                        stringsAsFactors = FALSE)
+                        verbose = verbose,
+                        snapshot = snapshot)
 
 
     fwrite(varDf,

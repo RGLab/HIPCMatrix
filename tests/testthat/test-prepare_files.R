@@ -7,6 +7,7 @@ test_that("select_input_files selects the correct files", {
 })
 
 test_that("immport files are loaded correctly", {
+  verbose <- TRUE
   # SDY1630: RNA-seq
   study <- "SDY1630"
   gef <- readRDS("test_data/sdy1630/SDY1630_gef.rds")

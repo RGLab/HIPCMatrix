@@ -4,7 +4,7 @@
 \alias{.process_two_color_array}
 \title{Process Two Color Array}
 \usage{
-.process_two_color_array(path)
+.process_two_color_array(path, verbose = FALSE)
 }
 \arguments{
 \item{path}{path to}

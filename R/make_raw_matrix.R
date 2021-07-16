@@ -14,7 +14,8 @@
 #' @export
 make_raw_matrix <- function(platform,
                             gef,
-                            input_files) {
+                            input_files,
+                            verbose = FALSE) {
 
 
 
@@ -22,9 +23,12 @@ make_raw_matrix <- function(platform,
   # For RNAseq pass through raw counts file.
   exprs_dt <- switch(
     platform,
-    "Affymetrix" = .process_affy(input_files),
-    "Illumina" = .process_illumina(input_files),
-    "NA" = .process_rna_seq(input_files),
+    "Affymetrix" = .process_affy(input_files,
+                                 verbose = verbose),
+    "Illumina" = .process_illumina(input_files,
+                                   verbose = verbose),
+    "NA" = .process_rna_seq(input_files,
+                            verbose = verbose),
     fread(input_files)
   )
 
@@ -154,7 +158,7 @@ make_raw_matrix <- function(platform,
 #'
 .process_illumina <- function(raw_file_path,
                               verbose = FALSE) {
-  if (verbose) message("Processing illumina files...")
+  if (verbose) log_message("Processing illumina files...")
   raw_dt <- fread(raw_file_path)
 
   # check for known issues that would hinder background correction
@@ -168,7 +172,7 @@ make_raw_matrix <- function(platform,
 
   # 2. Control or misnamed probes (not unique) - e.g. "NEGATIVE"
   raw_dt <- raw_dt[ grep("ILMN", raw_dt$ID_REF) ]
-  write.table(raw_dt, raw_file_path, sep = "\t", row.names = FALSE, quote = FALSE)
+  utils::write.table(raw_dt, raw_file_path, sep = "\t", row.names = FALSE, quote = FALSE)
 
   # Can only background correct using detection pvals.
   # Immport-derived files may already have this done in some cases.
@@ -176,7 +180,8 @@ make_raw_matrix <- function(platform,
     # Get intensities
     esList <- limma::read.ilmn(raw_file_path,
                                expr = "AVG_Signal",
-                               probeid = "ID_REF")
+                               probeid = "ID_REF",
+                               verbose = FALSE)
     # Background correction
     raw_dt <- data.table(limma::nec(esList)$E, keep.rownames = TRUE)
   }
@@ -208,7 +213,10 @@ make_raw_matrix <- function(platform,
 #' Two are customCDF packages loaded from UpdateAnno: \code{huex10stv2cdf}
 #' and \code{hursta2a520709cdf}
 #'
-.process_affy <- function(input_files){
+.process_affy <- function(input_files,
+                          verbose = FALSE){
+  if (verbose) log_message("Processing affymetrix files...")
+  if (verbose) log_message("Processing ", length(input_files), " CEL files")
   # Background Correction Notes:
   # 'background' = TRUE performs function similar to normexp.fit.control and normexp.signal
   # from limma package.
@@ -242,7 +250,9 @@ make_raw_matrix <- function(platform,
 #' of raw counts files ...
 #'
 #' @param input_files input file names
-.process_rna_seq <- function(input_files){
+.process_rna_seq <- function(input_files,
+                             verbose = FALSE){
+  if (verbose) log_message("Processing RNA-seq files...")
   lf <- lapply(input_files, fread)
   exprs <- data.table(Reduce(f = function(x, y) {merge(x, y, all = TRUE)}, lf))
 }
@@ -286,7 +296,9 @@ make_raw_matrix <- function(platform,
 #' @param path path to
 #'
 #' @export
-.process_two_color_array <- function(path){
+.process_two_color_array <- function(path,
+                                     verbose = FALSE){
+  if (verbose) log_message("Processing two-color-array...")
   RG <- limma::read.maimages(files = path, source = "genepix")
   MA <- limma::normalizeWithinArrays(RG, bc.method = "normexp", method = "none")
   ge_dt <- data.table(feature_id = MA$genes$ID, gsm = MA$A[,1])

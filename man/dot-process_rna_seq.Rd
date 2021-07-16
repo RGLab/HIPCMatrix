@@ -4,7 +4,7 @@
 \alias{.process_rna_seq}
 \title{Process RNA-seq}
 \usage{
-.process_rna_seq(input_files)
+.process_rna_seq(input_files, verbose = FALSE)
 }
 \arguments{
 \item{input_files}{input file names}
