@@ -7,15 +7,20 @@
 #' @param analysis_dir analysis directory
 #' @param gef result of ISCon$getDataset("gene_expression_files") for one run.
 .get_supp_files_dir <- function(analysis_dir,
-                                gef){
-  supp_files_dir <- file.path(analysis_dir,
-                              "supp_files",
-                              paste0(unique(gef$type),
-                                     "_",
-                                     unique(gef$arm_accession)))
-  if ( !dir.exists(supp_files_dir) ) {
+                                gef) {
+  supp_files_dir <- file.path(
+    analysis_dir,
+    "supp_files",
+    paste0(
+      unique(gef$type),
+      "_",
+      unique(gef$arm_accession)
+    )
+  )
+  if (!dir.exists(supp_files_dir)) {
     dir.create(supp_files_dir,
-               recursive = TRUE)
+      recursive = TRUE
+    )
   }
   return(supp_files_dir)
 }
@@ -46,39 +51,39 @@ log_message <- function(...) {
 #'
 #' @param ge_list list of matrices for one study
 #' @param study study accession eg \code{SDY269}
-.fix_headers <- function(ge_list, study){
-  if ( study == "SDY224" ) {
-    ge_list <- lapply(ge_list, function(x){
-      setnames(x, as.character(x[1,]))
-      x <- x[-(1:2),]
+.fix_headers <- function(ge_list, study) {
+  if (study == "SDY224") {
+    ge_list <- lapply(ge_list, function(x) {
+      setnames(x, as.character(x[1, ]))
+      x <- x[-(1:2), ]
       colnames(x)[[1]] <- "ID_REF"
       return(x)
     })
-  } else if ( study == "SDY400" ) {
+  } else if (study == "SDY400") {
     # Using mapping file provided by Hailong Meng at Yale, Dec 2018
     # since note in header of file is misleading due to gsm swaps made
     # later based on knowledge of switched samples.
-    ge_list <- lapply(ge_list, function(x){
+    ge_list <- lapply(ge_list, function(x) {
       mp <- fread("/share/files/Studies/SDY400/@files/rawdata/gene_expression/SDY400_HeaderMapping.csv")
-      setnames(x, colnames(x), as.character(x[2,]))
-      x <- x[-(1:2),]
+      setnames(x, colnames(x), as.character(x[2, ]))
+      x <- x[-(1:2), ]
       smpls <- grep("SAMPLE", colnames(x), value = T)
-      titles <- mp$Title[ match(smpls, mp$Sample) ]
+      titles <- mp$Title[match(smpls, mp$Sample)]
       setnames(x, smpls, titles)
       return(x)
     })
-  } else if ( study == "SDY1325" ) {
-    ge_list <- lapply(ge_list, function(x){
-      setnames(x, colnames(x), as.character(x[5,]))
-      x <- x[6:nrow(x),]
+  } else if (study == "SDY1325") {
+    ge_list <- lapply(ge_list, function(x) {
+      setnames(x, colnames(x), as.character(x[5, ]))
+      x <- x[6:nrow(x), ]
       return(x)
     })
-  } else if ( study == "SDY1324" ) {
+  } else if (study == "SDY1324") {
     # Custom header mapping provided by authors via P.Dunn Dec 2018.
-    ge_list <- lapply(ge_list, function(x){
+    ge_list <- lapply(ge_list, function(x) {
       mp <- fread("/share/files/Studies/SDY1324/@files/rawdata/gene_expression/raw_counts/SDY1324_Header_Mapping.csv")
       accs <- grep("V1", colnames(x), invert = TRUE, value = TRUE)
-      esNms <- mp$experimentAccession[ match(accs, mp$AuthorGivenId) ]
+      esNms <- mp$experimentAccession[match(accs, mp$AuthorGivenId)]
       setnames(x, accs[!is.na(esNms)], esNms[!is.na(esNms)])
       return(x)
     })
@@ -101,8 +106,10 @@ log_message <- function(...) {
 #' @param ge_list list of gene expression tables (matrix, data.frame, etc)
 #' @param supp_files_dir path to base directory (via \code{.get_supp_files_dir()})
 #' @param study study accession eg \code{SDY269}
-.ge_list_to_flat_file <- function(ge_list, supp_files_dir, study){
-  ge_df <- Reduce(f = function(x, y) {merge(x, y)}, ge_list)
+.ge_list_to_flat_file <- function(ge_list, supp_files_dir, study) {
+  ge_df <- Reduce(f = function(x, y) {
+    merge(x, y)
+  }, ge_list)
   input_files <- .write_raw_expression(ge_df, supp_files_dir, study)
 }
 #######################################
@@ -128,13 +135,14 @@ log_message <- function(...) {
 #'
 #' @export
 summarize_by_gene_symbol <- function(ge_dt,
-                                     feature_gene_map){
+                                     feature_gene_map) {
   em <- copy(ge_dt)
-  em[ , gene_symbol := feature_gene_map[match(em$feature_id, feature_gene_map$featureid), genesymbol] ]
-  em <- em[ !is.na(gene_symbol) & gene_symbol != "NA" ]
-  sum_exprs <- em[ , lapply(.SD, mean),
-                   by = "gene_symbol",
-                   .SDcols = grep("^BS", colnames(em)) ]
+  em[, gene_symbol := feature_gene_map[match(em$feature_id, feature_gene_map$featureid), genesymbol]]
+  em <- em[!is.na(gene_symbol) & gene_symbol != "NA"]
+  sum_exprs <- em[, lapply(.SD, mean),
+    by = "gene_symbol",
+    .SDcols = grep("^BS", colnames(em))
+  ]
 }
 
 #' Write matrix to file system
@@ -160,16 +168,18 @@ write_matrix <- function(output_dir,
                          exprs,
                          norm_exprs,
                          sum_exprs,
-                         verbose = FALSE){
-
-  .write_em <- function(df, file_name, verbose){
-    if ( verbose ) log_message("Writing ", file_name, "...")
+                         verbose = FALSE) {
+  .write_em <- function(df, file_name, verbose) {
+    if (verbose) log_message("Writing ", file_name, "...")
     fwrite(df,
-           file = file.path(output_dir,
-                            file_name),
-           sep = "\t",
-           quote = FALSE,
-           row.names = FALSE)
+      file = file.path(
+        output_dir,
+        file_name
+      ),
+      sep = "\t",
+      quote = FALSE,
+      row.names = FALSE
+    )
   }
 
   # Raw EM
@@ -183,7 +193,6 @@ write_matrix <- function(output_dir,
 
   # original summary EM assuming run created with _orig FasId
   .write_em(sum_exprs, paste0(matrix_name, ".tsv.summary.orig"), verbose)
-
 }
 
 
@@ -209,26 +218,32 @@ get_input_params <- function(con = CreateConnection(""),
   # First check for inputParams
   baseUrl <- con$config$labkey.url.base
   study <- con$listGEMatrices()[name == matrix_name, folder]
-  if ( Rlabkey::labkey.webdav.pathExists(
+  if (Rlabkey::labkey.webdav.pathExists(
     baseUrl = con$config$labkey.url.base,
     folderPath = paste0("Studies/", study),
-    remoteFilePath = file.path("rawdata",
-                               "gene_expression",
-                               "create-matrix",
-                               matrix_name,
-                               "create-matrix-vars.tsv"),
-    fileSet='@files'
-  ) ) {
+    remoteFilePath = file.path(
+      "rawdata",
+      "gene_expression",
+      "create-matrix",
+      matrix_name,
+      "create-matrix-vars.tsv"
+    ),
+    fileSet = "@files"
+  )) {
     local_path <- tempfile()
-    Rlabkey::labkey.webdav.get(baseUrl = con$config$labkey.url.base,
-                               folderPath = paste0("Studies/", study),
-                               remoteFilePath = file.path("rawdata",
-                                                          "gene_expression",
-                                                          "create-matrix",
-                                                          matrix_name,
-                                                          "create-matrix-vars.tsv"),
-                               localFilePath = local_path,
-                               fileSet='@files')
+    Rlabkey::labkey.webdav.get(
+      baseUrl = con$config$labkey.url.base,
+      folderPath = paste0("Studies/", study),
+      remoteFilePath = file.path(
+        "rawdata",
+        "gene_expression",
+        "create-matrix",
+        matrix_name,
+        "create-matrix-vars.tsv"
+      ),
+      localFilePath = local_path,
+      fileSet = "@files"
+    )
     input_params <- fread(local_path)
     return(parse_pipeline_inputs(input_params))
   } else {

@@ -40,36 +40,47 @@ runCreateMx <- function(study,
                         selected_biosamples,
                         fas_id,
                         labkey.url.base = "https://www.immunespace.org/",
-                        base_dir = file.path("/share",
-                                             "files",
-                                             "Studies",
-                                             study,
-                                             "@files"),
-                        output_dir = file.path(base_dir,
-                                               "analysis",
-                                               "exprs_matrices"),
-                        analysis_dir = file.path(base_dir,
-                                                 "rawdata",
-                                                 "gene_expression"),
-                        debug_dir = file.path(analysis_dir,
-                                              "create-matrix",
-                                              matrix_name),
+                        base_dir = file.path(
+                          "/share",
+                          "files",
+                          "Studies",
+                          study,
+                          "@files"
+                        ),
+                        output_dir = file.path(
+                          base_dir,
+                          "analysis",
+                          "exprs_matrices"
+                        ),
+                        analysis_dir = file.path(
+                          base_dir,
+                          "rawdata",
+                          "gene_expression"
+                        ),
+                        debug_dir = file.path(
+                          analysis_dir,
+                          "create-matrix",
+                          matrix_name
+                        ),
                         taskOutputParams = NULL,
                         verbose = FALSE,
                         snapshot = FALSE) {
-
-  if ( verbose ) log_message("Running runCreateMx using HIPCMatrix version ",
-                         utils::packageVersion("HIPCMatrix"))
+  if (verbose) {
+    log_message(
+      "Running runCreateMx using HIPCMatrix version ",
+      utils::packageVersion("HIPCMatrix")
+    )
+  }
   # -------------------------------- RETRIEVE INPUTS ----------------------------------
   # For printing and con
   stopifnot(grepl("^SDY\\d+$", study))
 
-  if ( verbose ) {
+  if (verbose) {
     log_message(matrix_name)
   }
 
   # Check that output filepath exists before starting run
-  if ( !dir.exists(output_dir) ) {
+  if (!dir.exists(output_dir)) {
     dir.create(output_dir, recursive = TRUE)
   }
 
@@ -77,17 +88,21 @@ runCreateMx <- function(study,
   # TODO: Why?
   co <- labkey.setCurlOptions(ssl_verifyhost = 2, sslversion = 1)
 
-  FAS_filter <- makeFilter(c("FeatureAnnotationSetId/RowId",
-                             "IN",
-                             fas_id))
+  FAS_filter <- makeFilter(c(
+    "FeatureAnnotationSetId/RowId",
+    "IN",
+    fas_id
+  ))
 
-  feature_gene_map <- data.table(labkey.selectRows(baseUrl = labkey.url.base,
-                                                   folderPath = "/Studies/",
-                                                   schemaName = "Microarray",
-                                                   queryName = "FeatureAnnotation",
-                                                   colFilter = FAS_filter,
-                                                   colNameOpt = "rname",
-                                                   colSelect = c("featureid","genesymbol")))
+  feature_gene_map <- data.table(labkey.selectRows(
+    baseUrl = labkey.url.base,
+    folderPath = "/Studies/",
+    schemaName = "Microarray",
+    queryName = "FeatureAnnotation",
+    colFilter = FAS_filter,
+    colNameOpt = "rname",
+    colSelect = c("featureid", "genesymbol")
+  ))
 
   if (nrow(feature_gene_map) == 0) {
     stop("The downloaded feature annotation set has 0 rows.")
@@ -101,9 +116,10 @@ runCreateMx <- function(study,
   # Create GEF
   bs_filter <- makeFilter(c("biosample_accession", "IN", gsub(",", ";", selected_biosamples)))
   gef <- con$getDataset("gene_expression_files",
-                        colFilter = bs_filter,
-                        original_view = TRUE,
-                        reload = TRUE)
+    colFilter = bs_filter,
+    original_view = TRUE,
+    reload = TRUE
+  )
 
   # ensure single cohort for processing
   if (length(unique(gef$arm_name)) > 1) {
@@ -115,43 +131,55 @@ runCreateMx <- function(study,
     stop("Experiment samples do not have unique biosample accessions.")
   }
 
-  meta_data <- get_meta_data(study = study,
-                             gef = gef,
-                             fas_id = fas_id,
-                             baseUrl = con$config$labkey.url.base)
+  meta_data <- get_meta_data(
+    study = study,
+    gef = gef,
+    fas_id = fas_id,
+    baseUrl = con$config$labkey.url.base
+  )
 
   # ----------------------------- PROCESSING -------------------------------------
 
 
-  input_files <- retrieve_input_files(study = study,
-                                      gef = gef,
-                                      meta_data = meta_data,
-                                      analysis_dir = analysis_dir)
+  input_files <- retrieve_input_files(
+    study = study,
+    gef = gef,
+    meta_data = meta_data,
+    analysis_dir = analysis_dir
+  )
 
   # Create three versions of matrix
-  exprs <- make_raw_matrix(platform = meta_data$platform,
-                           gef = gef,
-                           input_files = input_files)
+  exprs <- make_raw_matrix(
+    platform = meta_data$platform,
+    gef = gef,
+    input_files = input_files
+  )
 
-  norm_exprs <- normalize_matrix(exprs,
-                                 meta_data$platform)
+  norm_exprs <- normalize_matrix(
+    exprs,
+    meta_data$platform
+  )
 
-  sum_exprs <- summarize_by_gene_symbol(norm_exprs,
-                                        feature_gene_map)
+  sum_exprs <- summarize_by_gene_symbol(
+    norm_exprs,
+    feature_gene_map
+  )
 
   # ------------------------------ OUTPUT ------------------------------------------
-  write_matrix(output_dir = output_dir,
-               matrix_name = matrix_name,
-               exprs = exprs,
-               norm_exprs = norm_exprs,
-               sum_exprs = sum_exprs,
-               verbose = verbose)
+  write_matrix(
+    output_dir = output_dir,
+    matrix_name = matrix_name,
+    exprs = exprs,
+    norm_exprs = norm_exprs,
+    sum_exprs = sum_exprs,
+    verbose = verbose
+  )
 
   # This file gets cleaned up anyway, so not worrying about it onCL
   if (!is.null(taskOutputParams)) {
-    outProps = file(description = taskOutputParams, open = "w")
-    cat(file = outProps, sep="", "name\tvalue\n")
-    cat(file = outProps, sep="", "assay run property, cohort\t", unique(gef$cohort), "\n")
+    outProps <- file(description = taskOutputParams, open = "w")
+    cat(file = outProps, sep = "", "name\tvalue\n")
+    cat(file = outProps, sep = "", "assay run property, cohort\t", unique(gef$cohort), "\n")
     flush(con = outProps)
     close(con = outProps)
   }
@@ -166,33 +194,38 @@ runCreateMx <- function(study,
     # Allow for work on server or local
     LKModules <- "~/LabKeyModules"
 
-    file.copy(from = file.path(LKModules, "HIPCMatrix/pipeline/tasks/create-matrix.R"),
-              to = file.path(debug_dir, paste0(matrix_name, "-create-matrix-snapshot.R")))
+    file.copy(
+      from = file.path(LKModules, "HIPCMatrix/pipeline/tasks/create-matrix.R"),
+      to = file.path(debug_dir, paste0(matrix_name, "-create-matrix-snapshot.R"))
+    )
 
-    writeLines(utils::packageVersion("HIPCMatrix"),
-               file.path(debug_dir, paste0(matrix_name, "-HIPCMatrix-version.R")))
+    writeLines(
+      utils::packageVersion("HIPCMatrix"),
+      file.path(debug_dir, paste0(matrix_name, "-HIPCMatrix-version.R"))
+    )
 
     # write out tsv of vars to make later replication of results easier
-    varDf <- data.table(study = study,
-                        matrix_name = matrix_name,
-                        selected_biosamples = selected_biosamples,
-                        fas_id = fas_id,
-                        labkey.url.base = labkey.url.base,
-                        base_dir = base_dir,
-                        output_dir = output_dir,
-                        analysis_dir = analysis_dir,
-                        debug_dir = debug_dir,
-                        taskOutputParams = taskOutputParams,
-                        verbose = verbose,
-                        snapshot = snapshot)
+    varDf <- data.table(
+      study = study,
+      matrix_name = matrix_name,
+      selected_biosamples = selected_biosamples,
+      fas_id = fas_id,
+      labkey.url.base = labkey.url.base,
+      base_dir = base_dir,
+      output_dir = output_dir,
+      analysis_dir = analysis_dir,
+      debug_dir = debug_dir,
+      taskOutputParams = taskOutputParams,
+      verbose = verbose,
+      snapshot = snapshot
+    )
 
 
     fwrite(varDf,
-           file = file.path(debug_dir, "create-matrix-vars.tsv"),
-           sep = "\t",
-           quote = FALSE,
-           row.names = FALSE)
+      file = file.path(debug_dir, "create-matrix-vars.tsv"),
+      sep = "\t",
+      quote = FALSE,
+      row.names = FALSE
+    )
   }
-
 }
-

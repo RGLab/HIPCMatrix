@@ -3,29 +3,39 @@
 .map_feature_id_col <- HIPCMatrix:::.map_feature_id_col
 
 test_that("map_feature_id_col correctly maps feature id column", {
-  exprs_dt <- data.table(feature_id = c("A", "B"),
-                         GSM1 = c(1,2),
-                         GSM2 = c(3,4))
+  exprs_dt <- data.table(
+    feature_id = c("A", "B"),
+    GSM1 = c(1, 2),
+    GSM2 = c(3, 4)
+  )
   expect_true(all.equal(exprs_dt, .map_feature_id_col(copy(exprs_dt))))
-  exprs_dt <- data.table(ID_REF = c("A", "B"),
-                         GSM1 = c(1,2),
-                         GSM2 = c(3,4))
+  exprs_dt <- data.table(
+    ID_REF = c("A", "B"),
+    GSM1 = c(1, 2),
+    GSM2 = c(3, 4)
+  )
   expect_true(all(c("feature_id", "GSM1", "GSM2") == names(.map_feature_id_col(copy(exprs_dt)))))
 
-  exprs_dt <- data.table(V1 = c("A", "B"),
-                         GSM1 = c(1,2),
-                         GSM2 = c(3,4))
+  exprs_dt <- data.table(
+    V1 = c("A", "B"),
+    GSM1 = c(1, 2),
+    GSM2 = c(3, 4)
+  )
   expect_true(all(c("feature_id", "GSM1", "GSM2") == names(.map_feature_id_col(copy(exprs_dt)))))
 
-  exprs_dt <- data.table(gene_name = c("A", "B"),
-                         GSM1 = c(1,2),
-                         GSM2 = c(3,4))
+  exprs_dt <- data.table(
+    gene_name = c("A", "B"),
+    GSM1 = c(1, 2),
+    GSM2 = c(3, 4)
+  )
   expect_true(all(c("feature_id", "GSM1", "GSM2") == names(.map_feature_id_col(copy(exprs_dt)))))
 
 
-  exprs_dt <- data.table(rn = c("A", "B"),
-                         GSM1 = c(1,2),
-                         GSM2 = c(3,4))
+  exprs_dt <- data.table(
+    rn = c("A", "B"),
+    GSM1 = c(1, 2),
+    GSM2 = c(3, 4)
+  )
   expect_true(all(c("feature_id", "GSM1", "GSM2") == names(.map_feature_id_col(copy(exprs_dt)))))
 })
 
@@ -69,29 +79,40 @@ test_that("process_affy returns one column per sample", {
 
 test_that("make_raw_matrix outputs correct messages", {
   gef <- con_all$getDataset("gene_expression_files",
-                            colFilter = Rlabkey:::makeFilter(c("biosample_accession", "IN", "BS662409;BS662402")),
-                            original_view = TRUE)[!is.na(geo_accession)]
-  expect_message(processed_illumina <- make_raw_matrix(platform = "Illumina",
-                                                       gef = gef,
-                                                       input_files = "test_data/sdy180/supp_files/Whole blood_ARM773/SDY180_raw_expression.txt",
-                                                       verbose = TRUE),
-                 "Processing illumina files")
-  expect_failure(expect_message(processed_illumina <- make_raw_matrix(platform = "Illumina",
-                                                        gef = gef,
-                                                        input_files = "test_data/sdy180/supp_files/Whole blood_ARM773/SDY180_raw_expression.txt",
-                                                        verbose = FALSE),
-                 "processing illumina files"))
+    colFilter = Rlabkey:::makeFilter(c("biosample_accession", "IN", "BS662409;BS662402")),
+    original_view = TRUE
+  )[!is.na(geo_accession)]
+  expect_message(
+    processed_illumina <- make_raw_matrix(
+      platform = "Illumina",
+      gef = gef,
+      input_files = "test_data/sdy180/supp_files/Whole blood_ARM773/SDY180_raw_expression.txt",
+      verbose = TRUE
+    ),
+    "Processing illumina files"
+  )
+  expect_failure(expect_message(
+    processed_illumina <- make_raw_matrix(
+      platform = "Illumina",
+      gef = gef,
+      input_files = "test_data/sdy180/supp_files/Whole blood_ARM773/SDY180_raw_expression.txt",
+      verbose = FALSE
+    ),
+    "processing illumina files"
+  ))
 
   gef <- readRDS("test_data/sdy112/SDY112_gef.rds")
   input_files <- normalizePath(HIPCMatrix:::.select_input_files("test_data/sdy112"))
-  expect_message(processed_affy <- make_raw_matrix(platform = "Affymetrix",
-                                                   gef = gef,
-                                                   input_files = input_files,
-                                                   verbose = TRUE),
-                 "Processing 2 CEL files")
+  expect_message(
+    processed_affy <- make_raw_matrix(
+      platform = "Affymetrix",
+      gef = gef,
+      input_files = input_files,
+      verbose = TRUE
+    ),
+    "Processing 2 CEL files"
+  )
 
   # RNA-seq just reads in tsv. No additional processing needed.
   # Except maybe check that it is raw counts.
-
-
 })

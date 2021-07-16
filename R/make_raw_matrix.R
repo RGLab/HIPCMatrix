@@ -23,12 +23,18 @@ make_raw_matrix <- function(platform,
   # For RNAseq pass through raw counts file.
   exprs_dt <- switch(
     platform,
-    "Affymetrix" = .process_affy(input_files,
-                                 verbose = verbose),
-    "Illumina" = .process_illumina(input_files,
-                                   verbose = verbose),
-    "NA" = .process_rna_seq(input_files,
-                            verbose = verbose),
+    "Affymetrix" = .process_affy(
+      input_files,
+      verbose = verbose
+    ),
+    "Illumina" = .process_illumina(
+      input_files,
+      verbose = verbose
+    ),
+    "NA" = .process_rna_seq(
+      input_files,
+      verbose = verbose
+    ),
     fread(input_files)
   )
 
@@ -41,21 +47,24 @@ make_raw_matrix <- function(platform,
   # Note that values can still be NA here and may be due to a handful
   # of samples having problems (e.g. SDY224 / SDY212).  These NA values
   # are removed during normalization.
-  exprs_dt <- exprs_dt[ !is.na(feature_id) & feature_id != "" ]
+  exprs_dt <- exprs_dt[!is.na(feature_id) & feature_id != ""]
 
   # Map expsample or geo accession to biosample accession
   exprs_dt <- .map_sampleid_to_biosample_accession(exprs_dt, gef)
 
   # Subset to biosamples in selected_biosamples from UI
-  exprs_dt <- exprs_dt[ , colnames(exprs_dt) %in% c("feature_id", gef$biosample_accession),
-                        with = FALSE ]
+  exprs_dt <- exprs_dt[, colnames(exprs_dt) %in% c("feature_id", gef$biosample_accession),
+    with = FALSE
+  ]
 
   # Check that all gef samples are in the matrix - may not be the case if some
   # were removed for QC issues.  User should re-run matrix with these samples
   # removed.
-  if ( !all(gef$biosample_accession %in% colnames(exprs_dt)) ) {
-    stop("Some selected biosamples are not found in raw-matrix.",
-         "These may have been removed for QC issues. Please check and re-run")
+  if (!all(gef$biosample_accession %in% colnames(exprs_dt))) {
+    stop(
+      "Some selected biosamples are not found in raw-matrix.",
+      "These may have been removed for QC issues. Please check and re-run"
+    )
   }
 
   # Ensure colOrder
@@ -76,16 +85,21 @@ make_raw_matrix <- function(platform,
 #'
 #' @param raw_ge_dt data.table with raw values from illumina output
 #' for one sample
-.subset_raw_illumina_dt <- function(raw_ge_dt){
-  drop_terms <- c("bead", "array", "min", "max",
-                  "norm", "search", "gene", "target_id_type",
-                  "definition", "chromosome", "synonyms", "symbol",
-                  "probeid", "V([2-9]|\\d{2,3})") # allow V1
-  ge_dt <- raw_ge_dt[ , grep(paste(drop_terms, collapse = "|"),
-                             colnames(raw_ge_dt),
-                             ignore.case = TRUE,
-                             invert = TRUE),
-                      with = FALSE ]
+.subset_raw_illumina_dt <- function(raw_ge_dt) {
+  drop_terms <- c(
+    "bead", "array", "min", "max",
+    "norm", "search", "gene", "target_id_type",
+    "definition", "chromosome", "synonyms", "symbol",
+    "probeid", "V([2-9]|\\d{2,3})"
+  ) # allow V1
+  ge_dt <- raw_ge_dt[,
+    grep(paste(drop_terms, collapse = "|"),
+      colnames(raw_ge_dt),
+      ignore.case = TRUE,
+      invert = TRUE
+    ),
+    with = FALSE
+  ]
   ge_dt
 }
 
@@ -101,36 +115,35 @@ make_raw_matrix <- function(platform,
 #' @param raw_illumina_dt data.table of raw illumina values.
 #'
 #' @return data.table with cleaned up names ready for \code{read.ilmn()}
-.prep_illumina_headers <- function(raw_illumina_dt){
-
+.prep_illumina_headers <- function(raw_illumina_dt) {
   detection_indices <- grep("Detection", colnames(raw_illumina_dt), ignore.case = TRUE)
   detection_names <- colnames(raw_illumina_dt)[detection_indices]
   signal_indices <- grep("Detection|ID_REF|PROBE_ID|TARGET_ID|GENE_SYMBOL",
-                         colnames(raw_illumina_dt), invert = TRUE, ignore.case = TRUE)
+    colnames(raw_illumina_dt),
+    invert = TRUE, ignore.case = TRUE
+  )
   signal_names <- colnames(raw_illumina_dt)[signal_indices]
 
 
-  change_detection <- ( all(detection_names == "Detection Pval") | all(grepl("P_VALUE|PVAL", detection_names)) ) &
+  change_detection <- (all(detection_names == "Detection Pval") | all(grepl("P_VALUE|PVAL", detection_names))) &
     length(detection_names) > 0
-  change_signal <- !all( grepl("AVG_Signal", signal_names) ) & !all( grepl("^ES\\d{6,7}$", signal_names) )
-  change_probeid <- !any( grepl("ID_REF", colnames(raw_illumina_dt)) )
+  change_signal <- !all(grepl("AVG_Signal", signal_names)) & !all(grepl("^ES\\d{6,7}$", signal_names))
+  change_probeid <- !any(grepl("ID_REF", colnames(raw_illumina_dt)))
 
-  if ( change_detection ) {
-
-    if ( all(detection_names == "Detection Pval") ) {
+  if (change_detection) {
+    if (all(detection_names == "Detection Pval")) {
       detection_names <- paste0(signal_names, ".", detection_names)
     }
     detection_names <- gsub("DETECTION_(PVAL|P_VALUE)", "Detection Pval", detection_names)
     setnames(raw_illumina_dt, detection_indices, detection_names)
-
   }
 
-  if ( change_signal ) {
-    if ( any(grepl("RAW", signal_names)) ) {
+  if (change_signal) {
+    if (any(grepl("RAW", signal_names))) {
       signal_names <- gsub("RAW_SIGNAL", "AVG_Signal", signal_names)
     } else if (!any(grepl("SAMPLE", signal_names))) {
       signal_names <- paste0(signal_names, ".AVG_Signal")
-    } else if (all(grepl("^SAMPLE", signal_names))){
+    } else if (all(grepl("^SAMPLE", signal_names))) {
       signal_names <- paste0(signal_names, ".AVG_Signal")
     } else {
       signal_names <- gsub("AVG_Signal", "SAMPLE", signal_names)
@@ -139,7 +152,7 @@ make_raw_matrix <- function(platform,
     setnames(raw_illumina_dt, signal_indices, signal_names)
   }
 
-  if ( change_probeid ) {
+  if (change_probeid) {
     probeid_index <- grep("PROBE_ID|V1|TARGET_ID", colnames(raw_illumina_dt))
     setnames(raw_illumina_dt, probeid_index, "ID_REF")
   }
@@ -163,25 +176,28 @@ make_raw_matrix <- function(platform,
 
   # check for known issues that would hinder background correction
   # 1. Subjects with no fluorescence measurements
-  badSubs <- apply(raw_dt, 2, function(x){ all( x == 0 ) })
+  badSubs <- apply(raw_dt, 2, function(x) {
+    all(x == 0)
+  })
   if (any(badSubs)) {
-    nms <- names(badSubs[ badSubs == TRUE ])
+    nms <- names(badSubs[badSubs == TRUE])
     es <- regmatches(nms, regexpr("(ES|GSM)\\d{6,7}", nms))
-    raw_dt <- raw_dt[ , grep(es, colnames(raw_dt), invert = TRUE), with = FALSE]
+    raw_dt <- raw_dt[, grep(es, colnames(raw_dt), invert = TRUE), with = FALSE]
   }
 
   # 2. Control or misnamed probes (not unique) - e.g. "NEGATIVE"
-  raw_dt <- raw_dt[ grep("ILMN", raw_dt$ID_REF) ]
+  raw_dt <- raw_dt[grep("ILMN", raw_dt$ID_REF)]
   utils::write.table(raw_dt, raw_file_path, sep = "\t", row.names = FALSE, quote = FALSE)
 
   # Can only background correct using detection pvals.
   # Immport-derived files may already have this done in some cases.
-  if (any(grepl("Detection", colnames(raw_dt)))){
+  if (any(grepl("Detection", colnames(raw_dt)))) {
     # Get intensities
     esList <- limma::read.ilmn(raw_file_path,
-                               expr = "AVG_Signal",
-                               probeid = "ID_REF",
-                               verbose = FALSE)
+      expr = "AVG_Signal",
+      probeid = "ID_REF",
+      verbose = FALSE
+    )
     # Background correction
     raw_dt <- data.table(limma::nec(esList)$E, keep.rownames = TRUE)
   }
@@ -191,7 +207,7 @@ make_raw_matrix <- function(platform,
   tags <- "BS|GSM|ES"
   if (any(grepl(tags, colnames(raw_dt)))) {
     nmsVals <- grep(tags, colnames(raw_dt), value = TRUE)
-    rep  <- gsub("_", "", nmsVals) # SDY162
+    rep <- gsub("_", "", nmsVals) # SDY162
     setnames(raw_dt, nmsVals, rep)
   }
 
@@ -214,7 +230,7 @@ make_raw_matrix <- function(platform,
 #' and \code{hursta2a520709cdf}
 #'
 .process_affy <- function(input_files,
-                          verbose = FALSE){
+                          verbose = FALSE) {
   if (verbose) log_message("Processing affymetrix files...")
   if (verbose) log_message("Processing ", length(input_files), " CEL files")
   # Background Correction Notes:
@@ -223,7 +239,8 @@ make_raw_matrix <- function(platform,
   wd <- getwd()
   setwd("/") # b/c filepaths are absolute and justRMA prepends wd
   eset <- try(affy::justRMA(filenames = input_files, normalize = FALSE, background = TRUE),
-              silent = TRUE)
+    silent = TRUE
+  )
   setwd(wd)
   if ("try-error" %in% class(eset)) stop(eset)
 
@@ -232,11 +249,13 @@ make_raw_matrix <- function(platform,
 
   # Names come from input_files. In case of isGeo, these are not exact
   # matches but usually have the gsm accession in them.
-  if ( any(grep("GSM", colnames(exprs_dt))) ) {
-    sample_names <- grep("feature_id",
-                         colnames(exprs_dt),
-                         invert = TRUE,
-                         value = TRUE)
+  if (any(grep("GSM", colnames(exprs_dt)))) {
+    sample_names <- grep(
+      "feature_id",
+      colnames(exprs_dt),
+      invert = TRUE,
+      value = TRUE
+    )
     gsms <- regmatches(sample_names, regexpr("GSM\\d{6,7}", sample_names))
     setnames(exprs_dt, sample_names, gsms)
   }
@@ -251,10 +270,12 @@ make_raw_matrix <- function(platform,
 #'
 #' @param input_files input file names
 .process_rna_seq <- function(input_files,
-                             verbose = FALSE){
+                             verbose = FALSE) {
   if (verbose) log_message("Processing RNA-seq files...")
   lf <- lapply(input_files, fread)
-  exprs <- data.table(Reduce(f = function(x, y) {merge(x, y, all = TRUE)}, lf))
+  exprs <- data.table(Reduce(f = function(x, y) {
+    merge(x, y, all = TRUE)
+  }, lf))
 }
 
 
@@ -266,8 +287,8 @@ make_raw_matrix <- function(platform,
 #' @param exprs_dt data.table of gene expression with one column per sample,
 #' one row per feature.
 #'
-.map_feature_id_col <- function(exprs_dt){
-  if ( !any(grepl("feature_id", colnames(exprs_dt))) ) {
+.map_feature_id_col <- function(exprs_dt) {
+  if (!any(grepl("feature_id", colnames(exprs_dt)))) {
 
     # If Illumina from Immport
     prbCol <- grep("id_ref", colnames(exprs_dt), ignore.case = TRUE)
@@ -297,16 +318,16 @@ make_raw_matrix <- function(platform,
 #'
 #' @export
 .process_two_color_array <- function(path,
-                                     verbose = FALSE){
+                                     verbose = FALSE) {
   if (verbose) log_message("Processing two-color-array...")
   RG <- limma::read.maimages(files = path, source = "genepix")
   MA <- limma::normalizeWithinArrays(RG, bc.method = "normexp", method = "none")
-  ge_dt <- data.table(feature_id = MA$genes$ID, gsm = MA$A[,1])
+  ge_dt <- data.table(feature_id = MA$genes$ID, gsm = MA$A[, 1])
 
   # RM dup probes due to multiple probes per spot
   # RM NA vals possibly from background correction issues
-  ge_dt <- ge_dt[ !duplicated(feature_id) & !is.na(gsm) ]
+  ge_dt <- ge_dt[!duplicated(feature_id) & !is.na(gsm)]
 
   # RM unmappable feature_ids
-  ge_dt <- ge_dt[ grep("EMPTY|bsid", feature_id, invert = TRUE) ]
+  ge_dt <- ge_dt[grep("EMPTY|bsid", feature_id, invert = TRUE)]
 }

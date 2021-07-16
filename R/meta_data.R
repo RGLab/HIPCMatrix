@@ -54,14 +54,16 @@ get_meta_data <- function(study,
   meta_data <- list()
 
   # Set File location
-  if ( study == "SDY1529" ) {
-    meta_data$file_location <- ifelse( (0 %in% unique(gef$study_time_collected)),
-                                      "custom",
-                                      "gse_supp_files")
+  if (study == "SDY1529") {
+    meta_data$file_location <- ifelse((0 %in% unique(gef$study_time_collected)),
+      "custom",
+      "gse_supp_files"
+    )
   } else {
     file_location <- names(meta_data_list$file_locations)[
       vapply(meta_data_list$file_locations, function(location) study %in% location,
-             FUN.VALUE = TRUE)
+        FUN.VALUE = TRUE
+      )
     ]
     if (length(file_location) != 1) {
       stop("Could not determine location of input files.")
@@ -73,32 +75,36 @@ get_meta_data <- function(study,
   meta_data$custom_file_info <- meta_data_list$custom_file_info[[study]]
 
   # Set mapping info (Will be NULL if no mapping needed)
-  if ( study %in% meta_data_list$id_to_gsm_mapping_info$gsm_needs_map ) {
+  if (study %in% meta_data_list$id_to_gsm_mapping_info$gsm_needs_map) {
     meta_data$id_to_gse_mapping_info <- list(
       study_id_term = ifelse(study %in% meta_data_list$id_to_gsm_mapping_info$use_gsm_description, "description", "title"),
       gsm_map_index = ifelse(study %in% meta_data_list$id_to_gsm_mapping_info$use_gsm_index_2, 2, 1),
-      id_regex_map  = meta_data_list$id_to_gsm_mapping_info$id_regex_map_list[[study]]
+      id_regex_map = meta_data_list$id_to_gsm_mapping_info$id_regex_map_list[[study]]
     )
   }
 
   # Set platform (derive from fas_id)
 
   # **platform**: sequencing platform (Affymetrix, Illumina, or 'NA', aka RNAseq)
-  if ( is.null(fas_id) ) {
-    meta_data$platform <- unique(Rlabkey::labkey.selectRows(baseUrl = baseUrl,
-                                                folderPath = paste0("Studies/", study),
-                                                schemaName = "assay.ExpressionMatrix.matrix",
-                                                queryName = "Runs",
-                                                colNameOpt = "fieldname",
-                                                colSelect = "featureSet/Vendor")$`featureSet/Vendor`)
+  if (is.null(fas_id)) {
+    meta_data$platform <- unique(Rlabkey::labkey.selectRows(
+      baseUrl = baseUrl,
+      folderPath = paste0("Studies/", study),
+      schemaName = "assay.ExpressionMatrix.matrix",
+      queryName = "Runs",
+      colNameOpt = "fieldname",
+      colSelect = "featureSet/Vendor"
+    )$`featureSet/Vendor`)
   } else {
-    fas <- data.table(labkey.selectRows(baseUrl = baseUrl,
-                                        folderPath = "/Studies/",
-                                        schemaName = "Microarray",
-                                        queryName = "FeatureAnnotationSet",
-                                        colNameOpt = "rname",
-                                        showHidden = T))
-    meta_data$platform <- fas$vendor[ fas$rowid == fas_id ]
+    fas <- data.table(labkey.selectRows(
+      baseUrl = baseUrl,
+      folderPath = "/Studies/",
+      schemaName = "Microarray",
+      queryName = "FeatureAnnotationSet",
+      colNameOpt = "rname",
+      showHidden = T
+    ))
+    meta_data$platform <- fas$vendor[fas$rowid == fas_id]
   }
 
 
@@ -108,4 +114,3 @@ get_meta_data <- function(study,
 
   meta_data
 }
-

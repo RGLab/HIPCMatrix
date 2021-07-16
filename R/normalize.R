@@ -11,22 +11,23 @@
 #' @export
 normalize_rnaseq <- function(counts_mx,
                              verbose = FALSE) {
-
   if (verbose) log_message(" --- normalize_rnaseq --- ")
   if (verbose) log_message("Normalizing counts data using variance stabilizing transformation...")
   if (sum(is.na(counts_mx)) > 0) {
     stop("Missing values found.")
   }
-  if ( sum(duplicated(colnames(counts_mx))) > 0 ) {
+  if (sum(duplicated(colnames(counts_mx))) > 0) {
     warning("Duplicate column name: ", colnames(counts_mx)[duplicated(colnames(counts_mx))])
   }
   # newCountDataSet does not take duplicated column names, so assign temporary unique names
   original_colnames <- colnames(counts_mx)
   colnames(counts_mx) <- seq_len(ncol(counts_mx))
 
-  dds <- DESeq2::DESeqDataSetFromMatrix(countData = counts_mx,
-                                        colData = data.frame(sample = original_colnames),
-                                        design = ~ 1)
+  dds <- DESeq2::DESeqDataSetFromMatrix(
+    countData = counts_mx,
+    colData = data.frame(sample = original_colnames),
+    design = ~1
+  )
   vsd <- DESeq2::vst(dds)
 
   norm_exprs <- SummarizedExperiment::assay(vsd)
@@ -58,12 +59,11 @@ normalize_microarray <- function(exprs_mx,
                                  log2_transform = TRUE,
                                  force = FALSE,
                                  verbose = FALSE) {
-
   if (verbose) log_message(" --- normalize_microarray --- ")
   if (sum(is.na(exprs_mx)) > 0) {
     stop("Missing values found.")
   }
-  if ( sum(duplicated(colnames(exprs_mx))) > 0 ) {
+  if (sum(duplicated(colnames(exprs_mx))) > 0) {
     warning("Duplicate column name: ", colnames(exprs_mx)[duplicated(colnames(exprs_mx))])
   }
   # normalize.quantiles removes row and column names
@@ -71,15 +71,18 @@ normalize_microarray <- function(exprs_mx,
   rnames <- rownames(exprs_mx)
 
   # Do log2 transformation BEFORE normalization.
-  if ( log2_transform ) {
-    if ( max(exprs_mx) < 100 )
-      if ( !force ) {
-        stop("max(exprs_mx) < 100. ",
-             "It is likely already in log2 scale. ",
-             "Run with force=TRUE if you still want to log2 transform")
-      } else if ( verbose ) {
+  if (log2_transform) {
+    if (max(exprs_mx) < 100) {
+      if (!force) {
+        stop(
+          "max(exprs_mx) < 100. ",
+          "It is likely already in log2 scale. ",
+          "Run with force=TRUE if you still want to log2 transform"
+        )
+      } else if (verbose) {
         log_message("max(exprs_mx) < 100. Forcing log2 transform... ")
       }
+    }
     if (verbose) log_message("log2-transforming exprs_mx")
     exprs_mx <- log2(exprs_mx + 1)
   }
@@ -101,17 +104,16 @@ normalize_microarray <- function(exprs_mx,
 #'
 #' @export
 normalize_matrix <- function(exprs_dt, platform, verbose = FALSE) {
-
   badRows <- rowSums(is.na(exprs_dt)) > 0
-  if ( sum(badRows) > 0 ) {
+  if (sum(badRows) > 0) {
     warning("Removing ", sum(badRows), " rows with missing values")
     exprs_dt <- exprs_dt[stats::complete.cases(exprs_dt)]
   }
 
   ## Prepare matrix
 
-  feature_ids <- exprs_dt[ , feature_id ]
-  exprs_dt[ , feature_id := NULL ]
+  feature_ids <- exprs_dt[, feature_id]
+  exprs_dt[, feature_id := NULL]
 
   # Must ensure numeric values as conversion back to character can happen with
   # casting as matrix.
@@ -123,22 +125,26 @@ normalize_matrix <- function(exprs_dt, platform, verbose = FALSE) {
   norm_exprs <- switch(
     platform,
     "Illumina" = normalize_microarray(exprs_mx,
-                                      log2_transform = TRUE,
-                                      verbose = verbose),
+      log2_transform = TRUE,
+      verbose = verbose
+    ),
     "Affymetrix" = normalize_microarray(exprs_mx,
-                                        log2_transform = FALSE,
-                                        verbose = verbose),
+      log2_transform = FALSE,
+      verbose = verbose
+    ),
     "NA" = normalize_rnaseq(exprs_mx,
-                            verbose = verbose),
+      verbose = verbose
+    ),
     "Stanford Functional Genomics Facility" = normalize_microarray(exprs_mx,
-                                                                   log2_transform = FALSE,
-                                                                   verbose = verbose),
+      log2_transform = FALSE,
+      verbose = verbose
+    ),
     stop("Did not recognize platform: ", platform)
   )
 
   ## Convert back into data.table
   norm_exprs <- data.table(norm_exprs)
-  norm_exprs[ , feature_id := feature_ids ]
+  norm_exprs[, feature_id := feature_ids]
 
   sample_id_columns <- grep("feature_id", names(norm_exprs), invert = TRUE)
   feature_id_column <- grep("feature_id", names(norm_exprs))
@@ -146,4 +152,3 @@ normalize_matrix <- function(exprs_dt, platform, verbose = FALSE) {
 
   norm_exprs
 }
-

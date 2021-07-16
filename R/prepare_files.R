@@ -20,48 +20,48 @@ retrieve_input_files <- function(study,
                                  reload = FALSE) {
 
   # Identify correct input_files
-  if ( meta_data$file_location == "immport" ) {
+  if (meta_data$file_location == "immport") {
     if (verbose) log_message("Using immport files in ", analysis_dir)
-    input_files <- gef$file_info_name[ grep("cel$|txt$|tsv$|csv$",
-                                            gef$file_info_name,
-                                            ignore.case = TRUE)]
+    input_files <- gef$file_info_name[grep("cel$|txt$|tsv$|csv$",
+      gef$file_info_name,
+      ignore.case = TRUE
+    )]
     input_files <- file.path(analysis_dir, input_files)
-    input_files <- unique(input_files[ file.exists(input_files) ])
-
+    input_files <- unique(input_files[file.exists(input_files)])
   } else
-    if ( meta_data$file_location == "custom" ) {
-
+  if (meta_data$file_location == "custom") {
     raw_dir <- file.path(analysis_dir, meta_data$custom_file_info$directory)
     if (verbose) log_message("Using custom files in ", raw_dir)
 
     input_files <- list.files(raw_dir, full.names = TRUE)
-    input_files <- input_files[ grep(meta_data$custom_file_info$file_identifier_regex, input_files) ]
-
+    input_files <- input_files[grep(meta_data$custom_file_info$file_identifier_regex, input_files)]
   } else {
-
     input_files <- NA
-    gef <- gef[ !is.na(gef$geo_accession), ]
-
+    gef <- gef[!is.na(gef$geo_accession), ]
   }
 
   # Get raw files from GEO or prepare ImmPort flat files
   # At end of this step, there should be a single "cohort_type_raw_expression.txt"
   # file for non-affymetrix studies
-  if ( meta_data$file_location %in% c("gsm_soft", "gsm_supp_files", "gse_supp_files") ) {
-    input_files <- .prep_geo_files(study,
-                                   gef,
-                                   meta_data,
-                                   input_files,
-                                   analysis_dir,
-                                   verbose,
-                                   reload)
+  if (meta_data$file_location %in% c("gsm_soft", "gsm_supp_files", "gse_supp_files")) {
+    input_files <- .prep_geo_files(
+      study,
+      gef,
+      meta_data,
+      input_files,
+      analysis_dir,
+      verbose,
+      reload
+    )
   } else {
-    input_files <- .prep_immport_files(study,
-                                       gef,
-                                       meta_data$platform,
-                                       input_files,
-                                       analysis_dir,
-                                       verbose)
+    input_files <- .prep_immport_files(
+      study,
+      gef,
+      meta_data$platform,
+      input_files,
+      analysis_dir,
+      verbose
+    )
   }
 
   input_files
@@ -84,24 +84,24 @@ retrieve_input_files <- function(study,
 .get_geo_supp_files <- function(geo_accession,
                                 supp_files_dir,
                                 reload = FALSE) {
-  if ( !reload ) {
-
+  if (!reload) {
     file_info <- GEOquery::getGEOSuppFiles(geo_accession,
-                                           makeDirectory = FALSE,
-                                           baseDir = supp_files_dir,
-                                           fetch_files = FALSE)
+      makeDirectory = FALSE,
+      baseDir = supp_files_dir,
+      fetch_files = FALSE
+    )
     file_path <- file.path(supp_files_dir, gsub("\\.gz", "", file_info$fname))
-    if ( all(file.exists(file_path) | file.exists(file.path(supp_files_dir, file_info$fname))) ) {
+    if (all(file.exists(file_path) | file.exists(file.path(supp_files_dir, file_info$fname)))) {
       message("Using saved supp files for ", geo_accession)
-      return( file.path(supp_files_dir, file_info$fname) )
+      return(file.path(supp_files_dir, file_info$fname))
     }
   }
 
   info <- GEOquery::getGEOSuppFiles(geo_accession,
-                                    makeDirectory = FALSE,
-                                    baseDir = supp_files_dir)
+    makeDirectory = FALSE,
+    baseDir = supp_files_dir
+  )
   rownames(info)
-
 }
 
 #' Select input files
@@ -118,20 +118,20 @@ retrieve_input_files <- function(study,
   gz_files <- raw_files[grep("gz", raw_files)]
   for (file in gz_files) {
     GEOquery::gunzip(file.path(supp_files_dir, file),
-                     overwrite = TRUE,
-                     remove = TRUE)
+      overwrite = TRUE,
+      remove = TRUE
+    )
   }
 
   # find correct unzipped files with full paths
   # Do not include attempted intermediate file that may have been created if
   # run failed at a later point
   supp_files <- list.files(supp_files_dir)
-  input_files <- supp_files[ grepl(target_file_terms, supp_files, ignore.case = TRUE) &
-                               # exclude compressed files
-                               !grepl("gz|tar|RData", supp_files) &
-                               # exclude intermediate file generated by run
-                               !grepl("SDY\\d+_raw_expression", supp_files)
-  ]
+  input_files <- supp_files[grepl(target_file_terms, supp_files, ignore.case = TRUE) &
+    # exclude compressed files
+    !grepl("gz|tar|RData", supp_files) &
+    # exclude intermediate file generated by run
+    !grepl("SDY\\d+_raw_expression", supp_files)]
   file.path(supp_files_dir, input_files)
 }
 
@@ -142,11 +142,12 @@ retrieve_input_files <- function(study,
 #' @param geo_accession GSM or GSE accesssion
 #' @param supp_files_dir path to directory to save supplementary files.
 .getGEO_custom <- function(geo_accession, supp_files_dir) {
-  stopifnot( dir.exists(supp_files_dir) )
+  stopifnot(dir.exists(supp_files_dir))
   soft_files_dir <- file.path(supp_files_dir, "geo_soft_files")
-  if ( !dir.exists(soft_files_dir) ) dir.create(soft_files_dir)
+  if (!dir.exists(soft_files_dir)) dir.create(soft_files_dir)
   geo <- GEOquery::getGEO(geo_accession,
-                          destdir = soft_files_dir)
+    destdir = soft_files_dir
+  )
   geo
 }
 
@@ -176,17 +177,20 @@ retrieve_input_files <- function(study,
   stopifnot(dir.exists(supp_files_dir))
 
   id_to_gsm_map <- vapply(gsms,
-                          function(gsm) {
-                            res <- .getGEO_custom(gsm, supp_files_dir)
-                            res@header[[study_id_term]][[gsm_map_index]]
-                          },
-                          FUN.VALUE = "id",
-                          USE.NAMES = TRUE)
+    function(gsm) {
+      res <- .getGEO_custom(gsm, supp_files_dir)
+      res@header[[study_id_term]][[gsm_map_index]]
+    },
+    FUN.VALUE = "id",
+    USE.NAMES = TRUE
+  )
 
   if (!is.null(id_regex_map)) {
-    id_to_gsm_map <- gsub(id_regex_map$old,
-                          id_regex_map$new,
-                          id_to_gsm_map)
+    id_to_gsm_map <- gsub(
+      id_regex_map$old,
+      id_regex_map$new,
+      id_to_gsm_map
+    )
   }
 
   id_to_gsm_map
@@ -212,200 +216,206 @@ retrieve_input_files <- function(study,
                             input_files,
                             analysis_dir,
                             verbose = FALSE,
-                            reload = FALSE){
-  supp_files_dir <- .get_supp_files_dir(analysis_dir,
-                                        gef)
+                            reload = FALSE) {
+  supp_files_dir <- .get_supp_files_dir(
+    analysis_dir,
+    gef
+  )
 
   # In GSM SOFT File (currently only SDY1289 which is Illumina)
-  if ( meta_data$file_location == "gsm_soft" ) {
-
+  if (meta_data$file_location == "gsm_soft") {
     if (verbose) log_message("Downloading GSM soft files to ", supp_files_dir)
-    ge_df_list <- lapply(gef$geo_accession, function(gsm){
+    ge_df_list <- lapply(gef$geo_accession, function(gsm) {
       res <- .getGEO_custom(gsm, supp_files_dir)
       ge_df <- res@dataTable@table
-      ge_df <- ge_df[ , colnames(ge_df) %in% c("ID_REF", meta_data$gsm_table_var_name) ]
+      ge_df <- ge_df[, colnames(ge_df) %in% c("ID_REF", meta_data$gsm_table_var_name)]
       colnames(ge_df)[[2]] <- gsm
       return(ge_df)
     })
 
     input_files <- .ge_list_to_flat_file(ge_df_list, supp_files_dir, study)
-
   } else
-    # In GSM Supp file (most common )
-    if ( meta_data$file_location == "gsm_supp_files" ) {
-      if (verbose) log_message("Downloading GSM supp files to ", supp_files_dir)
+  # In GSM Supp file (most common )
+  if (meta_data$file_location == "gsm_supp_files") {
+    if (verbose) log_message("Downloading GSM supp files to ", supp_files_dir)
 
-      if ( meta_data$platform == "Illumina" ) {
+    if (meta_data$platform == "Illumina") {
+      ge_list <- lapply(gef$geo_accession, function(gsm) {
+        if (verbose) log_message("----- ", gsm, " -----")
+        file_gz <- .get_geo_supp_files(gsm,
+          supp_files_dir,
+          reload = reload
+        )
 
-        ge_list <- lapply(gef$geo_accession, function(gsm) {
-          if (verbose) log_message("----- ", gsm, " -----")
-          file_gz <- .get_geo_supp_files(gsm,
-                                         supp_files_dir,
-                                         reload = reload)
+        file_path <- file.path(gsub("\\.gz", "", file_gz))
+        if (!file.exists(file_path)) {
+          GEOquery::gunzip(file_gz, file_path, overwrite = TRUE)
+        }
 
-          file_path <- file.path(gsub("\\.gz", "", file_gz))
-          if ( !file.exists(file_path) ) {
-            GEOquery::gunzip(file_gz, file_path, overwrite = TRUE)
+        if (!is.null(meta_data$illumina_manifest_file)) {
+          manifest_path <- file.path(analysis_dir, meta_data$illumina_manifest_file)
+          if (!file.exists(manifest_path)) {
+            manifest_url <- paste0(
+              "https://github.com/RGLab/UpdateAnno/raw/main/CreateMatrixAssets/IlluminaManifests/",
+              meta_data$illumina_manifest_file
+            )
+            utils::download.file(url = manifest_url, destfile = manifest_path, quiet = TRUE)
           }
 
-          if ( !is.null(meta_data$illumina_manifest_file) ) {
+          res <- limma::read.idat(
+            idatfiles = file_path,
+            bgxfile = manifest_path
+          )
+          raw_illumina_dt <- res$E
+          pvals <- limma::detectionPValues(res)
+          raw_illumina_dt <- data.table(
+            gsm = raw_illumina_dt[, 1],
+            pvals = pvals[, 1],
+            ID_REF = res$genes$Probe_Id
+          )
+          # dups b/c single probe assigned to multiple array_ids
+          raw_illumina_dt <- raw_illumina_dt[!duplicated(raw_illumina_dt$ID_REF)]
+          setnames(raw_illumina_dt, "gsm", paste0(gsm, ".AVG_Signal"))
+          setnames(raw_illumina_dt, "pvals", paste0(gsm, ".Detection Pval"))
+        } else {
+          raw_illumina_dt <- fread(file_path)
+          raw_illumina_dt <- .subset_raw_illumina_dt(raw_illumina_dt)
+          raw_illumina_dt <- .prep_illumina_headers(raw_illumina_dt)
+          sampleid_formats <- "\\d{10}_[A-Z]"
+          sampleid <- regmatches(
+            colnames(raw_illumina_dt)[[2]],
+            regexpr(
+              sampleid_formats,
+              colnames(raw_illumina_dt)[[2]]
+            )
+          )
+          colnames(raw_illumina_dt) <- gsub(sampleid, gsm, colnames(raw_illumina_dt))
+        }
 
-            manifest_path <- file.path(analysis_dir, meta_data$illumina_manifest_file)
-            if ( !file.exists(manifest_path) ) {
-              manifest_url <- paste0("https://github.com/RGLab/UpdateAnno/raw/main/CreateMatrixAssets/IlluminaManifests/",
-                                     meta_data$illumina_manifest_file)
-              utils::download.file(url = manifest_url, destfile = manifest_path, quiet = TRUE)
-            }
-
-            res <- limma::read.idat(idatfiles = file_path,
-                                    bgxfile = manifest_path)
-            raw_illumina_dt <- res$E
-            pvals <- limma::detectionPValues(res)
-            raw_illumina_dt <- data.table(gsm = raw_illumina_dt[,1],
-                                          pvals = pvals[,1],
-                                          ID_REF = res$genes$Probe_Id)
-            # dups b/c single probe assigned to multiple array_ids
-            raw_illumina_dt <- raw_illumina_dt[ !duplicated(raw_illumina_dt$ID_REF) ]
-            setnames(raw_illumina_dt, "gsm", paste0(gsm, ".AVG_Signal"))
-            setnames(raw_illumina_dt, "pvals", paste0(gsm, ".Detection Pval"))
-
-          } else {
-
-            raw_illumina_dt <- fread(file_path)
-            raw_illumina_dt <- .subset_raw_illumina_dt(raw_illumina_dt)
-            raw_illumina_dt <- .prep_illumina_headers(raw_illumina_dt)
-            sampleid_formats <- "\\d{10}_[A-Z]"
-            sampleid <- regmatches(colnames(raw_illumina_dt)[[2]],
-                                   regexpr(sampleid_formats,
-                                           colnames(raw_illumina_dt)[[2]]))
-            colnames(raw_illumina_dt) <- gsub(sampleid, gsm, colnames(raw_illumina_dt))
-
-          }
-
-          raw_illumina_dt
-        })
-
-      } else
-        if ( meta_data$platform == "Affymetrix" ) {
-
-          lapply(gef$geo_accession,
-                 .get_geo_supp_files,
-                 supp_files_dir = supp_files_dir,
-                 reload = reload)
-          input_files <- .select_input_files(supp_files_dir)
-
-          # Stanford custom HEEBO
-        } else
-          if ( grepl("Stanford", meta_data$platform) ) {
-
-            ge_list <- lapply(gef$geo_accession, function(gsm){
-              path <- .get_geo_supp_files(gsm, supp_files_dir, reload = reload)
-              # Because of two colors, do background correction and processing here
-              # to generate single expression value per probe
-              ge_df <- .process_two_color_array(path)
-              setnames(ge_df, "gsm", gsm)
-              return(ge_df)
-            })
-
-          } else
-            if ( meta_data$platform == "NA" ){
-
-              ge_list <- lapply(gef$geo_accession, function(gsm){
-                path <- .get_geo_supp_files(gsm, supp_files_dir, reload = reload)
-                ge_dt <- fread(path)
-                setnames(ge_dt, "V2", gsm) # ensemblId as 'V1'
-                return(ge_dt)
-              })
-
-            }
-
-      # InputFiles for Affy will just be a list of CEL files. All others
-      # should be written to one "raw" matrix (counts or probe intensities)
-      if (meta_data$platform != "Affymetrix"){
-        input_files <- .ge_list_to_flat_file(ge_list, supp_files_dir, study)
-      }
-
+        raw_illumina_dt
+      })
     } else
-      if ( meta_data$file_location == "gse_supp_files" ) {
+    if (meta_data$platform == "Affymetrix") {
+      lapply(gef$geo_accession,
+        .get_geo_supp_files,
+        supp_files_dir = supp_files_dir,
+        reload = reload
+      )
+      input_files <- .select_input_files(supp_files_dir)
 
-        if (verbose) log_message("Downloading GSE supp files to ", supp_files_dir)
-        gse_accessions <- unique(unlist(lapply(gef$geo_accession, function(x) {
-          gsm <- .getGEO_custom(x, supp_files_dir)
-          gsm@header$series_id
-        })))
+      # Stanford custom HEEBO
+    } else
+    if (grepl("Stanford", meta_data$platform)) {
+      ge_list <- lapply(gef$geo_accession, function(gsm) {
+        path <- .get_geo_supp_files(gsm, supp_files_dir, reload = reload)
+        # Because of two colors, do background correction and processing here
+        # to generate single expression value per probe
+        ge_df <- .process_two_color_array(path)
+        setnames(ge_df, "gsm", gsm)
+        return(ge_df)
+      })
+    } else
+    if (meta_data$platform == "NA") {
+      ge_list <- lapply(gef$geo_accession, function(gsm) {
+        path <- .get_geo_supp_files(gsm, supp_files_dir, reload = reload)
+        ge_dt <- fread(path)
+        setnames(ge_dt, "V2", gsm) # ensemblId as 'V1'
+        return(ge_dt)
+      })
+    }
 
-        gse_supp_files <- sapply(gse_accessions,
-                                 .get_geo_supp_files,
-                                 supp_files_dir = supp_files_dir,
-                                 reload = reload)
+    # InputFiles for Affy will just be a list of CEL files. All others
+    # should be written to one "raw" matrix (counts or probe intensities)
+    if (meta_data$platform != "Affymetrix") {
+      input_files <- .ge_list_to_flat_file(ge_list, supp_files_dir, study)
+    }
+  } else
+  if (meta_data$file_location == "gse_supp_files") {
+    if (verbose) log_message("Downloading GSE supp files to ", supp_files_dir)
+    gse_accessions <- unique(unlist(lapply(gef$geo_accession, function(x) {
+      gsm <- .getGEO_custom(x, supp_files_dir)
+      gsm@header$series_id
+    })))
 
-        input_files <- .select_input_files(supp_files_dir)
+    gse_supp_files <- sapply(gse_accessions,
+      .get_geo_supp_files,
+      supp_files_dir = supp_files_dir,
+      reload = reload
+    )
 
-        ge_list <- lapply(input_files, fread)
-        ge_list <- .fix_headers(ge_list, study)
+    input_files <- .select_input_files(supp_files_dir)
 
-        id_mapping_info <- meta_data$id_to_gse_mapping_info
-        if ( !is.null(id_mapping_info) ) {
-          id_map <- .make_id_to_gsm_map(gef$geo_accession,
-                                        study_id_term = id_mapping_info$study_id_term,
-                                        gsm_map_index = id_mapping_info$gsm_map_index,
-                                        id_regex_map = id_mapping_info$id_regex_map,
-                                        supp_files_dir = supp_files_dir)
+    ge_list <- lapply(input_files, fread)
+    ge_list <- .fix_headers(ge_list, study)
+
+    id_mapping_info <- meta_data$id_to_gse_mapping_info
+    if (!is.null(id_mapping_info)) {
+      id_map <- .make_id_to_gsm_map(gef$geo_accession,
+        study_id_term = id_mapping_info$study_id_term,
+        gsm_map_index = id_mapping_info$gsm_map_index,
+        id_regex_map = id_mapping_info$id_regex_map,
+        supp_files_dir = supp_files_dir
+      )
+    }
+
+    # Illumina raw data in gse supp files
+    # Because multiple raw files need to be combined, must
+    # address header issues prior to combination otherwise
+    # untreated "Detection Pval" cols will cause dup error
+    # during merge. Note: SDY400 handled in fixHeaders
+    if (meta_data$platform == "Illumina") {
+      ge_list <- lapply(ge_list, function(raw_illumina_dt) {
+        raw_illumina_dt <- .subset_raw_illumina_dt(raw_illumina_dt)
+        raw_illumina_dt <- .prep_illumina_headers(raw_illumina_dt)
+        if (!is.null(id_mapping_info)) {
+
+          # Replace ids with GSM accession
+          for (gsm in names(id_map)) {
+
+            # Fixed b/c some ids have escape char (e.g. ".")
+            # Paste0 with "^" b/c some ids are numeric and confusable (e.g. "2.1" and "12.1")
+            # lookahead to ensure full id before sep and not partial (e.g "PBMC_1" and "PBMC_12")
+            # perl = TRUE for lookahead
+            fixed_id_regex <- paste0(
+              "^",
+              gsub(".", "\\.", id_map[gsm], fixed = T),
+              "(?=(\\.|_|$))"
+            )
+            colnames(raw_illumina_dt) <- gsub(fixed_id_regex,
+              gsm,
+              colnames(raw_illumina_dt),
+              perl = TRUE
+            )
+          }
         }
+        raw_illumina_dt <- raw_illumina_dt[,
+          grep(
+            "GSM|ID_REF",
+            colnames(raw_illumina_dt)
+          ),
+          with = FALSE
+        ]
+      })
+    }
 
-        # Illumina raw data in gse supp files
-        # Because multiple raw files need to be combined, must
-        # address header issues prior to combination otherwise
-        # untreated "Detection Pval" cols will cause dup error
-        # during merge. Note: SDY400 handled in fixHeaders
-        if ( meta_data$platform == "Illumina" ) {
+    ge_df <- Reduce(f = function(x, y) {
+      merge(x, y)
+    }, ge_list)
 
-          ge_list <- lapply(ge_list, function(raw_illumina_dt) {
-            raw_illumina_dt <- .subset_raw_illumina_dt(raw_illumina_dt)
-            raw_illumina_dt <- .prep_illumina_headers(raw_illumina_dt)
-            if ( !is.null(id_mapping_info) ) {
+    # Case 7: RNAseq in gse supp files
+    # Header mapping assumes that names are in getGEO(gsm) object.
+    # Need to check on a per study basis and tweak if need be.
+    if (meta_data$platform == "NA") {
+      ge_df <- ge_df[, colnames(ge_df) %in% c("GENES", "V1", id_map), with = FALSE]
+      ids <- grep("GENES|V1", colnames(ge_df), invert = TRUE, value = TRUE)
+      gsms <- names(id_map)[match(ids, id_map)]
+      setnames(ge_df, ids, gsms)
+    }
 
-              # Replace ids with GSM accession
-              for ( gsm in names(id_map) ) {
-
-                # Fixed b/c some ids have escape char (e.g. ".")
-                # Paste0 with "^" b/c some ids are numeric and confusable (e.g. "2.1" and "12.1")
-                # lookahead to ensure full id before sep and not partial (e.g "PBMC_1" and "PBMC_12")
-                # perl = TRUE for lookahead
-                fixed_id_regex <- paste0("^",
-                                         gsub(".", "\\.", id_map[gsm], fixed = T),
-                                         "(?=(\\.|_|$))")
-                colnames(raw_illumina_dt) <- gsub(fixed_id_regex,
-                                                  gsm,
-                                                  colnames(raw_illumina_dt),
-                                                  perl = TRUE)
-              }
-            }
-            raw_illumina_dt <- raw_illumina_dt[ ,
-                                                grep("GSM|ID_REF",
-                                                     colnames(raw_illumina_dt)),
-                                                with = FALSE]
-          })
-
-        }
-
-        ge_df <- Reduce(f = function(x, y) {merge(x, y)}, ge_list)
-
-        # Case 7: RNAseq in gse supp files
-        # Header mapping assumes that names are in getGEO(gsm) object.
-        # Need to check on a per study basis and tweak if need be.
-        if ( meta_data$platform == "NA" ) {
-          ge_df <- ge_df[ , colnames(ge_df) %in% c("GENES","V1", id_map), with = FALSE ]
-          ids <- grep("GENES|V1", colnames(ge_df), invert = TRUE, value = TRUE)
-          gsms <- names(id_map)[ match(ids, id_map) ]
-          setnames(ge_df, ids, gsms)
-        }
-
-        input_files <- .write_raw_expression(ge_df, supp_files_dir, study)
-
-      } else {
-        stop("Could not determine location of raw files. ")
-      }
+    input_files <- .write_raw_expression(ge_df, supp_files_dir, study)
+  } else {
+    stop("Could not determine location of raw files. ")
+  }
 
   input_files
 }
@@ -425,31 +435,32 @@ retrieve_input_files <- function(study,
                                 platform,
                                 input_files,
                                 analysis_dir,
-                                verbose = FALSE){
-
-  supp_files_dir <- .get_supp_files_dir(analysis_dir,
-                                        gef)
+                                verbose = FALSE) {
+  supp_files_dir <- .get_supp_files_dir(
+    analysis_dir,
+    gef
+  )
 
   if (verbose) log_message("Preparing immport files from ", analysis_dir)
 
-  if( platform == "Illumina" ) {
-    ge_list <- lapply(input_files, function(path){
+  if (platform == "Illumina") {
+    ge_list <- lapply(input_files, function(path) {
       raw_illumina_dt <- fread(path)
       raw_illumina_dt <- .subset_raw_illumina_dt(raw_illumina_dt)
       raw_illumina_dt <- .prep_illumina_headers(raw_illumina_dt)
     })
     input_files <- .ge_list_to_flat_file(ge_list, supp_files_dir, study)
   } else
-    if ( platform == "NA" ) {
-      ge_list <- lapply(input_files, fread)
-      ge_list <- .fix_headers(ge_list, study)
-      input_files <- .ge_list_to_flat_file(ge_list, supp_files_dir, study)
-    } else
-      if ( platform == "Affymetrix" ) {
-        if (!all(grepl("\\.cel", tolower(input_files)))) {
-          stop("Affymetrix should only have CEL input files")
-        }
-      }
+  if (platform == "NA") {
+    ge_list <- lapply(input_files, fread)
+    ge_list <- .fix_headers(ge_list, study)
+    input_files <- .ge_list_to_flat_file(ge_list, supp_files_dir, study)
+  } else
+  if (platform == "Affymetrix") {
+    if (!all(grepl("\\.cel", tolower(input_files)))) {
+      stop("Affymetrix should only have CEL input files")
+    }
+  }
   # Affy should already be CEL files so nothing to do
 
   return(input_files)
@@ -463,16 +474,17 @@ retrieve_input_files <- function(study,
 #' one row per feature.
 #' @param gef result of ISCon$getDataset("gene_expression_files") for one run.
 #'
-.map_sampleid_to_biosample_accession <- function(exprs_dt, gef){
-  if ( any(grepl("^(ES|GSM)\\d{6,7}$", colnames(exprs_dt))) ) {
-    col_to_use <- ifelse( any(grepl("ES", colnames(exprs_dt))),
-                          "expsample_accession",
-                          "geo_accession")
+.map_sampleid_to_biosample_accession <- function(exprs_dt, gef) {
+  if (any(grepl("^(ES|GSM)\\d{6,7}$", colnames(exprs_dt)))) {
+    col_to_use <- ifelse(any(grepl("ES", colnames(exprs_dt))),
+      "expsample_accession",
+      "geo_accession"
+    )
   } else {
     col_to_use <- "file_info_name"
   }
   sampleids <- grep("feature_id", colnames(exprs_dt), value = TRUE, invert = TRUE)
-  biosample_accessions <- gef$biosample_accession[ match(sampleids, gef[[col_to_use]]) ]
+  biosample_accessions <- gef$biosample_accession[match(sampleids, gef[[col_to_use]])]
 
   # remove samples without matching biosample accession
   sampleids <- sampleids[!is.na(biosample_accessions)]
@@ -481,4 +493,3 @@ retrieve_input_files <- function(study,
   setnames(exprs_dt, sampleids, biosample_accessions)
   return(exprs_dt)
 }
-
