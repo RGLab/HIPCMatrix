@@ -6,6 +6,9 @@
 \usage{
 .select_input_files(supp_files_dir)
 }
+\arguments{
+\item{supp_files_dir}{Path to directory for storing supplementary files.}
+}
 \description{
 Select the correct input files from supplemental directory and unzip if needed.
 }

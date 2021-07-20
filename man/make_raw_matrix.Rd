@@ -9,9 +9,11 @@ make_raw_matrix(platform, gef, input_files, verbose = FALSE)
 \arguments{
 \item{platform}{Illumina, Affymetrix, or NA}
 
-\item{gef}{result of ISCon$getDataset("gene_expression_files") for one run.}
+\item{gef}{result of \code{ISCon$getDataset("gene_expression_files")} for one run.}
 
 \item{input_files}{input file names}
+
+\item{verbose}{print verbose logging statements?}
 }
 \value{
 A data.table containing raw counts or background-corrected probe

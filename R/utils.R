@@ -2,7 +2,8 @@
 #'
 #' Create run-specific base directory for supplementary files.
 #' Important that run specific directory is created to avoid overlap with previous runs.
-#' This done with unique cell_type * arm_accession string (aka cohort_type)
+#' This done with unique cell_type * arm_accession string (aka cohort_type).
+#' Any spaces in cell_type or arm_accession are replaced with \code{-}
 #'
 #' @param analysis_dir analysis directory
 #' @param gef result of ISCon$getDataset("gene_expression_files") for one run.
@@ -12,7 +13,7 @@
     analysis_dir,
     "supp_files",
     paste0(
-      unique(gef$type),
+      gsub(" ", "-", unique(gef$type)),
       "_",
       unique(gef$arm_accession)
     )
@@ -155,7 +156,8 @@ summarize_by_gene_symbol <- function(ge_dt,
 #'   4. \code{<matrix_name>.summary.orig}: normalized values, summarized by gene symbol
 #'   (based on original annotation)
 #'
-#' @param pipeline.root pipeline.root
+#' @param output_dir path to output directory (directory where final matrices
+#' will be written)
 #' @param matrix_name Name of matrix
 #' @param exprs data.table of raw (background-corrected) expression (from \code{makeRawMatrix()})
 #' @param norm_exprs data.table of normalized expression (from \code{normalizeMatrix()})

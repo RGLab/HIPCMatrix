@@ -18,11 +18,14 @@
 
 \item{gef}{result of ISCon$getDataset("gene_expression_files") for one run.}
 
+\item{platform}{Sequencing platform: "Illumina", "Affymetrix", "Stanford",
+or "NA" for RNA-seq.}
+
 \item{input_files}{input file names}
 
-\item{verbose}{print verbose logging statements?}
+\item{analysis_dir}{path to analysis directory}
 
-\item{meta_data}{list of study-specific meta data}
+\item{verbose}{print verbose logging statements?}
 }
 \value{
 path to raw, prepped input files

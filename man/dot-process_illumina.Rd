@@ -8,6 +8,8 @@
 }
 \arguments{
 \item{raw_file_path}{file path to raw illumina file}
+
+\item{verbose}{print verbose logging statements?}
 }
 \description{
 For Illumina, correct background using nec() which

@@ -14,5 +14,6 @@
 \description{
 Create run-specific base directory for supplementary files.
 Important that run specific directory is created to avoid overlap with previous runs.
-This done with unique cell_type * arm_accession string (aka cohort_type)
+This done with unique cell_type * arm_accession string (aka cohort_type).
+Any spaces in cell_type or arm_accession are replaced with \code{-}
 }

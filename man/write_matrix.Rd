@@ -14,6 +14,9 @@ write_matrix(
 )
 }
 \arguments{
+\item{output_dir}{path to output directory (directory where final matrices
+will be written)}
+
 \item{matrix_name}{Name of matrix}
 
 \item{exprs}{data.table of raw (background-corrected) expression (from \code{makeRawMatrix()})}
@@ -23,8 +26,6 @@ write_matrix(
 \item{sum_exprs}{data.table of summarized expression (from \code{summarizeMatrix()})}
 
 \item{verbose}{Write verbose print statements?}
-
-\item{pipeline.root}{pipeline.root}
 }
 \description{
 Write matrix to file system

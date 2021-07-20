@@ -1,5 +1,3 @@
-
-
 #' Make Raw Matrix
 #'
 #' Using raw input files, create a matrix with raw counts or background-corrected
@@ -9,8 +7,9 @@
 #' intensities with a feature_id column and one column per biosample_accession
 #'
 #' @param platform Illumina, Affymetrix, or NA
-#' @param gef result of ISCon$getDataset("gene_expression_files") for one run.
+#' @param gef result of \code{ISCon$getDataset("gene_expression_files")} for one run.
 #' @param input_files input file names
+#' @param verbose print verbose logging statements?
 #' @export
 make_raw_matrix <- function(platform,
                             gef,
@@ -168,6 +167,7 @@ make_raw_matrix <- function(platform,
 #' to remove noise.
 #'
 #' @param raw_file_path file path to raw illumina file
+#' @param verbose print verbose logging statements?
 #'
 .process_illumina <- function(raw_file_path,
                               verbose = FALSE) {
@@ -220,6 +220,7 @@ make_raw_matrix <- function(platform,
 #' Process Affy
 #'
 #' @param input_files input file names
+#' @param verbose print verbose logging statements?
 #'
 #' @return background-corrected data.table of probe intensities
 #'
@@ -269,6 +270,7 @@ make_raw_matrix <- function(platform,
 #' of raw counts files ...
 #'
 #' @param input_files input file names
+#' @param verbose print verbose logging statements?
 .process_rna_seq <- function(input_files,
                              verbose = FALSE) {
   if (verbose) log_message("Processing RNA-seq files...")
@@ -314,7 +316,8 @@ make_raw_matrix <- function(platform,
 #' bc.method is the background correction method and normexp is used to match
 #' work with Illumina and Affymetrix.
 #'
-#' @param path path to
+#' @param path path to input files
+#' @param verbose print verbose logging statements?
 #'
 #' @export
 .process_two_color_array <- function(path,

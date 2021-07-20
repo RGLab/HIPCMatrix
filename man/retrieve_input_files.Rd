@@ -21,6 +21,10 @@ retrieve_input_files(
 \item{meta_data}{List of study-specific metadata}
 
 \item{analysis_dir}{directory to save intermediate files.}
+
+\item{verbose}{print verbose logging statements?}
+
+\item{reload}{re-download files if already found?}
 }
 \description{
 Identify input file location and download and prepare

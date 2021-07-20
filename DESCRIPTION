@@ -7,7 +7,7 @@ Authors@R:
            role = c("aut", "cre"),
            email = "hmiller@fredhutch.org")
 Description: This package provides utilities for processing and analyzing bulk gene expression data for ImmuneSpace.
-License: `use_mit_license()`
+License: GPL-2
 Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE)
@@ -25,6 +25,7 @@ Imports:
     limma,
     preprocessCore,
     Rlabkey,
+    SummarizedExperiment,
     tools
 Suggests: 
     hugene10stv1cdf,
@@ -36,7 +37,8 @@ Suggests:
     hursta2a520709cdf,
     testthat (>= 3.0.0),
     knitr,
-    rmarkdown
+    rmarkdown, 
+    R.utils
 Config/testthat/edition: 3
 VignetteBuilder: knitr
 Depends: 

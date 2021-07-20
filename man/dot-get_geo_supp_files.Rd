@@ -9,7 +9,9 @@
 \arguments{
 \item{geo_accession}{GSM or GSE accesssion}
 
-\item{supp_files_dir}{path to directory to save supplementary files.
+\item{supp_files_dir}{path to directory to save supplementary files.}
+
+\item{reload}{Force re-download of files if already found in \code{supp_files_dir}?
 On ImmuneSpace servers, an appropriate directory can be found with
 \code{.get_supp_files_dir()}}
 }

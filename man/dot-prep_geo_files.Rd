@@ -22,6 +22,12 @@
 \item{meta_data}{list of study-specific meta data}
 
 \item{input_files}{input file names}
+
+\item{analysis_dir}{path to analysis directory}
+
+\item{verbose}{print verbose logging statements?}
+
+\item{reload}{re-download files if already found in analysis_dir?}
 }
 \value{
 path to raw, prepped input files. tsv for everyone except affy, which

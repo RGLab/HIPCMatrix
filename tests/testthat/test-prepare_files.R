@@ -1,7 +1,7 @@
 .prep_geo_files <- HIPCMatrix:::.prep_geo_files
 
 test_that("select_input_files selects the correct files", {
-  supp_files_dir <- "test_data/sdy787/supp_files/T cell_ARM3144"
+  supp_files_dir <- "test_data/sdy787/supp_files/T-cell_ARM3144"
   expect_equal(
     HIPCMatrix:::.select_input_files(supp_files_dir),
     file.path(supp_files_dir, "GSE113891_PT_all_Count.tsv")
@@ -75,7 +75,7 @@ test_that("immport files are loaded correctly", {
   )
   expect_equal(
     files,
-    "test_data/sdy387/supp_files/Whole blood_ARM2325/SDY387_raw_expression.txt"
+    "test_data/sdy387/supp_files/Whole-blood_ARM2325/SDY387_raw_expression.txt"
   )
 })
 
@@ -99,9 +99,9 @@ test_that(".prep_geo_files GSM SOFT", {
       verbose = TRUE,
       reload = FALSE
     ),
-    "Downloading GSM soft files to test_data/sdy1289/supp_files/Whole blood_ARM4455"
+    "Downloading GSM soft files to test_data/sdy1289/supp_files/Whole-blood_ARM4455"
   )
-  expect_equal(input_files, "test_data/sdy1289/supp_files/Whole blood_ARM4455/SDY1289_raw_expression.txt")
+  expect_equal(input_files, "test_data/sdy1289/supp_files/Whole-blood_ARM4455/SDY1289_raw_expression.txt")
 })
 test_that(".prep_geo_files GSM supp illumina", {
   meta_data <- get_meta_data("SDY180")
@@ -119,9 +119,9 @@ test_that(".prep_geo_files GSM supp illumina", {
       verbose = TRUE,
       reload = FALSE
     ),
-    "Downloading GSM supp files to test_data/sdy180/supp_files/Whole blood_ARM773"
+    "Downloading GSM supp files to test_data/sdy180/supp_files/Whole-blood_ARM773"
   )
-  expect_equal(input_files, "test_data/sdy180/supp_files/Whole blood_ARM773/SDY180_raw_expression.txt")
+  expect_equal(input_files, "test_data/sdy180/supp_files/Whole-blood_ARM773/SDY180_raw_expression.txt")
 })
 test_that(".prep_geo_files GSM supp affy", {
   meta_data <- get_meta_data("SDY1328")
@@ -139,7 +139,7 @@ test_that(".prep_geo_files GSM supp affy", {
       verbose = TRUE,
       reload = FALSE
     ),
-    "Downloading GSM supp files to test_data/sdy1328/supp_files/Whole blood_ARM4537"
+    "Downloading GSM supp files to test_data/sdy1328/supp_files/Whole-blood_ARM4537"
   )
   expect_length(input_files, 2)
   expect_true(all(grepl("CEL", input_files)))
@@ -207,5 +207,5 @@ test_that(".prep_geo_files GSE supp rnaseq", {
     ),
     "Using locally cached version of GSM3122900"
   )
-  expect_equal(input_files, "test_data/sdy787/supp_files/T cell_ARM3144/SDY787_raw_expression.txt")
+  expect_equal(input_files, "test_data/sdy787/supp_files/T-cell_ARM3144/SDY787_raw_expression.txt")
 })

@@ -1,7 +1,7 @@
 ^HIPCMatrix\.Rproj$
 ^\.Rproj\.user$
 ^data-raw$
-^dev$
+^inst/dev$
 
 
 ^\.github$

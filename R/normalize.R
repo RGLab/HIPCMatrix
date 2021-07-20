@@ -7,6 +7,7 @@
 #'
 #' @param counts_mx matrix with raw counts, one column per sample, one
 #' row per feature
+#' @param verbose print verbose logging statements?
 #'
 #' @export
 normalize_rnaseq <- function(counts_mx,
@@ -53,6 +54,7 @@ normalize_rnaseq <- function(counts_mx,
 #' @param force (boolean) Force log2 transform. If \code{log2_transform} is
 #' \code{TRUE}, this function will error if \code{counts_dt} does not have
 #' values greater than 100, unless \code{force = TRUE}.
+#' @param verbose print verbose logging statements?
 #'
 #' @export
 normalize_microarray <- function(exprs_mx,
@@ -100,10 +102,13 @@ normalize_microarray <- function(exprs_mx,
 #'
 #' @param exprs_dt data.table with raw, background-corrected expression. One
 #' column per sample, one row per feature.
-#' @param meta_data list of study-specific meta data
+#' @param platform Affymetrix, Illumina, NA, or Stanford Functional Genomics
+#' @param verbose print verbose logging statements?
 #'
 #' @export
-normalize_matrix <- function(exprs_dt, platform, verbose = FALSE) {
+normalize_matrix <- function(exprs_dt,
+                             platform,
+                             verbose = FALSE) {
   badRows <- rowSums(is.na(exprs_dt)) > 0
   if (sum(badRows) > 0) {
     warning("Removing ", sum(badRows), " rows with missing values")

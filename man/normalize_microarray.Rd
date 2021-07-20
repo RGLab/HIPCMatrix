@@ -22,6 +22,8 @@ in log2 scale.}
 \item{force}{(boolean) Force log2 transform. If \code{log2_transform} is
 \code{TRUE}, this function will error if \code{counts_dt} does not have
 values greater than 100, unless \code{force = TRUE}.}
+
+\item{verbose}{print verbose logging statements?}
 }
 \value{
 a matrix with one row per feature and one column per sample.

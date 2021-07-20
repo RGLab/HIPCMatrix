@@ -10,7 +10,9 @@ normalize_matrix(exprs_dt, platform, verbose = FALSE)
 \item{exprs_dt}{data.table with raw, background-corrected expression. One
 column per sample, one row per feature.}
 
-\item{meta_data}{list of study-specific meta data}
+\item{platform}{Affymetrix, Illumina, NA, or Stanford Functional Genomics}
+
+\item{verbose}{print verbose logging statements?}
 }
 \description{
 Normalize matrix

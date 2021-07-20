@@ -10,6 +10,8 @@
 #' @param gef gene expression files
 #' @param meta_data List of study-specific metadata
 #' @param analysis_dir directory to save intermediate files.
+#' @param verbose print verbose logging statements?
+#' @param reload re-download files if already found?
 #'
 #' @export
 retrieve_input_files <- function(study,
@@ -79,6 +81,7 @@ retrieve_input_files <- function(study,
 #'
 #' @param geo_accession GSM or GSE accesssion
 #' @param supp_files_dir path to directory to save supplementary files.
+#' @param reload Force re-download of files if already found in \code{supp_files_dir}?
 #' On ImmuneSpace servers, an appropriate directory can be found with
 #' \code{.get_supp_files_dir()}
 .get_geo_supp_files <- function(geo_accession,
@@ -108,7 +111,7 @@ retrieve_input_files <- function(study,
 #'
 #'  Select the correct input files from supplemental directory and unzip if needed.
 #'
-#' @param supp_files_dir
+#' @param supp_files_dir Path to directory for storing supplementary files.
 .select_input_files <- function(supp_files_dir) {
   target_file_terms <- "non-normalized|corrected|raw|cel|pbmc|count"
   supp_files <- list.files(supp_files_dir)
@@ -205,6 +208,9 @@ retrieve_input_files <- function(study,
 #' @param gef result of ISCon$getDataset("gene_expression_files") for one run.
 #' @param meta_data list of study-specific meta data
 #' @param input_files input file names
+#' @param analysis_dir path to analysis directory
+#' @param verbose print verbose logging statements?
+#' @param reload re-download files if already found in analysis_dir?
 #'
 #' @return path to raw, prepped input files. tsv for everyone except affy, which
 #' will be the path to CEL files.
@@ -424,8 +430,10 @@ retrieve_input_files <- function(study,
 #'
 #' @param study study accession eg \code{SDY269}
 #' @param gef result of ISCon$getDataset("gene_expression_files") for one run.
-#' @param meta_data list of study-specific meta data
+#' @param platform Sequencing platform: "Illumina", "Affymetrix", "Stanford",
+#' or "NA" for RNA-seq.
 #' @param input_files input file names
+#' @param analysis_dir path to analysis directory
 #' @param verbose print verbose logging statements?
 #'
 #' @return path to raw, prepped input files

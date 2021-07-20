@@ -41,3 +41,5 @@ jobs:
         shell: Rscript {0}
         env:
           _R_CHECK_FORCE_SUGGESTS_: false
+          ISR_login: ${{ secrets.ISR_login }}
+          ISR_pwd: ${{ secrets.ISR_pwd }}

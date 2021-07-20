@@ -9,6 +9,8 @@ normalize_rnaseq(counts_mx, verbose = FALSE)
 \arguments{
 \item{counts_mx}{matrix with raw counts, one column per sample, one
 row per feature}
+
+\item{verbose}{print verbose logging statements?}
 }
 \value{
 a matrix with one row per feature and one column per sample.

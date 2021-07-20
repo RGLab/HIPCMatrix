@@ -7,7 +7,9 @@
 .process_two_color_array(path, verbose = FALSE)
 }
 \arguments{
-\item{path}{path to}
+\item{path}{path to input files}
+
+\item{verbose}{print verbose logging statements?}
 }
 \description{
 Two color array processing using limma and assuming genepix files.

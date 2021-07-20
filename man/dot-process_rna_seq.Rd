@@ -8,6 +8,8 @@
 }
 \arguments{
 \item{input_files}{input file names}
+
+\item{verbose}{print verbose logging statements?}
 }
 \description{
 Somewhat redundant in case of GEO files as there is no actual processing

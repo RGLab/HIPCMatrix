@@ -8,6 +8,8 @@
 }
 \arguments{
 \item{input_files}{input file names}
+
+\item{verbose}{print verbose logging statements?}
 }
 \value{
 background-corrected data.table of probe intensities
