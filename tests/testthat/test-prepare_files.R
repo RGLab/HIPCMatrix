@@ -104,7 +104,8 @@ test_that(".prep_geo_files GSM SOFT", {
   expect_equal(input_files, "test_data/sdy1289/supp_files/Whole-blood_ARM4455/SDY1289_raw_expression.txt")
 })
 test_that(".prep_geo_files GSM supp illumina", {
-  meta_data <- get_meta_data("SDY180")
+  meta_data <- get_meta_data("SDY180",
+                             baseUrl = labkey.url.base)
   gef <- con_all$getDataset("gene_expression_files",
     colFilter = Rlabkey:::makeFilter(c("biosample_accession", "IN", "BS662409;BS662402")),
     original_view = TRUE
@@ -124,7 +125,8 @@ test_that(".prep_geo_files GSM supp illumina", {
   expect_equal(input_files, "test_data/sdy180/supp_files/Whole-blood_ARM773/SDY180_raw_expression.txt")
 })
 test_that(".prep_geo_files GSM supp affy", {
-  meta_data <- get_meta_data("SDY1328")
+  meta_data <- get_meta_data("SDY1328",
+                             baseUrl = labkey.url.base)
   gef <- con_all$getDataset("gene_expression_files",
     colFilter = Rlabkey:::makeFilter(c("biosample_accession", "IN", "BS978363;BS1005596")),
     original_view = TRUE
@@ -172,7 +174,8 @@ test_that(".prep_geo_files GSM supp rnaseq", {
 
 
 test_that(".prep_geo_files GSE supp illumina", {
-  meta_data <- get_meta_data("SDY640")
+  meta_data <- get_meta_data("SDY640",
+                             baseUrl = labkey.url.base)
   gef <- con_all$getDataset("gene_expression_files",
     colFilter = Rlabkey:::makeFilter(c("biosample_accession", "IN", "BS799828")),
     original_view = TRUE
@@ -193,7 +196,8 @@ test_that(".prep_geo_files GSE supp illumina", {
 })
 
 test_that(".prep_geo_files GSE supp rnaseq", {
-  meta_data <- get_meta_data("SDY787")
+  meta_data <- get_meta_data("SDY787",
+                             baseUrl = labkey.url.base)
   gef <- readRDS("test_data/sdy787/SDY787_gef.rds")[1, ]
   analysis_dir <- "test_data/sdy787"
   expect_message(

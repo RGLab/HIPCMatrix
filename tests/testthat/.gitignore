@@ -5,5 +5,5 @@
 !test_data/sdy1412/supp_files/*
 !test_data/sdy180/supp_files/*
 *_raw_expression.txt
-
+!test_data/sdy180/supp_files/Whole-blood_ARM773/SDY180_raw_expression.txt
 
