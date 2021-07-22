@@ -17,7 +17,7 @@ make_raw_matrix <- function(platform,
                             verbose = FALSE) {
 
 
-
+  if (verbose) log_message("Creating matrix of raw expression...")
   # Generate background corrected raw matrices for affy and illumina
   # For RNAseq pass through raw counts file.
   exprs_dt <- switch(
@@ -193,6 +193,7 @@ make_raw_matrix <- function(platform,
   # Immport-derived files may already have this done in some cases.
   if (any(grepl("Detection", colnames(raw_dt)))) {
     # Get intensities
+    if (verbose) log_message("Reading in background-corrected probe intensities...")
     esList <- limma::read.ilmn(raw_file_path,
       expr = "AVG_Signal",
       probeid = "ID_REF",

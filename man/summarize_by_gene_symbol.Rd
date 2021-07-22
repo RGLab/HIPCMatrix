@@ -4,7 +4,7 @@
 \alias{summarize_by_gene_symbol}
 \title{Summarize Matrix}
 \usage{
-summarize_by_gene_symbol(ge_dt, feature_gene_map)
+summarize_by_gene_symbol(ge_dt, feature_gene_map, verbose = FALSE)
 }
 \arguments{
 \item{ge_dt}{data.table of gene expression values. Features should be listed in
@@ -13,6 +13,8 @@ should be labelled by biosample id.}
 
 \item{feature_gene_map}{data.table mapping original gene id (eg probe id, ensembl id, gene alias)
 to gene symbol. It should have two columns: \code{featureid} (original) and \code{genesymbol} (updated).}
+
+\item{verbose}{write verbose logging statements?}
 }
 \description{
 Summarize any duplicated genes so that there is

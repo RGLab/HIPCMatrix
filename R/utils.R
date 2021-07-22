@@ -133,10 +133,13 @@ log_message <- function(...) {
 #' should be labelled by biosample id.
 #' @param feature_gene_map data.table mapping original gene id (eg probe id, ensembl id, gene alias)
 #' to gene symbol. It should have two columns: \code{featureid} (original) and \code{genesymbol} (updated).
+#' @param verbose write verbose logging statements?
 #'
 #' @export
 summarize_by_gene_symbol <- function(ge_dt,
-                                     feature_gene_map) {
+                                     feature_gene_map,
+                                     verbose = FALSE) {
+  if (verbose) log_message("Summarizing matrix by gene symbol")
   em <- copy(ge_dt)
   em[, gene_symbol := feature_gene_map[match(em$feature_id, feature_gene_map$featureid), genesymbol]]
   em <- em[!is.na(gene_symbol) & gene_symbol != "NA"]
@@ -144,6 +147,8 @@ summarize_by_gene_symbol <- function(ge_dt,
     by = "gene_symbol",
     .SDcols = grep("^BS", colnames(em))
   ]
+  if (verbose) log_message(dim(ge_dt)[1], " features summarized to ", dim(sum_exprs)[1], " gene symbols")
+  sum_exprs
 }
 
 #' Write matrix to file system

@@ -145,24 +145,28 @@ runCreateMx <- function(study,
     study = study,
     gef = gef,
     meta_data = meta_data,
-    analysis_dir = analysis_dir
+    analysis_dir = analysis_dir,
+    verbose = verbose
   )
 
   # Create three versions of matrix
   exprs <- make_raw_matrix(
     platform = meta_data$platform,
     gef = gef,
-    input_files = input_files
+    input_files = input_files,
+    verbose = verbose
   )
 
   norm_exprs <- normalize_matrix(
     exprs,
-    meta_data$platform
+    meta_data$platform,
+    verbose = verbose
   )
 
   sum_exprs <- summarize_by_gene_symbol(
     norm_exprs,
-    feature_gene_map
+    feature_gene_map,
+    verbose = verbose
   )
 
   # ------------------------------ OUTPUT ------------------------------------------
@@ -185,6 +189,8 @@ runCreateMx <- function(study,
   }
 
   if (snapshot) {
+
+    if (verbose) log_message("Writing snapshot of sources to ", debug_dir)
     # create copy of CM.R script from run time, after checking to be sure analysis
     # directory is in place. It is missing from some studies for some reason.
     if (!dir.exists(debug_dir)) {
@@ -200,8 +206,8 @@ runCreateMx <- function(study,
     )
 
     writeLines(
-      utils::packageVersion("HIPCMatrix"),
-      file.path(debug_dir, paste0(matrix_name, "-HIPCMatrix-version.R"))
+      as.character(utils::packageVersion("HIPCMatrix")),
+      file.path(debug_dir, paste0(matrix_name, "-HIPCMatrix-version.txt"))
     )
 
     # write out tsv of vars to make later replication of results easier
