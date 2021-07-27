@@ -29,6 +29,7 @@
 #' @param taskOutputParams taskOutputParams
 #' @param verbose Print verbose debug statements?
 #' @param snapshot write copies of source files to `debug_dir`?
+#' @param reload Force re-download of supplementary files from GEO?
 #'
 #' @import ImmuneSpaceR
 #' @import Rlabkey
@@ -64,7 +65,8 @@ runCreateMx <- function(study,
                         ),
                         taskOutputParams = NULL,
                         verbose = FALSE,
-                        snapshot = FALSE) {
+                        snapshot = FALSE,
+                        reload = FALSE) {
   if (verbose) {
     log_message(
       "Running runCreateMx using HIPCMatrix version ",
@@ -146,7 +148,8 @@ runCreateMx <- function(study,
     gef = gef,
     meta_data = meta_data,
     analysis_dir = analysis_dir,
-    verbose = verbose
+    verbose = verbose,
+    reload = reload
   )
 
   # Create three versions of matrix
@@ -179,7 +182,6 @@ runCreateMx <- function(study,
     verbose = verbose
   )
 
-  # This file gets cleaned up anyway, so not worrying about it onCL
   if (!is.null(taskOutputParams)) {
     outProps <- file(description = taskOutputParams, open = "w")
     cat(file = outProps, sep = "", "name\tvalue\n")
