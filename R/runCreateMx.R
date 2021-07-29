@@ -66,7 +66,7 @@ runCreateMx <- function(study,
                         taskOutputParams = NULL,
                         verbose = FALSE,
                         snapshot = FALSE,
-                        reload = FALSE) {
+                        reload = TRUE) {
   if (verbose) {
     log_message(
       "Running runCreateMx using HIPCMatrix version ",
@@ -186,6 +186,8 @@ runCreateMx <- function(study,
     outProps <- file(description = taskOutputParams, open = "w")
     cat(file = outProps, sep = "", "name\tvalue\n")
     cat(file = outProps, sep = "", "assay run property, cohort\t", unique(gef$cohort), "\n")
+    cat(file = outProps, sep = "", "assay run property, version\t", as.character(packageVersion("HIPCMatrix")), "\n" )
+    cat(file = outProps, sep = "", "assay run property, hash\t", as.character(sessioninfo:::pkg_desc("HIPCMatrix")$GithubSHA1), "\n" )
     flush(con = outProps)
     close(con = outProps)
   }
@@ -200,7 +202,7 @@ runCreateMx <- function(study,
     }
 
     # Allow for work on server or local
-    LKModules <- "~/LabKeyModules"
+    LKModules <- "/labkey/git/LabKeyModules"
 
     file.copy(
       from = file.path(LKModules, "HIPCMatrix/pipeline/tasks/create-matrix.R"),

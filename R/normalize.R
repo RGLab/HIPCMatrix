@@ -62,10 +62,10 @@ normalize_microarray <- function(exprs_mx,
                                  force = FALSE,
                                  verbose = FALSE) {
   if (verbose) log_message(" --- normalize_microarray --- ")
-  if (sum(is.na(exprs_mx)) > 0) {
+  if (any(is.na(exprs_mx))) {
     stop("Missing values found.")
   }
-  if (sum(duplicated(colnames(exprs_mx))) > 0) {
+  if (any(duplicated(colnames(exprs_mx)))) {
     warning("Duplicate column name: ", colnames(exprs_mx)[duplicated(colnames(exprs_mx))])
   }
   # normalize.quantiles removes row and column names
