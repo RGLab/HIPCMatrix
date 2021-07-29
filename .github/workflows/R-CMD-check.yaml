@@ -49,15 +49,15 @@ jobs:
         r-version: ${{ matrix.config.r }}
 
     - name: Install BiocManager
-        run: |
-          remotes::install_cran("BiocManager")
-          if ("${{ matrix.config.r }}" == "devel") {
-            version <- "devel"
-          } else {
-            version <- BiocManager::version()
-          }
-          BiocManager::install(version = version, ask = FALSE)
-        shell: Rscript {0}
+      run: |
+        remotes::install_cran("BiocManager")
+        if ("${{ matrix.config.r }}" == "devel") {
+          version <- "devel"
+        } else {
+          version <- BiocManager::version()
+        }
+        BiocManager::install(version = version, ask = FALSE)
+      shell: Rscript {0}
 
 
     - name: Install dependencies
