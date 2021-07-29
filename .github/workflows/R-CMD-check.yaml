@@ -50,6 +50,7 @@ jobs:
 
     - name: Install BiocManager
       run: |
+        install.packages('remotes')
         remotes::install_cran("BiocManager")
         if ("${{ matrix.config.r }}" == "devel") {
           version <- "devel"
