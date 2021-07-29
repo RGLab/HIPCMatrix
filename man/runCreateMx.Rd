@@ -15,8 +15,9 @@ runCreateMx(
   analysis_dir = file.path(base_dir, "rawdata", "gene_expression"),
   debug_dir = file.path(analysis_dir, "create-matrix", matrix_name),
   taskOutputParams = NULL,
-  verbose = FALSE,
-  snapshot = FALSE
+  verbose = TRUE,
+  snapshot = TRUE,
+  reload = TRUE
 )
 }
 \arguments{
@@ -51,6 +52,8 @@ it will be the same as \code{analysis.directory} in the HIPCMatrix pipeline,}
 \item{verbose}{Print verbose debug statements?}
 
 \item{snapshot}{write copies of source files to \code{debug_dir}?}
+
+\item{reload}{Force re-download of supplementary files from GEO?}
 }
 \description{
 Runs all steps of creating matrix in ImmuneSpace.

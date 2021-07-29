@@ -23,6 +23,6 @@ has an illumina manifest file}
 meta_data_list
 }
 \description{
-List of study-specific metadata
+Summary by study can be returned via \code{\link{get_meta_data}}
 }
 \keyword{datasets}

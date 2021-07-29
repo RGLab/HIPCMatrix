@@ -6,7 +6,7 @@ library(optparse)
 option_list <- list(
   make_option(c("-l", "--labkey-url"),
               help = "labkey.url.base",
-              default = "http://10.107.229.229:8080")
+              default = "https://test.immunespace.org")
 )
 
 opt_parser <- OptionParser(option_list = option_list)

@@ -64,8 +64,8 @@ runCreateMx <- function(study,
                           matrix_name
                         ),
                         taskOutputParams = NULL,
-                        verbose = FALSE,
-                        snapshot = FALSE,
+                        verbose = TRUE,
+                        snapshot = TRUE,
                         reload = TRUE) {
   if (verbose) {
     log_message(
