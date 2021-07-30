@@ -128,7 +128,7 @@ test_that(".prep_geo_files GSM supp affy", {
   meta_data <- get_meta_data("SDY1328",
                              baseUrl = labkey.url.base)
   gef <- con_all$getDataset("gene_expression_files",
-    colFilter = Rlabkey:::makeFilter(c("biosample_accession", "IN", "BS978363;BS1005596")),
+    colFilter = Rlabkey:::makeFilter(c("biosample_accession", "IN", "BS1005477;BS978363;BS1005596")),
     original_view = TRUE
   )[!is.na(geo_accession)]
   analysis_dir <- "test_data/sdy1328"
@@ -143,7 +143,8 @@ test_that(".prep_geo_files GSM supp affy", {
     ),
     "Downloading GSM supp files to test_data/sdy1328/supp_files/Whole-blood_ARM4537"
   )
-  expect_length(input_files, 2)
+  # Expect two GSM for BS1005477
+  expect_length(input_files, 4)
   expect_true(all(grepl("CEL", input_files)))
 })
 test_that(".prep_geo_files GSM supp rnaseq", {

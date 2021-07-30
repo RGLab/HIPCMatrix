@@ -1,4 +1,4 @@
-*/supp_files/*
+test_data/*/supp_files/*
 !test_data/sdy1289/supp_files/*
 !test_data/sdy787/supp_files/*
 !test_data/sdy640/supp_files/*

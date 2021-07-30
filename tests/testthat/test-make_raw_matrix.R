@@ -76,6 +76,36 @@ test_that("process_affy returns one column per sample", {
   expect_equal(names(affy_processed)[1], "feature_id")
 })
 
+test_that("make_raw_matrix handles duplicate biosample ids", {
+  # Get CEL files for SDY1328.
+  meta_data <- get_meta_data("SDY1328",
+                             baseUrl = labkey.url.base)
+  gef <- con_all$getDataset("gene_expression_files",
+                            colFilter = Rlabkey:::makeFilter(c("biosample_accession", "IN", "BS1005477;BS978363;BS1005596")),
+                            original_view = TRUE
+  )[!is.na(geo_accession)]
+  analysis_dir <- "test_data/sdy1328"
+  input_files <- normalizePath(.prep_geo_files("SDY1328",
+                                               gef,
+                                               meta_data,
+                                               input_files = NA,
+                                               analysis_dir,
+                                               verbose = TRUE,
+                                               reload = FALSE
+  ))
+
+  # BS1005477 has two different GSM accessions.
+  # Check that there are 4 input files
+  expect_equal(length(input_files), 4)
+  raw <- make_raw_matrix(
+    platform = "Affymetrix",
+    gef = gef,
+    input_files = input_files)
+  expect_equal(ncol(raw), 5)
+  expect_equal(length(unique(names(raw))), 4)
+
+})
+
 
 test_that("make_raw_matrix outputs correct messages", {
   gef <- con_all$getDataset("gene_expression_files",

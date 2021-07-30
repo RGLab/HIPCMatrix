@@ -118,39 +118,6 @@ log_message <- function(...) {
 #######################################
 
 
-
-#' Summarize Matrix
-#'
-#' Summarize any duplicated genes so that there is
-#' one entry per gene.
-#'
-#' @details This function summarizes normalized expression values by mean
-#' into a table with one entry per gene name based on \code{feature_gene_map}.
-#' The input data should be in log2 space.
-#'
-#' @param ge_dt data.table of gene expression values. Features should be listed in
-#' \code{feature_id} column, with additional columns for each sample. Samples
-#' should be labelled by biosample id.
-#' @param feature_gene_map data.table mapping original gene id (eg probe id, ensembl id, gene alias)
-#' to gene symbol. It should have two columns: \code{featureid} (original) and \code{genesymbol} (updated).
-#' @param verbose write verbose logging statements?
-#'
-#' @export
-summarize_by_gene_symbol <- function(ge_dt,
-                                     feature_gene_map,
-                                     verbose = FALSE) {
-  if (verbose) log_message("Summarizing matrix by gene symbol")
-  em <- copy(ge_dt)
-  em[, gene_symbol := feature_gene_map[match(em$feature_id, feature_gene_map$featureid), genesymbol]]
-  em <- em[!is.na(gene_symbol) & gene_symbol != "NA"]
-  sum_exprs <- em[, lapply(.SD, mean),
-    by = "gene_symbol",
-    .SDcols = grep("^BS", colnames(em))
-  ]
-  if (verbose) log_message(dim(ge_dt)[1], " features summarized to ", dim(sum_exprs)[1], " gene symbols")
-  sum_exprs
-}
-
 #' Write matrix to file system
 #'
 #' @details Writes four versions of flat tsv files:

@@ -14,13 +14,13 @@ normalize_rnaseq <- function(counts_mx,
                              verbose = FALSE) {
   if (verbose) log_message(" --- normalize_rnaseq --- ")
   if (verbose) log_message("Normalizing counts data using variance stabilizing transformation...")
-  if (sum(is.na(counts_mx)) > 0) {
+  if (any(is.na(counts_mx))) {
     stop("Missing values found.")
   }
-  if (sum(duplicated(colnames(counts_mx))) > 0) {
+  if (any(duplicated(colnames(counts_mx)))) {
     warning("Duplicate column name: ", colnames(counts_mx)[duplicated(colnames(counts_mx))])
   }
-  # newCountDataSet does not take duplicated column names, so assign temporary unique names
+  # DESeqDataSet does not take duplicated column names, so assign temporary unique names
   original_colnames <- colnames(counts_mx)
   colnames(counts_mx) <- seq_len(ncol(counts_mx))
 
