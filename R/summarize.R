@@ -34,33 +34,31 @@ summarize_by_gene_symbol <- function(ge_dt,
   # Summarize
   if (method == "mean") {
     sum_exprs <- em[, lapply(.SD, mean),
-                    by = "gene_symbol",
-                    .SDcols = grep("^BS", colnames(em))
+      by = "gene_symbol",
+      .SDcols = grep("^BS", colnames(em))
     ]
   } else if (method == "max") {
-
-    em[ , prb_avg := rowMeans(em[, grep("^BS", colnames(em)), with = FALSE])]
-    maxPrb <- em[, prb_max := max(prb_avg) , by = "gene_symbol" ][ prb_avg == prb_max ]
+    em[, prb_avg := rowMeans(em[, grep("^BS", colnames(em)), with = FALSE])]
+    maxPrb <- em[, prb_max := max(prb_avg), by = "gene_symbol"][prb_avg == prb_max]
 
 
     # Check and remove summary level duplicates w
     # here multiple probes have exact same average value AND same sample values
-    maxPrb <- maxPrb[ !(duplicated(maxPrb[, grep("feature_id", names(maxPrb), invert = TRUE), with = FALSE])), ]
+    maxPrb <- maxPrb[!(duplicated(maxPrb[, grep("feature_id", names(maxPrb), invert = TRUE), with = FALSE])), ]
 
     # handle cases where duplicated gs due to same average value,
     # but slightly different sample values. Keep last
     # e.g. SDY1289 - Lausanne Adult Cohort
-    if( any(duplicated(maxPrb$gene_symbol)) ){
-      dup_gs <- maxPrb$gene_symbol[ duplicated(maxPrb$gene_symbol) ]
-      for(dup in unique(dup_gs)){
+    if (any(duplicated(maxPrb$gene_symbol))) {
+      dup_gs <- maxPrb$gene_symbol[duplicated(maxPrb$gene_symbol)]
+      for (dup in unique(dup_gs)) {
         rows <- grep(dup, maxPrb$gene_symbol)
-        rm_rows <- rows[ 1:length(rows) - 1 ]
-        maxPrb <- maxPrb[ -rm_rows ]
+        rm_rows <- rows[1:length(rows) - 1]
+        maxPrb <- maxPrb[-rm_rows]
       }
     }
 
     sum_exprs <- maxPrb[, c("gene_symbol", grep("^BS", names(maxPrb), value = TRUE)), with = FALSE]
-
   }
 
   if (verbose) log_message(dim(ge_dt)[1], " features summarized to ", dim(sum_exprs)[1], " gene symbols")

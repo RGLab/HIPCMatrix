@@ -74,4 +74,3 @@ test_that("get_supp_files_dir", {
   supp_files_dir <- .get_supp_files_dir(analysis_dir, gef)
   expect_equal(supp_files_dir, file.path(analysis_dir, "supp_files", "Whole-blood_1"))
 })
-

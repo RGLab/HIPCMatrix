@@ -78,8 +78,7 @@ test_that("summarize_by_gene_symbol max", {
   # Choose max
   ge_norm[, mean := rowMeans(ge_norm[, grep("^BS", names(ge_norm)), with = FALSE])]
   expect_equal(
-    ge_norm[feature_id %in% c("b", "d", "g")][mean ==  max(mean)]$BS2,
+    ge_norm[feature_id %in% c("b", "d", "g")][mean == max(mean)]$BS2,
     ge_summarized[gene_symbol == "gene1"]$BS2
   )
-
 })

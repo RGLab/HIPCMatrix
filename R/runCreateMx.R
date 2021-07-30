@@ -186,14 +186,13 @@ runCreateMx <- function(study,
     outProps <- file(description = taskOutputParams, open = "w")
     cat(file = outProps, sep = "", "name\tvalue\n")
     cat(file = outProps, sep = "", "assay run property, cohort\t", unique(gef$cohort), "\n")
-    cat(file = outProps, sep = "", "assay run property, version\t", as.character(packageVersion("HIPCMatrix")), "\n" )
-    cat(file = outProps, sep = "", "assay run property, hash\t", as.character(sessioninfo:::pkg_desc("HIPCMatrix")$GithubSHA1), "\n" )
+    cat(file = outProps, sep = "", "assay run property, version\t", as.character(packageVersion("HIPCMatrix")), "\n")
+    cat(file = outProps, sep = "", "assay run property, hash\t", as.character(sessioninfo:::pkg_desc("HIPCMatrix")$GithubSHA1), "\n")
     flush(con = outProps)
     close(con = outProps)
   }
 
   if (snapshot) {
-
     if (verbose) log_message("Writing snapshot of sources to ", debug_dir)
     # create copy of CM.R script from run time, after checking to be sure analysis
     # directory is in place. It is missing from some studies for some reason.
