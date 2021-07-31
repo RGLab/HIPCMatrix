@@ -23,5 +23,3 @@ if (!any(file.exists("~/.netrc", "~/_netrc"))) {
 assign("labkey.url.base", ImmuneSpaceR:::.get_env_url(), .GlobalEnv)
 
 con_all <- CreateConnection("")
-
-

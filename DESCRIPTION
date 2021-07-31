@@ -26,7 +26,8 @@ Imports:
     preprocessCore,
     Rlabkey,
     SummarizedExperiment,
-    tools
+    tools,
+    gtools
 Suggests: 
     hugene10stv1cdf,
     primeviewcdf,
@@ -43,3 +44,13 @@ Config/testthat/edition: 3
 VignetteBuilder: knitr
 Depends: 
     R (>= 3.5)
+Collate: 
+    'HMX.R'
+    'hmx_differential_expression.R'
+    'make_raw_matrix.R'
+    'meta_data.R'
+    'normalize.R'
+    'prepare_files.R'
+    'runCreateMx.R'
+    'summarize.R'
+    'utils.R'
