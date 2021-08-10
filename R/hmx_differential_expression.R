@@ -91,7 +91,7 @@ HMX$set(
   name = "runGEAnalysis",
   value = function(rerun = FALSE) {
     if (grepl("^IS", self$study)) {
-      stop("run_de_analysis is not designed for ImmuneSignatures!")
+      stop("runGEAnalysis is not designed for ImmuneSignatures!")
     }
 
     if ("de_results" %in% names(self$cache) & !rerun) {
@@ -209,7 +209,7 @@ HMX$set(
     if (!grepl("SDY", self$study)) {
       stop("Please run for one study at a time.")
     }
-    de_results <- self$run_de_analysis()
+    de_results <- self$runGEAnalysis()
     de_runs <- self$cache$de_runs
     if (nrow(de_results) == 0) {
       stop("No differentially expressed genes found.")
@@ -264,7 +264,7 @@ HMX$set(
 
       # GEAR gets deleted and then new rows imported because
       # new mappings will be different and do not want to have leftovers
-      if (nrow(ge_results) > 0) {
+      if (nrow(de_results) > 0) {
         currGEAR <- ImmuneSpaceR:::.getLKtbl(
           con = self,
           schema = "gene_expression",
@@ -310,6 +310,6 @@ HMX$set(
         )
       }
     }
-    return(self)
+    invisible(self)
   }
 )

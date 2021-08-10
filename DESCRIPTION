@@ -1,6 +1,6 @@
 Package: HIPCMatrix
 Title: Microarray and RNA-seq Processing for ImmuneSpace
-Version: 0.0.6
+Version: 0.0.9
 Authors@R: 
     person(given = "Helen",
            family = "Miller",
@@ -46,6 +46,7 @@ Depends:
     R (>= 3.5)
 Collate: 
     'HMX.R'
+    'feature_annotation.R'
     'hmx_differential_expression.R'
     'make_raw_matrix.R'
     'meta_data.R'
