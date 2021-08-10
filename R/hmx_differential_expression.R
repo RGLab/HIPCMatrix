@@ -32,7 +32,7 @@ find_de_genes_eBayes <- function(
 
   if (length(unique(pd$participant_id)) < 2) {
     message(paste0(run, " has fewer than 2 participants with multiple timepoints! Skipping."))
-    next()
+    return()
   }
 
   mm <- model.matrix(formula("~participant_id + coef"), pd)
@@ -53,7 +53,7 @@ find_de_genes_eBayes <- function(
 
   if (!is.null(fit$message)) {
     message(paste0("Linear model not able to be fit for ", run, ". Skipping to next matrix"))
-    next()
+    return()
   }
 
   coefs <- grep("^coef", colnames(mm), value = TRUE)
@@ -318,36 +318,34 @@ HMX$set(
   }
 )
 
-# Use to check whether to run UpdateGear on any studies
-#' @export checkImpliedGEAR
 HMX$set(
   which = "public",
   name = "checkImpliedGEAR",
   value = function() {
-
     impliedGEA <- data.table(labkey.selectRows(
       baseUrl = self$config$labkey.url.base,
       folderPath = self$config$labkey.url.path,
       schemaName = "assay.expressionMatrix.matrix",
       queryName = "inputSamples",
       colNameOpt = "rname",
-      showHidden = TRUE))
+      showHidden = TRUE
+    ))
 
     # 1. Remove all arm_name * study_time_collected with less than 4 replicates
     # otherwise predictive modeling cannot work
     impliedGEA[, subs := unique(length(biosample_participantid)), by = .(biosample_arm_name, biosample_study_time_collected)]
-    impliedGEA <- impliedGEA[ subs > 3 ]
+    impliedGEA <- impliedGEA[subs > 3]
 
     # 2. Check for baseline within each arm_name and then filter out baseline
-    impliedGEA[, baseline := any(biosample_study_time_collected <= 0), by = .(biosample_arm_name) ]
-    impliedGEA <- impliedGEA[ baseline == TRUE ]
-    impliedGEA <- impliedGEA[ biosample_study_time_collected > 0 ]
+    impliedGEA[, baseline := any(biosample_study_time_collected <= 0), by = .(biosample_arm_name)]
+    impliedGEA <- impliedGEA[baseline == TRUE]
+    impliedGEA <- impliedGEA[biosample_study_time_collected > 0]
 
     # 3. Generate key
     impliedGEA[, key := paste(biosample_arm_name, biosample_study_time_collected, biosample_study_time_collected_unit)]
 
     # 4. Summarize by arm_name * study_time_collected for number of subs and key
-    smryGEA <- impliedGEA[ , list(key = unique(key), subs = unique(subs)), by = .(biosample_arm_name, biosample_study_time_collected)]
+    smryGEA <- impliedGEA[, list(key = unique(key), subs = unique(subs)), by = .(biosample_arm_name, biosample_study_time_collected)]
     dim(smryGEA)[[1]] > 0
-
-  })
+  }
+)

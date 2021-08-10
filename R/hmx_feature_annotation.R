@@ -3,13 +3,15 @@ NULL
 
 ## Helpers
 
+#' map alias to gene symbol
+#'
 #' Function to update annotation of a character vector of gene aliases
 #'
 #' @param aliases character vector of gene aliases
 #' @import data.table
 #' @export
 #'
-mapAlias2Symbol <- function(aliases){
+mapAlias2Symbol <- function(aliases) {
   vec_dt <- data.table(aliases)
   setnames(vec_dt, "aliases", "ALIAS")
   vec_dt[UpdateAnno::hgncAlias2Symbol, SYMBOL := SYMBOL, on = c(ALIAS = "ALIAS")]
@@ -17,28 +19,33 @@ mapAlias2Symbol <- function(aliases){
 }
 
 
+#' make annotation df
+#'
 #' Function to map probe ids to gene symbols from an annotation package
 #'
 #' @param annoPkg name of annotation package to use
 #' @param outPath file path for tsv to write out for upload to ImmuneSpace
 #' @export
 #'
-makeAnnoDf <- function(annoPkg, outPath = NULL){
+makeAnnoDf <- function(annoPkg, outPath = NULL) {
   library(annoPkg, character.only = TRUE)
   prbLs <- paste0(gsub("\\.db", "", annoPkg), "ENTREZID")
   probes <- ls(eval(parse(text = prbLs)))
   symLs <- gsub("ENTREZID", "SYMBOL", prbLs)
   syms <- unlist(mget(probes, eval(parse(text = symLs))))
-  syms <- syms[ !is.na(syms)] # No NAs or "" allowed in IS FAS
-  res <- data.frame(Probe_ID = names(syms),
-                    Gene_Symbol = syms,
-                    stringsAsFactors = F)
-  if( !is.null(outPath) ){
+  syms <- syms[!is.na(syms)] # No NAs or "" allowed in IS FAS
+  res <- data.frame(
+    Probe_ID = names(syms),
+    Gene_Symbol = syms,
+    stringsAsFactors = F
+  )
+  if (!is.null(outPath)) {
     write.table(res,
-                file = outPath,
-                quote = FALSE,
-                sep = "\t",
-                row.names = FALSE)
+      file = outPath,
+      quote = FALSE,
+      sep = "\t",
+      row.names = FALSE
+    )
   }
   return(res)
 }
@@ -60,7 +67,6 @@ HMX$set(
   which = "public",
   name = "updateFAS",
   value = function(fas_names = NULL) {
-
     if (grepl("HIPC", self$config$labkey.url.path)) {
       stop("Don't update ImmuneSignatures annotation!")
     }
@@ -69,19 +75,23 @@ HMX$set(
     schemaName <- "Microarray"
 
     # helper fn ----------------------------------------------
-    getAnno <- function(fas_name, currFAS){
-      annoSetId <- currFAS$RowId[ currFAS$Name == fas_name ]
-      fasQuery <- sprintf("SELECT * from FeatureAnnotation
+    getAnno <- function(fas_name, currFAS) {
+      annoSetId <- currFAS$RowId[currFAS$Name == fas_name]
+      fasQuery <- sprintf(
+        "SELECT * from FeatureAnnotation
                           where FeatureAnnotationSetId='%s';",
-                          annoSetId)
-      features <- labkey.executeSql(baseUrl = self$config$labkey.url.base,
-                                    folderPath = self$config$labkey.url.path,
-                                    schemaName = schemaName,
-                                    sql = fasQuery,
-                                    colNameOpt = "fieldname",
-                                    showHidden = TRUE)
+        annoSetId
+      )
+      features <- labkey.executeSql(
+        baseUrl = self$config$labkey.url.base,
+        folderPath = self$config$labkey.url.path,
+        schemaName = schemaName,
+        sql = fasQuery,
+        colNameOpt = "fieldname",
+        showHidden = TRUE
+      )
       toDrop <- c("Created", "CreatedBy", "Modified", "ModifiedBy")
-      features <- features[ , !(colnames(features) %in% toDrop) ]
+      features <- features[, !(colnames(features) %in% toDrop)]
     }
 
     # MAIN ------------------------------------------------------------
@@ -95,17 +105,33 @@ HMX$set(
       colNameOpt = "fieldname"
     )
 
-    if ( is.null(fas_names) ) {
-      fas_names <- currFAS$Name[ grep("[N|n]o[n|t|][-| ][u|U]pdat[e|able]",
-                                      currFAS$Comment, invert = TRUE) ]
+    if (is.null(fas_names)) {
+      # If single study, only update FAS associated with matrices in that study
+      if (self$study == "Studies") {
+        fas_names <- currFAS$Name[grep("[N|n]o[n|t|][-| ][u|U]pdat[e|able]",
+          currFAS$Comment,
+          invert = TRUE
+        )]
+      } else {
+        sdy_fas <- currFAS[RowId %in% unique(self$listGEMatrices()$featureset)]$Name
+        sdy_fas <- gsub("_orig", "", sdy_fas)
+        fas_names <- currFAS[!grepl(
+          "[N|n]o[n|t|][-| ][u|U]pdat[e|able]",
+          currFAS$Comment
+        ) &
+          currFAS$Name == sdy_fas]$Name
+        if (length(fas_names) < 1) {
+          stop("Could not determine fas_name for this study. Please specify fas_names")
+        }
+      }
     }
 
-    lapply(fas_names, FUN = function(fas_name){
+    lapply(fas_names, FUN = function(fas_name) {
       log_message(paste0("Updating: ", fas_name))
       curr_anno <- getAnno(fas_name, currFAS)
       orig_name <- paste0(fas_name, "_orig")
 
-      if( orig_name %in% currFAS$Name ){
+      if (orig_name %in% currFAS$Name) {
         log_message("Updating FAS")
         # if orig is present means that update has been performed at least once.
         # Update the rows of the previously updated anno using the orig
@@ -114,92 +140,108 @@ HMX$set(
         orig_anno <- getAnno(orig_name, currFAS)
         orig_anno$GeneSymbol <- gsub("---", "", orig_anno$GeneSymbol)
         orig_anno$GeneSymbol <- mapAlias2Symbol(orig_anno$GeneSymbol)
-        curr_anno$GeneSymbol <- orig_anno$GeneSymbol[ match(currAnno$FeatureId, orig_anno$FeatureId) ]
-        curr_anno[ is.na(curr_anno) ] <- ""
+        curr_anno$GeneSymbol <- orig_anno$GeneSymbol[match(currAnno$FeatureId, orig_anno$FeatureId)]
+        curr_anno[is.na(curr_anno)] <- ""
         toUpdate <- data.frame(curr_anno, stringsAsFactors = FALSE)
-        done <- labkey.updateRows(baseUrl = self$config$labkey.url.base,
-                                  folderPath = "/Studies/",
-                                  schemaName = schemaName,
-                                  queryName = "FeatureAnnotation",
-                                  toUpdate = toUpdate)
-      }else{
+        done <- labkey.updateRows(
+          baseUrl = self$config$labkey.url.base,
+          folderPath = "/Studies/",
+          schemaName = schemaName,
+          queryName = "FeatureAnnotation",
+          toUpdate = toUpdate
+        )
+      } else {
         print("Creating New updated FAS")
         # First create featureAnnotationSet with "_orig" name and original annotation
-        toImport <- data.frame(currFAS[ currFAS$Name == fas_name, ])
-        toImport <- toImport[ , !(colnames(toImport) == "RowId") ]
+        toImport <- data.frame(currFAS[currFAS$Name == fas_name, ])
+        toImport <- toImport[, !(colnames(toImport) == "RowId")]
         toImport$Name <- orig_name
         toImport$Comment <- "Do not update"
-        addFas <- labkey.importRows(baseUrl = self$config$labkey.url.base,
-                                    folderPath = "/Studies/",
-                                    schemaName = schemaName,
-                                    queryName = "FeatureAnnotationSet",
-                                    toImport = toImport)
+        addFas <- labkey.importRows(
+          baseUrl = self$config$labkey.url.base,
+          folderPath = "/Studies/",
+          schemaName = schemaName,
+          queryName = "FeatureAnnotationSet",
+          toImport = toImport
+        )
 
         # check that new "_orig" set has been imported correctly
-        nowFas <-  ImmuneSpaceR:::.getLKtbl(
+        nowFas <- ImmuneSpaceR:::.getLKtbl(
           self,
           schema = schemaName,
           query = "FeatureAnnotationSet",
           colNameOpt = "fieldname"
         )
-        if( !(toImport$Name[[1]] %in% nowFas$Name) ){
-          stop("Original FAS (",toImport$Name[[1]],") not imported correctly")
+        if (!(toImport$Name[[1]] %in% nowFas$Name)) {
+          stop("Original FAS (", toImport$Name[[1]], ") not imported correctly")
         }
 
         # Prep for importRows by removing rowIds (will be given) and using new FASid
-        orig_anno <- curr_anno[ , !(colnames(curr_anno) == "RowId") ]
-        orig_anno$FeatureAnnotationSetId <- nowFas$RowId[ nowFas$Name == toImport$Name[[1]] ]
-        orig_anno[ is.na(orig_anno) ] <- ""
+        orig_anno <- curr_anno[, !(colnames(curr_anno) == "RowId")]
+        orig_anno$FeatureAnnotationSetId <- nowFas$RowId[nowFas$Name == toImport$Name[[1]]]
+        orig_anno[is.na(orig_anno)] <- ""
         toImport <- data.frame(orig_anno, stringsAsFactors = FALSE)
-        addFeatures <- labkey.importRows(baseUrl = self$config$labkey.url.base,
-                                         folderPath = "/Studies/",
-                                         schemaName = schemaName,
-                                         queryName = "FeatureAnnotation",
-                                         toImport = toImport)
-
-        featureChk <- labkey.selectRows(baseUrl = self$config$labkey.url.base,
-                                        folderPath = "/Studies/",
-                                        schemaName = schemaName,
-                                        queryName = "FeatureAnnotation",
-                                        colNameOpt = "fieldname",
-                                        colSelect = c("GeneSymbol", "FeatureId"),
-                                        colFilter = makeFilter(c("FeatureAnnotationSetId",
-                                                                 "EQUALS",
-                                                                 unique(toImport$FeatureAnnotationSetId)))
+        addFeatures <- labkey.importRows(
+          baseUrl = self$config$labkey.url.base,
+          folderPath = "/Studies/",
+          schemaName = schemaName,
+          queryName = "FeatureAnnotation",
+          toImport = toImport
         )
-        featureChk[ is.na(featureChk) ] <- ""
-        featureChk <- featureChk[ order(featureChk$FeatureId), ]
-        imported <- data.frame(GeneSymbol = toImport$GeneSymbol,
-                               FeatureId = toImport$FeatureId,
-                               stringsAsFactors = FALSE)
-        imported <- imported[ order(imported$FeatureId), ]
+
+        featureChk <- labkey.selectRows(
+          baseUrl = self$config$labkey.url.base,
+          folderPath = "/Studies/",
+          schemaName = schemaName,
+          queryName = "FeatureAnnotation",
+          colNameOpt = "fieldname",
+          colSelect = c("GeneSymbol", "FeatureId"),
+          colFilter = makeFilter(c(
+            "FeatureAnnotationSetId",
+            "EQUALS",
+            unique(toImport$FeatureAnnotationSetId)
+          ))
+        )
+        featureChk[is.na(featureChk)] <- ""
+        featureChk <- featureChk[order(featureChk$FeatureId), ]
+        imported <- data.frame(
+          GeneSymbol = toImport$GeneSymbol,
+          FeatureId = toImport$FeatureId,
+          stringsAsFactors = FALSE
+        )
+        imported <- imported[order(imported$FeatureId), ]
         rownames(imported) <- rownames(featureChk) <- NULL
 
-        if( all.equal(featureChk, imported) ){
+        if (all.equal(featureChk, imported)) {
           # Now update the old fasId rows with new geneSymbols
           curr_anno$GeneSymbol <- mapAlias2Symbol(curr_anno$GeneSymbol)
-          curr_anno[ is.na(curr_anno) ] <- ""
+          curr_anno[is.na(curr_anno)] <- ""
           FAUpdate <- data.frame(curr_anno, stringsAsFactors = FALSE)
-          FAdone <- labkey.updateRows(baseUrl = self$config$labkey.url.base,
-                                      folderPath = "/Studies/",
-                                      schemaName = schemaName,
-                                      queryName = "FeatureAnnotation",
-                                      toUpdate = FAUpdate)
-
-        }else{
+          FAdone <- labkey.updateRows(
+            baseUrl = self$config$labkey.url.base,
+            folderPath = "/Studies/",
+            schemaName = schemaName,
+            queryName = "FeatureAnnotation",
+            toUpdate = FAUpdate
+          )
+        } else {
           stop("Original FA not uploaded correctly to *_orig table")
         }
       }
 
       # Update FAS$comment to indicate date of gene map update from HUGO
-      updateFAS <- data.frame(currFAS[ currFAS$Name == fas_name, ], stringsAsFactors = FALSE)
-      updateFAS$Comment <- paste0("Alias2Symbol mapping with HGNC dataset from: ",
-                                  UpdateAnno::hgncAlias2Symbol_version)
-      FASdone <- labkey.updateRows(baseUrl = self$config$labkey.url.base,
-                                   folderPath = "/Studies/",
-                                   schemaName = schemaName,
-                                   queryName = "FeatureAnnotationSet",
-                                   toUpdate = updateFAS)
+      updateFAS <- data.frame(currFAS[currFAS$Name == fas_name, ], stringsAsFactors = FALSE)
+      updateFAS$Comment <- paste0(
+        "Alias2Symbol mapping with HGNC dataset from: ",
+        UpdateAnno::hgncAlias2Symbol_version
+      )
+      FASdone <- labkey.updateRows(
+        baseUrl = self$config$labkey.url.base,
+        folderPath = "/Studies/",
+        schemaName = schemaName,
+        queryName = "FeatureAnnotationSet",
+        toUpdate = updateFAS
+      )
     })
     return(TRUE)
   }
@@ -219,33 +261,35 @@ HMX$set(
 
     log_message("Updating annotation for ", self$study)
 
-    ge_dir <- file.path("/share/files/Studies", self$study,
-                          "@files/analysis/exprs_matrices")
+    ge_dir <- file.path(
+      "/share/files/Studies", self$study,
+      "@files/analysis/exprs_matrices"
+    )
     ge_files <- list.files(ge_dir)
     tmp <- unique(unlist(strsplit(ge_files, split = ".tsv", fixed = TRUE)))
-    base_names <- tmp[ !(tmp %in% c(".summary",".summary.orig", ".raw", ".immsig")) ]
+    base_names <- tmp[!(tmp %in% c(".summary", ".summary.orig", ".raw", ".immsig"))]
 
-    if ( !all(base_names %in% self$listGEMatrices()) ) {
-      base_names <- base_names[ base_names %in% self$listGEMatrices() ]
+    if (!all(base_names %in% self$listGEMatrices())) {
+      base_names <- base_names[base_names %in% self$listGEMatrices()]
       warning("Extra files / basenames present in current study.  Please delete.")
     }
 
-    if ( !( all(self$listGEMatrices()$name %in% base_names)) ) {
+    if (!(all(self$listGEMatrices()$name %in% base_names))) {
       stop("Runs missing from files!")
     }
 
     # Go through each base_name to update summary tsv
     sapply(base_names, function(mx_name) {
       log_message("Updating ", mx_name)
-      mx_files <- ge_files[ grep(mx_name, ge_files) ]
+      mx_files <- ge_files[grep(mx_name, ge_files)]
 
 
       # Rename original summary file to tsv.summary.orig if necessary (first time only)
       # For legacy use only, as HIPCMatrix pipeline should create .summary.orig
       # file with first run.
-      if ( !(paste0(mx_name, ".tsv.summary.orig") %in% mx_files) ) {
+      if (!(paste0(mx_name, ".tsv.summary.orig") %in% mx_files)) {
         sumFl <- paste0(ge_dir, "/", mx_name, ".tsv.summary")
-        dmp <- file.rename( sumFl, paste0(sumFl, ".orig") )
+        dmp <- file.rename(sumFl, paste0(sumFl, ".orig"))
       }
 
       # get probe-level original df and update annotation using only features for FASid
@@ -254,20 +298,22 @@ HMX$set(
       # on changes in bioconductor libraries over time.  ExecuteSql is only way to get FASid
       # because it is a lookup even though it is in microarray.FeatureAnnotation.
       prb_mx <- fread(file.path(ge_dir, paste0(mx_name, ".tsv")))
-      anno_set_id <- self$listGEMatrices()$featureset[ self$listGEMatrices()$name == mx_name]
-      curr_fas <- data.table(labkey.selectRows(baseUrl = self$config$labkey.url.base,
-                                              folderPath = "/Studies/",
-                                              schemaName = "microarray",
-                                              queryName = "FeatureAnnotationSet",
-                                              colNameOpt = "fieldname",
-                                              showHidden = TRUE ))
-      curr_anno_name <- currFAS$Name[ curr_fas$RowId == anno_set_id]
+      anno_set_id <- self$listGEMatrices()$featureset[self$listGEMatrices()$name == mx_name]
+      curr_fas <- data.table(labkey.selectRows(
+        baseUrl = self$config$labkey.url.base,
+        folderPath = "/Studies/",
+        schemaName = "microarray",
+        queryName = "FeatureAnnotationSet",
+        colNameOpt = "fieldname",
+        showHidden = TRUE
+      ))
+      curr_anno_name <- currFAS$Name[curr_fas$RowId == anno_set_id]
 
 
       # Handle possibility that _orig anno was used to create mx (e.g. annotation
       # updated before matrix created.)
-      if(grepl("_orig", curr_anno_name)) {
-        anno_set_id <- curr_fas$RowId[ curr_fas$Name == gsub("_orig","", curr_anno_name)]
+      if (grepl("_orig", curr_anno_name)) {
+        anno_set_id <- curr_fas$RowId[curr_fas$Name == gsub("_orig", "", curr_anno_name)]
       }
 
 
@@ -279,7 +325,8 @@ HMX$set(
         folderPath = "/Studies/",
         schemaName = "Microarray",
         sql = sqlStr,
-        colNameOpt = "rname"))
+        colNameOpt = "rname"
+      ))
 
       prb_mx[, feature_id := as.character(feature_id)] # for SDY80 where probes have integer vals
       sum_mx <- summarize_by_gene_symbol(
@@ -299,9 +346,8 @@ HMX$set(
         row.names = FALSE,
         quote = FALSE
       )
-
     })
-  invisible(self)
+    invisible(self)
   }
 )
 
@@ -309,20 +355,26 @@ HMX$set(
   which = "public",
   name = "runUpdateAnno",
   value = function() {
-    if (self$study != "Studies") {
-      stop("runUpdateAnno is only for Studies connection")
+    if (grepl("^IS", self$study)) {
+      stop("Do not update ImmuneSignatures Annotation!")
     }
 
     self$updateFAS()
 
-    ge_studies <- unique(self$listGEMatrices()$folder)
+    if (self$study == "Studies") {
+      ge_studies <- unique(self$listGEMatrices()$folder)
 
-    lapply(ge_studies, function(study) {
-      con <- HMX$new(study = study,
-                     verbose = TRUE)
-      con$updateEMs()
-      con$uploadGEAnalysisResults()
-    })
+      lapply(ge_studies, function(study) {
+        con <- HMX$new(
+          study = study,
+          verbose = TRUE
+        )
+        con$updateEMs()
+        con$uploadGEAnalysisResults()
+      })
+    } else {
+      self$updateEMs()
+      self$uploadGEAnalysisResults()
+    }
   }
 )
-

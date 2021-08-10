@@ -15,6 +15,10 @@ for gene expression analysis
 \itemize{
 \item \href{#method-runGEAnalysis}{\code{HMX$runGEAnalysis()}}
 \item \href{#method-uploadGEAnalysisResults}{\code{HMX$uploadGEAnalysisResults()}}
+\item \href{#method-checkImpliedGEAR}{\code{HMX$checkImpliedGEAR()}}
+\item \href{#method-updateFAS}{\code{HMX$updateFAS()}}
+\item \href{#method-updateEMs}{\code{HMX$updateEMs()}}
+\item \href{#method-runUpdateAnno}{\code{HMX$runUpdateAnno()}}
 \item \href{#method-clone}{\code{HMX$clone()}}
 }
 }
@@ -63,6 +67,42 @@ for gene expression analysis
 \subsection{Method \code{uploadGEAnalysisResults()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{HMX$uploadGEAnalysisResults()}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-checkImpliedGEAR"></a>}}
+\if{latex}{\out{\hypertarget{method-checkImpliedGEAR}{}}}
+\subsection{Method \code{checkImpliedGEAR()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{HMX$checkImpliedGEAR()}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-updateFAS"></a>}}
+\if{latex}{\out{\hypertarget{method-updateFAS}{}}}
+\subsection{Method \code{updateFAS()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{HMX$updateFAS(fas_names = NULL)}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-updateEMs"></a>}}
+\if{latex}{\out{\hypertarget{method-updateEMs}{}}}
+\subsection{Method \code{updateEMs()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{HMX$updateEMs()}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-runUpdateAnno"></a>}}
+\if{latex}{\out{\hypertarget{method-runUpdateAnno}{}}}
+\subsection{Method \code{runUpdateAnno()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{HMX$runUpdateAnno()}\if{html}{\out{</div>}}
 }
 
 }
