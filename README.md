@@ -5,6 +5,8 @@
 
 Utilities for processing and analyzing [HIPC](https://www.immuneprofiling.org/hipc/page/show) gene expression data in [ImmuneSpace](https://www.immunespace.org/). 
 
+# Processing Gene Expression Data
+
 ## Processing directory structure: 
 
 ```
@@ -67,5 +69,29 @@ analysis_dir
 1. Write raw, normalized, and summarized matrices to disk as tsv
 1. Write out log and debug files
     
-    
-    
+# Gene Expression Analysis
+
+Methods for downstream analysis used in ImmuneSpace are also maintained in this 
+package. They are accessible through the `HMX` object, which is an R6 object 
+that extends the `ISConn` object defined in [`ImmuneSpaceR`](https://github.com/RGLab/ImmuneSpaceR). 
+
+To create an `HMX` object: 
+
+```
+con <- HMX$new("SDY269")
+```
+
+You can then perform analyses on the matrices available through the connection 
+object. For example, to run differential expression analysis: 
+
+```
+de_results <- con$runGEAnalysis()
+```
+
+# Standardizing Gene Annotation
+
+This package also provides utilities for standardizing gene annotation across 
+matrices in ImmuneSpace. It utilizes the HUGO Gene Nomenclature Committee (HGNC) 
+official gene alias mapping data.
+
+

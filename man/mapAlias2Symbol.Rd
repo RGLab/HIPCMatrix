@@ -4,11 +4,12 @@
 \alias{mapAlias2Symbol}
 \title{map alias to gene symbol}
 \usage{
-mapAlias2Symbol(aliases)
+mapAlias2Symbol(aliases, gene_symbol_map = hgncAlias2Symbol)
 }
 \arguments{
 \item{aliases}{character vector of gene aliases}
 }
 \description{
-Function to update annotation of a character vector of gene aliases
+Function to update annotation of a character vector of gene aliases, using
+the mapping provided by \link{\code{hgncAlias2Symbol}}
 }

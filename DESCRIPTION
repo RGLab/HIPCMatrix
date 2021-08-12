@@ -1,6 +1,6 @@
 Package: HIPCMatrix
 Title: Microarray and RNA-seq Processing for ImmuneSpace
-Version: 0.0.10
+Version: 0.0.11
 Authors@R: 
     person(given = "Helen",
            family = "Miller",
@@ -36,6 +36,7 @@ Suggests:
     hthgu133pluspmcdf,
     huex10stv2cdf,
     hursta2a520709cdf,
+    plyr,
     testthat (>= 3.0.0),
     knitr,
     rmarkdown, 
@@ -46,6 +47,8 @@ Depends:
     R (>= 3.5)
 Collate: 
     'HMX.R'
+    'gene_sets.R'
+    'gene_symbol_mapping.R'
     'hmx_differential_expression.R'
     'hmx_feature_annotation.R'
     'make_raw_matrix.R'

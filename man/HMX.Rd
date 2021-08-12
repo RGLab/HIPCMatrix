@@ -2,6 +2,11 @@
 % Please edit documentation in R/HMX.R
 \name{HMX}
 \alias{HMX}
+\alias{runGEAnalysis}
+\alias{uploadGEAnalysisResults}
+\alias{updateFAS}
+\alias{updateEMs}
+\alias{runUpdateAnno}
 \title{HIPCMatrix Connection}
 \description{
 ImmuneSpace connection object with additional methods
@@ -56,15 +61,26 @@ for gene expression analysis
 \if{html}{\out{<a id="method-runGEAnalysis"></a>}}
 \if{latex}{\out{\hypertarget{method-runGEAnalysis}{}}}
 \subsection{Method \code{runGEAnalysis()}}{
+Run Differential Expression analysis on matrices in a study
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{HMX$runGEAnalysis(rerun = FALSE)}\if{html}{\out{</div>}}
 }
 
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{rerun}}{Force re-run if results already in cache?}
+}
+\if{html}{\out{</div>}}
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-uploadGEAnalysisResults"></a>}}
 \if{latex}{\out{\hypertarget{method-uploadGEAnalysisResults}{}}}
 \subsection{Method \code{uploadGEAnalysisResults()}}{
+Upload differential gene expression analysis results to
+server. This updates the gene_expression_analysis and the
+gene_expression_analysis_results tables with updated results.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{HMX$uploadGEAnalysisResults()}\if{html}{\out{</div>}}
 }
@@ -74,17 +90,41 @@ for gene expression analysis
 \if{html}{\out{<a id="method-checkImpliedGEAR"></a>}}
 \if{latex}{\out{\hypertarget{method-checkImpliedGEAR}{}}}
 \subsection{Method \code{checkImpliedGEAR()}}{
+Check gene expression matrices to determine if
+differential expression can be run.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{HMX$checkImpliedGEAR()}\if{html}{\out{</div>}}
 }
 
+\subsection{Returns}{
+\code{TRUE} if differential expression can be run.
+\code{FALSE} if not.
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-updateFAS"></a>}}
 \if{latex}{\out{\hypertarget{method-updateFAS}{}}}
 \subsection{Method \code{updateFAS()}}{
+Update Microarray.FeatureAnnotation table
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{HMX$updateFAS(fas_names = NULL)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{HMX$updateFAS(fas_names)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{fas_names}}{name of feature annotation set}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Details}{
+This will take care of GeneExpressionExplorer Module, which uses
+the Microarray.FeatureAnnotation table to populate a dropdown for selection
+of genes of interest.  GEE will look for the FASid that was given to the original
+FAS when it was uploaded and this is challenging to change, therefore
+it was decided to move the original to a new FAS called "myOriginalFasName_orig"
+that gets a new FASid.  Con$getGEMatrix() then looks for this new FASid when
+populating the probe level gene symbols with the arg: \code{annotation = "default"}.
 }
 
 }
@@ -92,8 +132,15 @@ for gene expression analysis
 \if{html}{\out{<a id="method-updateEMs"></a>}}
 \if{latex}{\out{\hypertarget{method-updateEMs}{}}}
 \subsection{Method \code{updateEMs()}}{
+Update Expression Matrices with new annotation
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{HMX$updateEMs()}\if{html}{\out{</div>}}
+}
+
+\subsection{Details}{
+This will update the summary.tsv files for all matrices
+associated with the connection by re-calculating the summarized
+expression values with the most current prob to gene symbol mapping.
 }
 
 }
@@ -101,8 +148,30 @@ for gene expression analysis
 \if{html}{\out{<a id="method-runUpdateAnno"></a>}}
 \if{latex}{\out{\hypertarget{method-runUpdateAnno}{}}}
 \subsection{Method \code{runUpdateAnno()}}{
+Update gene annotation
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{HMX$runUpdateAnno()}\if{html}{\out{</div>}}
+}
+
+\subsection{Details}{
+This function will update the feature annotation tables,
+summarized expression matrices, and re-run differential expression
+where relevant, using the most current gene alias to symbol mapping
+found in the installed version of the UpdateAnno package.
+
+To update annotation across ImmuneSpace, first update and re-install
+UpdateAnno. Then:
+
+\code{con <- HMX$new("")}
+
+\code{con$runUpdateAnno()}
+
+To update feature annotation and run differential expression on
+a new matrix after loading all matrices for a study:
+
+\code{con <- HMX$new("SDY_ID")}
+
+\code{con$runUpdateAnno()}
 }
 
 }
