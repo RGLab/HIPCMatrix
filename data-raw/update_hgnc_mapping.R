@@ -1,3 +1,5 @@
+# Updates HGNC mapping table and gene signatures with new annotation.
+
 library(HIPCMatrix)
 
 # First, update hgnc mapping table

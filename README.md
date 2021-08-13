@@ -88,10 +88,87 @@ object. For example, to run differential expression analysis:
 de_results <- con$runGEAnalysis()
 ```
 
-# Standardizing Gene Annotation
+# Feature annotation
 
-This package also provides utilities for standardizing gene annotation across 
-matrices in ImmuneSpace. It utilizes the HUGO Gene Nomenclature Committee (HGNC) 
-official gene alias mapping data.
+This package provides tools for ensuring that the Gene Symbols used throughout
+the ImmuneSpace portal are consistent and up to date.  The `UpdateAnno` package 
+previously managed gene annotation in ImmuneSpace. 
+There are a number of places where Gene Symbols play an important role:
+- Gene Expression Explorer - Pulls Gene Symbols from the FeatureAnnotation query
+- Gene Set Enrichment Analysis - Pulls Gene Symbols from the static gene set 
+module data objects in this package, e.g. chaussabel or emory.
+- Differential Gene Expression Analysis - Uses the GeneExpressionAnalysisResults 
+query to display differentially expressed genes.
+
+## Custom Feature Annotation
+
+When loading a new matrix onto ImmuneSpace, it must be associated with a 
+feature annotation set, saved in the Feature Annotation Set table. If the 
+annotation for the matrix is not already loaded from a previous study which 
+used the same platform, you must create a new one. Each feature annotation 
+table and the source code to create it is saved in `HIPCMatrix/inst/FeatureAnnotationSetDev`. 
+
+Please refer to the 
+[Notion Documentation](https://www.notion.so/rglab/Load-a-new-gene-expression-matrix-385ce687af594d369554e406864c12ad) 
+for more details on how to create and upload a FAS. 
+
+## Updating annotation throughout ImmuneSpace 
+
+The function `create_gene_alias_map()` pulls the most recent annotation from 
+the latest HUGO Gene Nomenclature Committee dataset. 
+This resource is used instead of the NCBI database via biomaRt or the equivalent 
+`org.Hs.eg.db` as those data sources contained mappings that were deemed incorrect 
+(such as "ACTB" > "POTEF") during the ImmuneSignatures 2 project.
+
+This function handles 2 edge cases: 
+1. An alias maps to itself as a symbol as well as other symbols.  In this case, 
+we have selected to use the self-mapping and removed any other mappings.  
+Our rationale is that the other-mapping symbols are historic artifacts and no 
+longer accurate.
+2. An alias maps to multiple symbols that do not include itself.  In this case, 
+we drop these aliases from the matrix because we do not have a good way to know 
+which symbol is the most accurate. 
+
+This mapping table, as well as gene sets with the most current mapping, are 
+saved in HIPCMatrix package data to be easily accessible from many locations. 
+
+The `HMX` object includes methods for updating annotation in ImmuneSpace, 
+using the gene symbol mapping table installed with the package: 
+
+To update feature annotation sets associated with matrices associated with a 
+connection: 
+```
+con <- HMX$new("")
+con$updateFAS()
+```
+
+To update summary.tsv expressionsets associated with a connection: 
+```
+con$updateEMs()
+```
 
 
+
+To update these mappings and apply it throughout ImmuneSpace: 
+
+1. Source `HIPCMatrix/data-raw/update_hgnc_mapping.R`. 
+    This will update the HGNC mapping table which is part of the HIPCMatrix 
+    package data, then use this new mapping to update the gene signatures 
+    which are also part of the package data. 
+1. Bump package version
+1. Commit the changes, and push to github
+1. Install the update on the server: 
+    ```
+    ssh rsT
+    s
+    R
+    devtools::install("RGLab/HIPCMatrix@dev")
+    ```
+1. On the server, go to data integration module at Studies level: 
+    * TEST: https://test.immunespace.org/dataintegration/Studies/begin.view?
+    * PROD: https://www.immunespace.org/dataintegration/Studies/begin.view?
+
+1. Run Update Anno ETL. This will: 
+    1. Update Feature Annotation Sets with current annotation
+    1. Update .summary.tsv expressionsets with the current annotation
+    1. Re-run GSEA for all studies where it is turned on. 
