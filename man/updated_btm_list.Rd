@@ -5,7 +5,7 @@
 \alias{updated_btm_list}
 \title{Updated HIPC BTM list}
 \format{
-A list of lists with charactar vector elements
+A list of lists with character vector elements
 \describe{
 \item{names}{geneSet pathway names}
 \item{elements}{character vector of gene symbols}
@@ -18,7 +18,6 @@ updated_btm_list
 \description{
 A dataset containing the geneSet pathways and geneIds for
 a BTM file that is updated using the most recent version of
-the HGNC database each time the UpdateAnno package is
-re-installed with build_vignette = TRUE.
+the HGNC database when package data is re-built.
 }
 \keyword{datasets}

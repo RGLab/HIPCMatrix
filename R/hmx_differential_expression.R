@@ -195,7 +195,7 @@ runGEAnalysis <- function(con, rerun = FALSE) {
 }
 
 # see HMX$uploadGEAnalysisResults
-uploadGEAnalysisResults <- function() {
+uploadGEAnalysisResults <- function(con) {
   if (!grepl("SDY", con$study)) {
     stop("Please run for one study at a time.")
   }

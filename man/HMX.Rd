@@ -157,7 +157,7 @@ Update gene annotation
 This function will update the feature annotation tables,
 summarized expression matrices, and re-run differential expression
 where relevant, using the most current gene alias to symbol mapping
-found in the installed version of the UpdateAnno package.
+found in the HIPCMatrix package data.
 
 To update annotation across ImmuneSpace, first update and re-install
 UpdateAnno. Then:

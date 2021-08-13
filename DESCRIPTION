@@ -29,18 +29,19 @@ Imports:
     tools,
     gtools
 Suggests: 
-    hugene10stv1cdf,
-    primeviewcdf,
-    hgu133plus2cdf,
     hgu133a2cdf,
+    hgu133plus2cdf,
     hthgu133pluspmcdf,
+    httptest,
     huex10stv2cdf,
+    hugene10stv1cdf,
     hursta2a520709cdf,
-    plyr,
-    testthat (>= 3.0.0),
     knitr,
+    plyr,
+    primeviewcdf,
+    R.utils, 
     rmarkdown, 
-    R.utils
+    testthat (>= 3.0.0)
 Config/testthat/edition: 3
 VignetteBuilder: knitr
 Depends: 

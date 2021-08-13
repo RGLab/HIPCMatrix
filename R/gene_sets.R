@@ -43,7 +43,7 @@ update_geneset_symbols <- function(geneset_name,
 #' a BTM file that is updated using the most recent version of
 #' the HGNC database when package data is re-built.
 #'
-#' @format A list of lists with charactar vector elements
+#' @format A list of lists with character vector elements
 #' \describe{
 #'   \item{names}{geneSet pathway names}
 #'   \item{elements}{character vector of gene symbols}
