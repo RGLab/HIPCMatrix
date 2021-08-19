@@ -1,6 +1,6 @@
 Package: HIPCMatrix
 Title: Microarray and RNA-seq Processing for ImmuneSpace
-Version: 0.0.6
+Version: 0.0.11
 Authors@R: 
     person(given = "Helen",
            family = "Miller",
@@ -26,20 +26,36 @@ Imports:
     preprocessCore,
     Rlabkey,
     SummarizedExperiment,
-    tools
+    tools,
+    gtools
 Suggests: 
-    hugene10stv1cdf,
-    primeviewcdf,
-    hgu133plus2cdf,
     hgu133a2cdf,
+    hgu133plus2cdf,
     hthgu133pluspmcdf,
+    httptest,
     huex10stv2cdf,
+    hugene10stv1cdf,
     hursta2a520709cdf,
-    testthat (>= 3.0.0),
     knitr,
+    plyr,
+    primeviewcdf,
+    R.utils, 
     rmarkdown, 
-    R.utils
+    testthat (>= 3.0.0)
 Config/testthat/edition: 3
 VignetteBuilder: knitr
 Depends: 
     R (>= 3.5)
+Collate: 
+    'HMX.R'
+    'gene_sets.R'
+    'gene_symbol_mapping.R'
+    'hmx_differential_expression.R'
+    'hmx_feature_annotation.R'
+    'make_raw_matrix.R'
+    'meta_data.R'
+    'normalize.R'
+    'prepare_files.R'
+    'runCreateMx.R'
+    'summarize.R'
+    'utils.R'

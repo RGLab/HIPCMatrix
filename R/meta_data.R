@@ -72,7 +72,6 @@
 #' idat files that need bgx manifest files.}
 #' \item{gsm_table_var_name (optional)}{Custom list of raw values column name for gsm-based data}
 #' }
-
 #'
 #'
 #'
