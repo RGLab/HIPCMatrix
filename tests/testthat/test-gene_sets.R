@@ -12,5 +12,3 @@ test_that("update_geneset_symbols result matches package data", {
   btm_updated <- update_geneset_symbols("orig_btm_list")
   expect_true(all.equal(btm_updated, HIPCMatrix::updated_btm_df))
 })
-
-

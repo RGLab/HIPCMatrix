@@ -42,7 +42,7 @@ makeAnnoDf <- function(annoPkg, outPath = NULL) {
     stringsAsFactors = F
   )
   if (!is.null(outPath)) {
-    write.table(res,
+    fwrite(res,
       file = outPath,
       quote = FALSE,
       sep = "\t",

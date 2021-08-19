@@ -5,7 +5,7 @@
 #'
 #' @importFrom R6 R6Class
 #' @export
-HMX <- R6::R6Class(
+HMX <- R6Class(
   classname = "HIPCMatrixConn",
   inherit = ImmuneSpaceR:::ISCon,
   public = list(

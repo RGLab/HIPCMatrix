@@ -4,11 +4,14 @@ test_that("download_hgnc_complete_set returns correct format", {
   data <- HIPCMatrix:::download_hgnc_complete_set()
   expect_s3_class(data, "data.table")
   expect_true(all(
-    c("symbol",
+    c(
+      "symbol",
       "alias_symbol",
       "prev_symbol",
       "hgnc_id",
-      "entrez_id") %in% names(data)))
+      "entrez_id"
+    ) %in% names(data)
+  ))
 })
 
 # Test data for creating mapping table
@@ -51,5 +54,3 @@ test_that("create_gene_alias_map_from_hgnc_set handles edge cases", {
   # edge case: An alias maps to multiple symbols, not including itself. Drop.
   expect_equal(nrow(map[ALIAS == "gene"]), 0)
 })
-
-

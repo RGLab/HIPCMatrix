@@ -34,7 +34,7 @@ find_de_genes_eBayes <- function(eset,
     return()
   }
 
-  mm <- model.matrix(formula("~participant_id + coef"), pd)
+  mm <- stats::model.matrix(stats::formula("~participant_id + coef"), pd)
 
   if (dim(mm)[[1]] < dim(mm)[[2]]) {
     stop("Not enough subjects to perform analysis")

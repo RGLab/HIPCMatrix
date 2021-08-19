@@ -29,7 +29,7 @@
 
 download_hgnc_complete_set <- function(file = tempfile()) {
   url <- "ftp://ftp.ebi.ac.uk/pub/databases/genenames/new/json/hgnc_complete_set.json"
-  download.file(url, file)
+  utils::download.file(url, file)
   tmp <- jsonlite::fromJSON(file)
   data <- data.table(tmp$response$docs)
   return(data)
