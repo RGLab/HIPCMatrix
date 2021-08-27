@@ -24,4 +24,5 @@ if (!any(file.exists("~/.netrc", "~/_netrc"))) {
 # Regardless of netrc presence, test against `ISR_machine` in .Renviron
 assign("labkey.url.base", ImmuneSpaceR:::.get_env_url(), .GlobalEnv)
 
-con_all <- CreateConnection("")
+con_all <- HMX$new("")
+SDY269 <- HMX$new("SDY269")

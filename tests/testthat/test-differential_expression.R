@@ -1,6 +1,4 @@
-labkey.url.base <- "http://10.107.229.229:8080"
-con <- HMX$new("SDY269")
-eset <- con$getGEMatrix("SDY269_PBMC_TIV_Geo",
+eset <- SDY269$getGEMatrix("SDY269_PBMC_TIV_Geo",
   outputType = "normalized",
   annotation = "latest"
 )

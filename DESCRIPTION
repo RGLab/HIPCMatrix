@@ -1,6 +1,6 @@
 Package: HIPCMatrix
 Title: Microarray and RNA-seq Processing for ImmuneSpace
-Version: 0.0.12
+Version: 0.0.13
 Authors@R: 
     person(given = "Helen",
            family = "Miller",
@@ -28,7 +28,9 @@ Imports:
     SummarizedExperiment,
     tools,
     gtools,
-    R6
+    R6,
+    glmnet,
+    digest
 Suggests: 
     hgu133a2cdf,
     hgu133plus2cdf,
@@ -53,6 +55,7 @@ Collate:
     'gene_symbol_mapping.R'
     'hmx_differential_expression.R'
     'hmx_feature_annotation.R'
+    'immune_response_predictor.R'
     'make_raw_matrix.R'
     'meta_data.R'
     'normalize.R'
