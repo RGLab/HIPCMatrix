@@ -5,7 +5,6 @@ suppressPackageStartupMessages({
   library(data.table)
   library(Rlabkey)
   library(testthat)
-  library(httptest)
 })
 
 

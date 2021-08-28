@@ -126,27 +126,20 @@ HMX <- R6Class(
     #' \code{dichotomize_value}
     #' @param dichotomize_thresh Value to use for dichotomizing result if
     #' \code{dichotomize} is TRUE.
+    #' @param reload Force rerun if result is already found in cache?
     get_immune_response = function(assay = "hai",
                                    participant_ids = NULL,
                                    dichotomize = FALSE,
-                                   dichotomize_thresh = NULL,
+                                   dichotomize_thresh = 4,
                                    reload = FALSE) {
-      cache_name <- paste0("response_", assay)
-      if (cache_name %in% names(self$cache) & !reload) {
-        return(self$cache[[cache_name]])
-      }
-
-      response <- get_immune_response(
+      get_immune_response(
         self,
         assay = assay,
         participant_ids = participant_ids,
         dichotomize = dichotomize,
-        dichotomize_thresh = dichotomize_thresh
+        dichotomize_thresh = dichotomize_thresh,
+        reload = reload
       )
-
-      self$cache[[cache_name]] <- response
-
-      response
     },
 
 
@@ -158,38 +151,20 @@ HMX <- R6Class(
     #' are differentially expressed
     #' @param timepoint_unit "Days" or "Hours"
     #' @param cohorts character vector of cohorts to include
-    #'
+    #' @param reload Force rerun if result is already found in cache?
     get_de_genes = function(timepoint,
                             fc_thresh = 0.58,
                             timepoint_unit = "Days",
                             cohorts = NULL,
                             reload = FALSE) {
-      args <- list(
-        timepoint = timepoint,
-        fc_thresh = fc_thresh,
-        timpeoint_unit = timepoint_unit,
-        cohorts = cohorts
-      )
-      digestedArgs <- digest::digest(args)
-
-      if (!"de_genes" %in% self$cache) self$cache$de_genes <- list()
-      if (digestedArgs %in% names(self$cache$de_genes) & !reload) {
-        return(self$cache$de_genes[[digestedArgs]]$data)
-      }
-
-      de_genes <- get_de_genes(self,
+      get_de_genes(
+        self,
         timepoint = timepoint,
         fc_thresh = fc_thresh,
         timepoint_unit = timepoint_unit,
-        cohorts = cohorts
+        cohorts = cohorts,
+        reload = reload
       )
-
-      self$cache$de_genes[[digestedArgs]] <- list(
-        data = de_genes,
-        args = args
-      )
-
-      de_genes
     },
 
     #' @description Get immune response predictors
@@ -209,6 +184,9 @@ HMX <- R6Class(
     #' \code{dichotomize_value}
     #' @param dichotomize_thresh Value to use for dichotomizing result if
     #' \code{dichotomize} is TRUE.
+    #' @param return_type Option to return either a vector of the significant
+    #' features, or the model fit. Options are 'fit' or 'features'. Default
+    #' is to return the fitted model.
     #' @param reload Force rerun if result is already found in cache?
     train_immune_response_predictors = function(cohorts,
                                                 timepoint,
@@ -218,8 +196,10 @@ HMX <- R6Class(
                                                 fc_thresh = 0.58,
                                                 dichotomize = FALSE,
                                                 dichotomize_thresh = 4,
+                                                return_type = "fit",
                                                 reload = FALSE) {
-      train_immune_response_predictors(self,
+      train_immune_response_predictors(
+        self,
         cohorts = cohorts,
         timepoint = timepoint,
         assay = assay,
@@ -233,13 +213,34 @@ HMX <- R6Class(
     },
 
     #' @description Test immune response predictor model on testing cohort data.
-    #' @aliases test_immune_response_predictors
+    #' @aliases predict_response
     #'
     #' @param cohorts character vector of cohorts to include
     #' @param timepoint Timepoint for finding differentially expressed genes
     #' @param fit Model fit to test.
-    #' @param assay "hai", "neut_ab_response", or "elisa"
     #' @param timepoint_unit "Days" or "Hours"
+    predict_response = function(cohorts,
+                                timepoint,
+                                fit,
+                                timepoint_unit = "Days") {
+      predict_response(self,
+        cohorts,
+        timepoint,
+        fit,
+        timepoint_unit = "Days"
+      )
+    },
+
+    #' @description Test immune response predictors
+    #'
+    #' @details get a table of observed vs predicted
+    #' values given a fitted model.
+    #'
+    #' @param cohorts cohorts to test
+    #' @param timepoint Timepoint to test
+    #' @param fit Model fit to test
+    #' @param assay "hai", "neut_ab_response", or "elisa"
+    #' @param timepoin_unit "Days" or "Hours"
     #' @param dichotomize Dichotomize result? If FALSE, max log fold change is
     #' returned. If TRUE, returns TRUE if max log fold change is greater than
     #' \code{dichotomize_value}
@@ -252,14 +253,15 @@ HMX <- R6Class(
                                                timepoint_unit = "Days",
                                                dichotomize = FALSE,
                                                dichotomize_thresh = 4) {
-      test_immune_response_predictors(self,
-        cohorts,
-        timepoint,
-        fit,
-        assay = "hai",
-        timepoint_unit = "Days",
-        dichotomize = FALSE,
-        dichotomize_thresh = 4
+      test_immune_response_predictors(
+        self,
+        cohorts = cohorts,
+        timepoint = timepoint,
+        fit = fit,
+        assay = assay,
+        timepoint_unit = timepoint_unit,
+        dichotomize = dichotomize,
+        dichotomize_thresh = dichotomize_thresh
       )
     }
   )

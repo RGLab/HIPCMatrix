@@ -17,7 +17,33 @@ get_immune_response <- function(con,
                                 assay = "hai",
                                 participant_ids = NULL,
                                 dichotomize = FALSE,
-                                dichotomize_thresh = 4) {
+                                dichotomize_thresh = 4,
+                                reload = FALSE) {
+  args <- list(
+    assay = assay,
+    dichotomize = dichotomize,
+    dichotomize_thresh = dichotomize_thresh
+  )
+  digestedArgs <- digest::digest(args)
+
+  cache_name <- paste0("response_", digestedArgs)
+  if (cache_name %in% names(con$cache) & !reload) {
+    log_message("Returning response values from cache...")
+    response <- con$cache[[cache_name]]
+    if (!is.null(participant_ids)) {
+      # Return data.table with one row per participant_id,
+      # in the same order. NA values if no response data for
+      # that pid
+      response <- merge(data.table(participant_id = participant_ids),
+        con$cache[[cache_name]],
+        all.x = TRUE,
+        sort = FALSE
+      )
+    }
+    return(response)
+  }
+
+
   if (!assay %in% con$availableDatasets$Name) {
     stop(sprintf("`%s` is not a valid dataset", assay))
   }
@@ -26,9 +52,6 @@ get_immune_response <- function(con,
   response <- con$getDataset(assay,
     original_view = TRUE
   )
-  if (!is.null(participant_ids)) {
-    response <- response[participant_id %in% participant_ids]
-  }
 
   # Get fold change from baseline
   analyte <- switch(assay,
@@ -56,6 +79,21 @@ get_immune_response <- function(con,
     response <- response[, response := ifelse(response >= log2(dichotomize_thresh), TRUE, FALSE)]
   }
   response <- response[order(participant_id)]
+
+  con$cache[[cache_name]] <- response
+
+
+  if (!is.null(participant_ids)) {
+    # Return data.table with one row per participant_id,
+    # in the same order. NA values if no response data for
+    # that pid
+    response <- merge(data.table(participant_id = participant_ids),
+      con$cache[[cache_name]],
+      all.x = TRUE,
+      sort = FALSE
+    )
+  }
+
   return(response)
 }
 
@@ -74,7 +112,23 @@ get_de_genes <- function(con,
                          timepoint,
                          fc_thresh = 0.58,
                          timepoint_unit = "Days",
-                         cohorts = NULL) {
+                         cohorts = NULL,
+                         reload = FALSE) {
+
+  # Check cache
+  args <- list(
+    timepoint = timepoint,
+    fc_thresh = fc_thresh,
+    timpeoint_unit = timepoint_unit,
+    cohorts = cohorts
+  )
+  digestedArgs <- digest::digest(args)
+
+  if (!"de_genes" %in% names(con$cache)) con$cache$de_genes <- list()
+  if (digestedArgs %in% names(con$cache$de_genes) & !reload) {
+    log_message("Returning differentially expressed genes from cache...")
+    return(con$cache$de_genes[[digestedArgs]]$data)
+  }
 
 
   # Validate params
@@ -121,13 +175,20 @@ get_de_genes <- function(con,
   dgear <- dgear[abs(log_fc) > fc_thresh]
   de_genes <- unique(dgear$gene_symbol)
 
+
+  con$cache$de_genes[[digestedArgs]] <- list(
+    data = de_genes,
+    args = args
+  )
+
   de_genes
 }
 
 
 get_fc_mx <- function(eset,
                       timepoint,
-                      timepoint_unit = "Days") {
+                      timepoint_unit = "Days",
+                      features = NULL) {
 
   # Get only subject with requested timepoint OR baseline AND appropriate unit
   eset <- eset[, eset$study_time_collected %in% c(0, timepoint) &
@@ -159,6 +220,10 @@ get_fc_mx <- function(eset,
     FC <- t(Biobase::exprs(eset))
   }
   rownames(FC) <- pd[match(rownames(FC), pd$biosample_accession), participant_id]
+
+  if (!is.null(features)) {
+    FC <- FC[, features]
+  }
 
   FC
 }
@@ -261,12 +326,12 @@ get_fit <- function(FC,
   formula <- as.formula(paste0("outcome~`", paste(colnames(FC), collapse = "`+`"), sep = "`"))
   FC$outcome <- response_vector
   if (dichotomize) {
-    relasso <- glm(formula, FC, family = "binomial")
+    fit <- glm(formula, FC, family = "binomial")
   } else {
-    relasso <- lm(formula, FC)
+    fit <- lm(formula, FC)
   }
 
-  relasso
+  fit
 }
 
 #' Get Immune Response Predictors
@@ -280,6 +345,7 @@ train_immune_response_predictors <- function(con,
                                              fc_thresh = 0.58,
                                              dichotomize = FALSE,
                                              dichotomize_thresh = 4,
+                                             return_type = "fit",
                                              reload = FALSE) {
   # Check cache
   args <- list(
@@ -293,14 +359,26 @@ train_immune_response_predictors <- function(con,
     dichotomize_thresh = dichotomize_thresh
   )
 
+
+  if (!return_type %in% c("fit", "features")) {
+    stop("return_type must be either 'fit' or 'features'")
+  }
+
   digestedArgs <- digest::digest(args)
   cache_name <- paste0("irp_fit_", digestedArgs)
   if (cache_name %in% names(con$cache) & !reload) {
-    return(con$cache[[cache_name]])
+    if (return_type == "fit") {
+      log_message("returning model fit from cache.")
+      return(con$cache[[cache_name]])
+    } else {
+      log_message("returning features from cache")
+      return(names(fit$coefficients)[2:length(fit$coefficients)])
+    }
   }
 
 
   # Validate params
+
   bad_cohorts <- !cohorts %in% con$listGEMatrices()$cohort_type
   if (any(bad_cohorts)) {
     stop(
@@ -321,17 +399,26 @@ train_immune_response_predictors <- function(con,
 
   # Subset to DE genes
   if (use_only_de_genes) {
+    log_message("Subsetting to differentially expressed genes...")
     de_genes <- con$get_de_genes(
       timepoint = timepoint,
       fc_thresh = fc_thresh,
       timepoint_unit = timepoint_unit,
       cohorts = cohorts
     )
+    log_message(length(de_genes), " differentially expressed genes found.")
     eset <- eset[Biobase::featureNames(eset) %in% de_genes, ]
   }
 
   # Get matrix of fold-change from day 0 to timepoint.
   # If timepoint = 0, then just return expression values.
+  log_message(
+    "Deriving fold-change from baseline to ",
+    timepoint,
+    " ",
+    timepoint_unit,
+    "..."
+  )
   FC <- get_fc_mx(
     eset,
     timepoint,
@@ -339,6 +426,7 @@ train_immune_response_predictors <- function(con,
   )
 
   # Get immune response for each participant.
+  log_message("Calculating immune response for ", assay, "...")
   response <- con$get_immune_response(
     assay = assay,
     participant_ids = rownames(FC),
@@ -357,13 +445,17 @@ train_immune_response_predictors <- function(con,
   }
 
   # Select features using elastic net
-  features <- select_features(
+  log_message("Selecting features using elastic net...")
+  features <- con$select_features(
     FC = FC,
     response_vector = response_vector,
     dichotomize = dichotomize
   )
+  log_message(length(features), " features selected.")
+
 
   # Fit linear model using selected features
+  log_message("Finding model fit using selected features...")
   fit <- get_fit(FC,
     response_vector,
     features,
@@ -372,18 +464,15 @@ train_immune_response_predictors <- function(con,
 
   con$cache[[cache_name]] <- fit
 
+  if (return_type = "features") return(features)
   fit
 }
 
-test_immune_response_predictors <- function(con,
-                                            cohorts,
-                                            timepoint,
-                                            fit,
-                                            assay = "hai",
-                                            timepoint_unit = "Days",
-                                            fc_thresh = 0.58,
-                                            dichotomize = FALSE,
-                                            dichotomize_thresh = 4) {
+predict_response <- function(con,
+                             cohorts,
+                             timepoint,
+                             fit,
+                             timepoint_unit = "Days") {
   # Validate params
   bad_cohorts <- !cohorts %in% con$listGEMatrices()$cohort_type
   if (any(bad_cohorts)) {
@@ -405,20 +494,21 @@ test_immune_response_predictors <- function(con,
 
   # Get matrix of fold-change from day 0 to timepoint.
   # If timepoint = 0, then just return expression values.
+  log_message(
+    "Deriving fold-change from baseline to ",
+    timepoint,
+    " ",
+    timepoint_unit,
+    "..."
+  )
+
   FC <- get_fc_mx(
     eset,
     timepoint,
     timepoint_unit
   )
 
-  # Get response
-  response <- con$get_immune_response(
-    assay = assay,
-    participant_ids = rownames(FC),
-    dichotomize = dichotomize,
-    dichotomize_thresh = dichotomize_thresh
-  )
-
+  log_message("Deriving predicted values...")
   newdata <- data.frame(FC)
   rownames(newdata) <- rownames(FC)
   predicted_values <- stats::predict(fit, newdata = newdata, type = "response")
@@ -426,18 +516,95 @@ test_immune_response_predictors <- function(con,
   predicted_values
 }
 
+test_immune_response_predictors <- function(con,
+                                            cohorts,
+                                            timepoint,
+                                            fit,
+                                            assay = "hai",
+                                            timepoint_unit = "Days",
+                                            dichotomize = FALSE,
+                                            dichotomize_thresh = 4) {
+  predicted_values <- con$predict_response(
+    cohorts,
+    timepoint,
+    fit,
+    timepoint_unit
+  )
+
+  result <- con$get_immune_response(
+    assay = assay,
+    participant_ids = names(predicted_values),
+    dichotomize = dichotomize,
+    dichotomize_thresh = dichotomize_thresh
+  )
+  setnames(result, "response", "observed")
+  result[, predicted := predicted_values[participant_id]]
+
+  result
+}
+
+# Run IRP
+run_irp <- function(con,
+                    cohorts_train,
+                    cohorts_test,
+                    timepoint,
+                    use_only_de_genes,
+                    assay,
+                    timepoint_unit,
+                    fc_thresh,
+                    dichotomize,
+                    dichotomize_thresh) {
+  fit <- con$train_immune_response_predictors(
+    cohorts = cohorts_train,
+    timepoint = timepoint,
+    assay = assay,
+    timepoint_unit = timepoint_unit,
+    use_only_de_genes = use_only_de_genes,
+    fc_thresh = fc_thresh,
+    dichotomize = dichotomize,
+    dichotomize_thresh = dichotomize_thresh
+  )
+
+
+  result <- con$test_immune_response_predictors(
+    con = con,
+    cohorts = cohorts_train,
+    timepoint = timepoint,
+    fit = fit,
+    assay = assay,
+    timepoint_unit = timepoint_unit,
+    dichotomize = dichotomize,
+    dichotomize_thresh = dichotomize_thresh
+  )
+  if (!is.null(cohorts_test)) {
+    result_test <- test_immune_response_predictors(
+      con = con,
+      cohorts = cohorts_test,
+      timepoint = timepoint,
+      fit = fit,
+      assay = assay,
+      timepoint_unit = timepoint_unit,
+      dichotomize = dichotomize,
+      dichotomize_thresh = dichotomize_thresh
+    )
+    result$cohort_label <- paste0(paste0(cohorts_train, collapse = ", "), " (Training)")
+    result_test$cohort_label <- paste0(paste0(cohorts_test, collapse = ", "), "(Testing)")
+    result <- rbind(result, result_test)
+  }
+}
+
 #' Format Predictor Table
 #'
-#' Create nicely formatted table of predictors from relasso result.
+#' Create nicely formatted table of predictors from fit result.
 #'
-#' @param relasso fit object from \code{glm} or \code{lm}
+#' @param fit fit object from \code{glm} or \code{lm}
 #'
 #' @export
-format_predictor_table <- function(relasso) {
-  sum_relasso <- summary(relasso)
-  sum_relasso_coef <- sum_relasso$coefficients
-  pred_cIdx <- grep("value|Pr", colnames(sum_relasso_coef))
-  predictor_table <- sum_relasso_coef[, pred_cIdx][-1, ]
+format_predictor_table <- function(fit) {
+  sum_fit <- summary(fit)
+  sum_fit_coef <- sum_fit$coefficients
+  pred_cIdx <- grep("value|Pr", colnames(sum_fit_coef))
+  predictor_table <- sum_fit_coef[, pred_cIdx][-1, ]
   colnames(predictor_table) <- c("statistic", "p-value")
 
 

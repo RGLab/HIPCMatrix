@@ -4,11 +4,11 @@
 \alias{format_predictor_table}
 \title{Format Predictor Table}
 \usage{
-format_predictor_table(relasso)
+format_predictor_table(fit)
 }
 \arguments{
-\item{relasso}{fit object from \code{glm} or \code{lm}}
+\item{fit}{fit object from \code{glm} or \code{lm}}
 }
 \description{
-Create nicely formatted table of predictors from relasso result.
+Create nicely formatted table of predictors from fit result.
 }

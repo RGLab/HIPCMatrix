@@ -40,7 +40,7 @@ test_that("find_de_genes_eBayes uses correct p-val cutoff", {
 })
 
 test_that("HMX$runGEAnalysis returns correct object", {
-  de_result <- con$runGEAnalysis()
+  de_result <- SDY269$runGEAnalysis()
   expect_s3_class(de_result, "data.table")
   expect_equal(
     names(de_result),

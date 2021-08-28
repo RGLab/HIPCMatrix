@@ -89,6 +89,57 @@ object. For example, to run differential expression analysis:
 de_results <- con$runGEAnalysis()
 ```
 
+## Differential Expression Analysis
+
+## Immune Response Predictor
+
+The Immune Response Predictors method finds genes which predict immune response, 
+with methods to fit a model to those features and compare observed vs predicted 
+results. These methods are used in the Immune Response Predictor module in ImmuneSpace. 
+
+Predictor genes are identified using elastic net regression using the `glmnet` 
+package. 
+
+The `train_immune_response_predictors` method will identify genes which predict 
+immune response, measured either by HAI, Neutralizing Antibody Titer, or ELISA
+results. For example, to find genes whose change in expression from baseline to 
+day 7 are associated with HAI response, and fit a model: 
+
+```
+con <- HMX$new("SDY269")
+fit <- con$train_immune_response_predictors(
+    cohorts = "LAIV group 2008_PBMC",
+    timepoint = 7
+  )
+```
+
+Under the hood, this function: 
+1. Identifies genes differentially expressed from baseline to the selected timepoint.
+1. Calculates fold-change from baseline to selected timepoint for those genes.
+1. Calculates immune response using the selected assay (default is HAI) for all participants in the selected cohort.
+1. Selects features whose fold-change value is predictive of HAI response using 
+elastic net regression.
+1. Fits a linear model to the data using the selected features. 
+
+You can also return just the selected features instead of the whole model 
+with the `return_type` option: 
+
+```
+features <- con$train_immune_response_predictors(
+    cohorts = "LAIV group 2008_PBMC",
+    timepoint = 7, 
+    return_type = "features"
+  )
+```
+
+`train_immune_response_predictors` also has the option to dichotomize response 
+values using a threshold, using the `dichotomize` and `dichotomize_thresh` options. 
+In this case, features will be selected and the model will be fit using logistic
+regression instead of linear. 
+
+Once a model has been fit, fitted values can be derived using the `predict_response`
+method, which returns predicted values for each participant in the selected cohort. 
+
 # Feature annotation
 
 This package provides tools for ensuring that the Gene Symbols used throughout

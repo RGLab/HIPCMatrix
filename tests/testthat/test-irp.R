@@ -1,22 +1,19 @@
-get_immune_response <- HIPCMatrix:::get_immune_response
-get_de_genes <- HIPCMatrix:::get_de_genes
-
 test_that("get_immune_response handles bad inputs", {
   expect_error(
-    get_immune_response(SDY269, assay = "assay"),
+    SDY269$get_immune_response(assay = "assay"),
     "`assay` is not a valid dataset"
   )
 })
 
 test_that("get_immune_response returns correct format", {
-  resp <- get_immune_response(SDY269)
+  resp <- SDY269$get_immune_response()
   expect_equal(colnames(resp), c("participant_id", "response"))
   expect_type(resp$response, "double")
   expect_equal(length(unique(resp$participant_id)), nrow(resp))
 })
 
 test_that("get_immune_response with dichotomize returns correct format", {
-  resp_dich <- get_immune_response(SDY269, dichotomize = TRUE)
+  resp_dich <- SDY269$get_immune_response(dichotomize = TRUE)
   expect_equal(colnames(resp_dich), c("participant_id", "response"))
   expect_type(resp_dich$response, "logical")
   expect_equal(length(unique(resp_dich$participant_id)), nrow(resp_dich))
@@ -25,35 +22,36 @@ test_that("get_immune_response with dichotomize returns correct format", {
 test_that("get_immune_response only returns correct pids", {
   demog <- SDY269$getDataset("demographics")
   pids <- demog$participant_id[1:10]
-  resp <- get_immune_response(SDY269, participant_ids = pids)
+  resp <- SDY269$get_immune_response(participant_ids = pids)
   expect_equal(pids, resp$participant_id)
+
+  # pid which is not present in assay should still show up, with NA value
+  pids <- c(pids, "TEST")
+  resp <- SDY269$get_immune_response(participant_ids = pids)
+  expect_equal(pids, resp$participant_id)
+  expect_true(is.na(resp[participant_id == "TEST", response]))
 })
 
 test_that("get_immune_response neut_ab_titer", {
   con <- HMX$new("SDY180")
-  resp <- get_immune_response(con, "neut_ab_titer")
+  resp <- con$get_immune_response("neut_ab_titer")
   expect_equal(colnames(resp), c("participant_id", "response"))
   expect_type(resp$response, "double")
   expect_equal(length(unique(resp$participant_id)), nrow(resp))
 })
 
 test_that("get_immune_response elisa", {
-  resp <- get_immune_response(SDY269, assay = "elisa")
+  resp <- SDY269$get_immune_response(assay = "elisa")
   expect_equal(colnames(resp), c("participant_id", "response"))
   expect_type(resp$response, "double")
   expect_equal(length(unique(resp$participant_id)), nrow(resp))
 })
 
-test_that("HMX$get_immune_response", {
-  resp <- get_immune_response(SDY269)
-  resp_hmx <- SDY269$get_immune_response()
-  expect_true(all.equal(resp, resp_hmx))
-})
-
 test_that("get_de_genes filters correctly", {
-  de_genes <- get_de_genes(SDY269, timepoint = 7)
-  de_genes_tiv <- get_de_genes(SDY269, timepoint = 7, cohorts = "TIV Group 2008_PBMC")
-  de_genes_laiv <- get_de_genes(SDY269, timepoint = 7, cohorts = "LAIV group 2008_PBMC")
+  de_genes <- SDY269$get_de_genes(timepoint = 7)
+
+  de_genes_tiv <- SDY269$get_de_genes(timepoint = 7, cohorts = "TIV Group 2008_PBMC")
+  de_genes_laiv <- SDY269$get_de_genes(timepoint = 7, cohorts = "LAIV group 2008_PBMC")
 
   expect_gt(length(de_genes), length(de_genes_tiv))
   expect_equal(de_genes, union(de_genes_tiv, de_genes_laiv))
@@ -61,12 +59,12 @@ test_that("get_de_genes filters correctly", {
 
 test_that("get_de_genes handles bad inputs", {
   expect_error(
-    get_de_genes(SDY269, cohorts = "fake cohort"),
+    SDY269$get_de_genes(SDY269, cohorts = "fake cohort"),
     "'fake cohort' is not a valid cohort."
   )
 
   expect_error(
-    get_de_genes(SDY269, timepoint = 9),
+    SDY269$get_de_genes(SDY269, timepoint = 9),
     "9 Days is not a valid timepoint"
   )
 })
@@ -178,16 +176,63 @@ test_that("get_immune_response_predictor works", {
     cohorts = "LAIV group 2008_PBMC",
     timepoint = 7
   )
+
+  pred_resp <- SDY269$predict_response(
+    cohorts = "TIV Group 2008_PBMC",
+    timepoint = 7,
+    fit = pred7
+  )
   # Should now have de_genes and response in cache
   expect_true("de_genes" %in% names(SDY269$cache))
-  expect_true("response_hai" %in% names(SDY269$cache))
   expect_length(grep("irp_fit_", names(SDY269$cache)), 1)
 
   expect_s3_class(pred7, "lm")
-
-  # Same thing with timepoint = 3
-  pred3 <- SDY269$train_immune_response_predictors(
-    cohorts = "LAIV group 2008_PBMC",
-    timepoint = 3
-  )
 })
+
+test_that("test_immune_response_predictors returns correct format", {
+  fit <- SDY269$train_immune_response_predictors(
+    cohorts = "LAIV group 2008_PBMC",
+    timepoint = 7
+  )
+
+  result_train <- SDY269$test_immune_response_predictors(
+    "LAIV group 2008_PBMC",
+    timepoint = 7,
+    fit = fit
+  )
+
+  result_test <- SDY269$test_immune_response_predictors(
+    "TIV Group 2008_PBMC",
+    timepoint = 7,
+    fit = fit
+  )
+
+  expect_equal(colnames(result_train), c("participant_id", "observed", "predicted"))
+  expect_equal(colnames(result_test), c("participant_id", "observed", "predicted"))
+  preds <- result_train$predicted
+  names(preds) <- result_train$participant_id
+  expect_mapequal(preds, fit$fitted.values)
+})
+
+#
+# test_that("run IRP", {
+#
+#   cohorts_train <- "LAIV group 2008_PBMC"
+#   cohorts_test <- "TIV Group 2008_PBMC"
+#   timepoint = 7
+#   assay <- "elisa"
+#
+#   fit <- SDY269$train_immune_response_predictors(cohorts_train,
+#                                                  timepoint,
+#                                                  assay = assay)
+#
+#   result_train <- SDY269$test_immune_response_predictors(cohorts_train,
+#                                                          7,
+#                                                          fit,
+#                                                          assay = assay)
+#   results_test <- SDY269$test_immune_response_predictors(cohorts_test,
+#                                                          7,
+#                                                          fit,
+#                                                          assay = assay)
+#
+# })

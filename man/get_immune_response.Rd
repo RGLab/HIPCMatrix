@@ -9,7 +9,8 @@ get_immune_response(
   assay = "hai",
   participant_ids = NULL,
   dichotomize = FALSE,
-  dichotomize_thresh = 4
+  dichotomize_thresh = 4,
+  reload = FALSE
 )
 }
 \arguments{

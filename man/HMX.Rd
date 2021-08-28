@@ -10,7 +10,7 @@
 \alias{get_immune_response}
 \alias{get_de_genes}
 \alias{train_immune_response_predictors}
-\alias{test_immune_response_predictors}
+\alias{predict_response}
 \title{HIPCMatrix Connection}
 \description{
 ImmuneSpace connection object with additional methods
@@ -31,6 +31,7 @@ for gene expression analysis
 \item \href{#method-get_immune_response}{\code{HMX$get_immune_response()}}
 \item \href{#method-get_de_genes}{\code{HMX$get_de_genes()}}
 \item \href{#method-train_immune_response_predictors}{\code{HMX$train_immune_response_predictors()}}
+\item \href{#method-predict_response}{\code{HMX$predict_response()}}
 \item \href{#method-test_immune_response_predictors}{\code{HMX$test_immune_response_predictors()}}
 \item \href{#method-clone}{\code{HMX$clone()}}
 }
@@ -193,7 +194,7 @@ Get immune response.
   assay = "hai",
   participant_ids = NULL,
   dichotomize = FALSE,
-  dichotomize_thresh = NULL,
+  dichotomize_thresh = 4,
   reload = FALSE
 )}\if{html}{\out{</div>}}
 }
@@ -211,6 +212,8 @@ returned. If TRUE, returns TRUE if max log fold change is greater than
 
 \item{\code{dichotomize_thresh}}{Value to use for dichotomizing result if
 \code{dichotomize} is TRUE.}
+
+\item{\code{reload}}{Force rerun if result is already found in cache?}
 
 \item{\code{con}}{HMX connection}
 }
@@ -247,6 +250,8 @@ are differentially expressed}
 \item{\code{timepoint_unit}}{"Days" or "Hours"}
 
 \item{\code{cohorts}}{character vector of cohorts to include}
+
+\item{\code{reload}}{Force rerun if result is already found in cache?}
 }
 \if{html}{\out{</div>}}
 }
@@ -301,10 +306,33 @@ returned. If TRUE, returns TRUE if max log fold change is greater than
 }
 }
 \if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-predict_response"></a>}}
+\if{latex}{\out{\hypertarget{method-predict_response}{}}}
+\subsection{Method \code{predict_response()}}{
+Test immune response predictor model on testing cohort data.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{HMX$predict_response(cohorts, timepoint, fit, timepoint_unit = "Days")}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{cohorts}}{character vector of cohorts to include}
+
+\item{\code{timepoint}}{Timepoint for finding differentially expressed genes}
+
+\item{\code{fit}}{Model fit to test.}
+
+\item{\code{timepoint_unit}}{"Days" or "Hours"}
+}
+\if{html}{\out{</div>}}
+}
+}
+\if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-test_immune_response_predictors"></a>}}
 \if{latex}{\out{\hypertarget{method-test_immune_response_predictors}{}}}
 \subsection{Method \code{test_immune_response_predictors()}}{
-Test immune response predictor model on testing cohort data.
+Test immune response predictors
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{HMX$test_immune_response_predictors(
   cohorts,
@@ -320,15 +348,13 @@ Test immune response predictor model on testing cohort data.
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{cohorts}}{character vector of cohorts to include}
+\item{\code{cohorts}}{cohorts to test}
 
-\item{\code{timepoint}}{Timepoint for finding differentially expressed genes}
+\item{\code{timepoint}}{Timepoint to test}
 
-\item{\code{fit}}{Model fit to test.}
+\item{\code{fit}}{Model fit to test}
 
 \item{\code{assay}}{"hai", "neut_ab_response", or "elisa"}
-
-\item{\code{timepoint_unit}}{"Days" or "Hours"}
 
 \item{\code{dichotomize}}{Dichotomize result? If FALSE, max log fold change is
 returned. If TRUE, returns TRUE if max log fold change is greater than
@@ -336,9 +362,16 @@ returned. If TRUE, returns TRUE if max log fold change is greater than
 
 \item{\code{dichotomize_thresh}}{Value to use for dichotomizing result if
 \code{dichotomize} is TRUE.}
+
+\item{\code{timepoin_unit}}{"Days" or "Hours"}
 }
 \if{html}{\out{</div>}}
 }
+\subsection{Details}{
+get a table of observed vs predicted
+values given a fitted model.
+}
+
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-clone"></a>}}

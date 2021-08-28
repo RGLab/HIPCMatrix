@@ -9,7 +9,8 @@ get_de_genes(
   timepoint,
   fc_thresh = 0.58,
   timepoint_unit = "Days",
-  cohorts = NULL
+  cohorts = NULL,
+  reload = FALSE
 )
 }
 \arguments{
