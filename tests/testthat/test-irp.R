@@ -212,10 +212,19 @@ test_that("test_immune_response_predictors returns correct format", {
   preds <- result_train$predicted
   names(preds) <- result_train$participant_id
   expect_mapequal(preds, fit$fitted.values)
+
+  expect_message(
+    features <- SDY269$train_immune_response_predictors(
+      cohorts = "LAIV group 2008_PBMC",
+      timepoint = 7,
+      return_type = "features"
+    ),
+    "returning features from cache")
+  expect_type(features, "character")
 })
 
 #
-# test_that("run IRP", {
+# test_that("run IRP return", {
 #
 #   cohorts_train <- "LAIV group 2008_PBMC"
 #   cohorts_test <- "TIV Group 2008_PBMC"

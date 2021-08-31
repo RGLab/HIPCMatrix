@@ -364,6 +364,8 @@ train_immune_response_predictors <- function(con,
     stop("return_type must be either 'fit' or 'features'")
   }
 
+  log_message("Return_type: ", return_type)
+
   digestedArgs <- digest::digest(args)
   cache_name <- paste0("irp_fit_", digestedArgs)
   if (cache_name %in% names(con$cache) & !reload) {
@@ -372,6 +374,7 @@ train_immune_response_predictors <- function(con,
       return(con$cache[[cache_name]])
     } else {
       log_message("returning features from cache")
+      fit <- con$cache[[cache_name]]
       return(names(fit$coefficients)[2:length(fit$coefficients)])
     }
   }
@@ -446,7 +449,7 @@ train_immune_response_predictors <- function(con,
 
   # Select features using elastic net
   log_message("Selecting features using elastic net...")
-  features <- con$select_features(
+  features <- select_features(
     FC = FC,
     response_vector = response_vector,
     dichotomize = dichotomize
@@ -464,7 +467,7 @@ train_immune_response_predictors <- function(con,
 
   con$cache[[cache_name]] <- fit
 
-  if (return_type = "features") return(features)
+  if (return_type == "features") return(features)
   fit
 }
 

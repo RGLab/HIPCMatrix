@@ -208,6 +208,7 @@ HMX <- R6Class(
         fc_thresh = fc_thresh,
         dichotomize = dichotomize,
         dichotomize_thresh = dichotomize_thresh,
+        return_type = return_type,
         reload = reload
       )
     },
