@@ -170,58 +170,146 @@ test_that("get_fit returns correct format", {
   expect_setequal(names(fit$coefficients), c("(Intercept)", features))
 })
 
-
-test_that("get_immune_response_predictor works", {
-  pred7 <- SDY269$train_immune_response_predictors(
+test_that("predict_response", {
+  irp_index <- SDY269$train_immune_response_predictors(
     cohorts = "LAIV group 2008_PBMC",
-    timepoint = 7
+    timepoint = 3
   )
-
-  pred_resp <- SDY269$predict_response(
-    cohorts = "TIV Group 2008_PBMC",
-    timepoint = 7,
-    fit = pred7
+  response <- SDY269$predict_response(
+    cohort = "LAIV group 2008_PBMC",
+    irp_index = irp_index
   )
-  # Should now have de_genes and response in cache
-  expect_true("de_genes" %in% names(SDY269$cache))
-  expect_length(grep("irp_fit_", names(SDY269$cache)), 1)
+  expect_type(response, "double")
 
-  expect_s3_class(pred7, "lm")
+  # TODO: add tests for binomial response
 })
 
-test_that("test_immune_response_predictors returns correct format", {
-  fit <- SDY269$train_immune_response_predictors(
+
+test_that("train_immune_response_predictor works", {
+  irp_index <- SDY269$train_immune_response_predictors(
     cohorts = "LAIV group 2008_PBMC",
-    timepoint = 7
+    timepoint = 3
   )
-
-  result_train <- SDY269$test_immune_response_predictors(
-    "LAIV group 2008_PBMC",
-    timepoint = 7,
-    fit = fit
-  )
-
-  result_test <- SDY269$test_immune_response_predictors(
-    "TIV Group 2008_PBMC",
-    timepoint = 7,
-    fit = fit
-  )
-
-  expect_equal(colnames(result_train), c("participant_id", "observed", "predicted"))
-  expect_equal(colnames(result_test), c("participant_id", "observed", "predicted"))
-  preds <- result_train$predicted
-  names(preds) <- result_train$participant_id
-  expect_mapequal(preds, fit$fitted.values)
+  expect_true(class(irp_index) %in% c("numeric", "integer"))
+  irp <- SDY269$get_irp(irp_index)
+  expect_s3_class(irp, "ImmuneResponsePredictor")
+  expect_equal(irp$cohorts$training, "LAIV group 2008_PBMC")
+  expect_true(is.null(irp$cohorts$testing))
 
   expect_message(
-    features <- SDY269$train_immune_response_predictors(
+    irp_index2 <- SDY269$train_immune_response_predictors(
       cohorts = "LAIV group 2008_PBMC",
-      timepoint = 7,
-      return_type = "features"
+      timepoint = 3
     ),
-    "returning features from cache")
-  expect_type(features, "character")
+    "returning model fit from cache"
+  )
+  expect_equal(irp_index2, irp_index)
 })
+
+test_that("get_immune_response_predictor works for baseline predictor", {
+  irp_index <- SDY269$train_immune_response_predictors(
+    cohorts = "LAIV group 2008_PBMC",
+    timepoint = 0
+  )
+  expect_true(class(irp_index) %in% c("numeric", "integer"))
+  irp <- SDY269$get_irp(irp_index)
+  expect_s3_class(irp, "ImmuneResponsePredictor")
+  expect_equal(irp$cohorts$training, "LAIV group 2008_PBMC")
+  expect_true(is.null(irp$cohorts$testing))
+
+  expect_message(
+    irp_index2 <- SDY269$train_immune_response_predictors(
+      cohorts = "LAIV group 2008_PBMC",
+      timepoint = 0
+    ),
+    "returning model fit from cache"
+  )
+  expect_equal(irp_index2, irp_index)
+})
+
+test_that("get_immune_response_predictor works for elisa", {
+  irp_index <- SDY269$train_immune_response_predictors(
+    cohorts = "LAIV group 2008_PBMC",
+    assay = "elisa",
+    timepoint = 0
+  )
+  expect_true(class(irp_index) %in% c("numeric", "integer"))
+  irp <- SDY269$get_irp(irp_index)
+  expect_s3_class(irp, "ImmuneResponsePredictor")
+  expect_equal(irp$response$assay, "elisa")
+
+  expect_message(
+    irp_index2 <- SDY269$train_immune_response_predictors(
+      cohorts = "LAIV group 2008_PBMC",
+      assay = "elisa",
+      timepoint = 0
+    ),
+    "returning model fit from cache"
+  )
+  expect_equal(irp_index2, irp_index)
+})
+
+
+
+test_that("test_immune_response_predictors returns correct format", {
+  irp_index <- SDY269$train_immune_response_predictors(
+    cohorts = "LAIV group 2008_PBMC",
+    assay = "elisa",
+    timepoint = 0
+  )
+  test <- SDY269$test_immune_response_predictors(
+    cohorts = c(
+      "TIV Group 2008_PBMC",
+      "LAIV group 2008_PBMC"
+    ),
+    irp_index = irp_index
+  )
+
+  expect_s3_class(test, "data.table")
+  expect_equal(names(test), c("participant_id", "observed", "predicted", "cohort", "set"))
+
+  test <- SDY269$test_immune_response_predictors(
+    cohorts = c(
+      "TIV Group 2008_PBMC",
+      "LAIV group 2008_PBMC"
+    ),
+    irp_index = 1
+  )
+  expect_true(all.equal(
+    unique(test[, .(cohort, set)]),
+    data.table(
+      cohort = c("TIV Group 2008_PBMC", "LAIV group 2008_PBMC"),
+      set = c("Testing", "Training")
+    )
+  ))
+
+  expect_message(
+    SDY269$test_immune_response_predictors(cohorts = "LAIV group 2008_PBMC"),
+    "irp_index not specified. Using most recent"
+  )
+})
+
+test_that("Full IRP workflow", {
+  irp <- SDY269$run_irp(
+    cohorts_train = "TIV Group 2008_PBMC",
+    cohorts_test = "LAIV group 2008_PBMC",
+    timepoint = 0
+  )
+
+  expect_equal(irp$cohorts$training, "TIV Group 2008_PBMC")
+  expect_equal(irp$cohorts$testing, "LAIV group 2008_PBMC")
+  output <- capture.output(irp)
+  expect_equal(output[1], "ImmuneResponsePredictor object")
+  expect_match(output[2], "Predictors: \\d+ genes \\(expression at 0 Days\\)")
+  expect_equal(output[3], "Response: hai")
+  expect_equal(output[4], "Training: TIV Group 2008_PBMC")
+  expect_equal(output[5], "Testing: LAIV group 2008_PBMC")
+})
+
+
+### Formerly broken things
+
+
 
 #
 # test_that("run IRP return", {

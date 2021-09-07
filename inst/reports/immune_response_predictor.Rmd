@@ -22,6 +22,8 @@ suppressPackageStartupMessages({
   library(ggplot2)
   library(plotly)
   library(data.table)
+  library(heatmaply)
+  
   library(DT)
 })
 
@@ -37,8 +39,9 @@ opts_chunk$set(cache = FALSE,
 
 ```{r train}
 con <- HMX$new(params$study)
-model <- con$train_immune_response_predictors(
-  cohorts = params$cohorts_train,
+irp <- con$run_irp(
+  cohorts_train = params$cohorts_train,
+  cohorts_test = params$cohorts_test,
   timepoint = params$timepoint, 
   assay = params$assay, 
   timepoint_unit = params$timepoint_unit, 
@@ -52,42 +55,23 @@ model <- con$train_immune_response_predictors(
 ## Predicted response vs. observed response per Participant
 ```{r prediction, echo=FALSE, dev='CairoPNG'}
 
-data_train <- con$test_immune_response_predictors(
-  cohorts = params$cohorts_train, 
-  timepoint = params$timepoint, 
-  fit = model, 
-  assay = params$assay, 
-  timepoint_unit = params$timepoint_unit, 
-  dichotomize = params$dichotomize, 
-  dichotomize_thresh = params$dichotomize_thresh
+data <- con$test_immune_response_predictors(
+  cohorts = c(params$cohorts_train, params$cohorts_test)
 )
 
 if ( length(params$cohorts_test) == 0 ) {
   
-  p <- ggplot(data_train, aes(x = observed, y = predicted)) + 
+  p <- ggplot(data, aes(x = observed, y = predicted)) + 
     geom_point() + 
     geom_smooth(method = "lm") + 
     theme_IS()
   
 } else {
   
-  data_test <- con$test_immune_response_predictors(
-    cohorts = params$cohorts_test, 
-    timepoint = params$timepoint, 
-    fit = model, 
-    assay = params$assay, 
-    timepoint_unit = params$timepoint_unit, 
-    dichotomize = params$dichotomize, 
-    dichotomize_thresh = params$dichotomize_thresh
-  )
-  data_train[, cohort_label := paste0(params$cohorts_train, " (Training)")]
-  data_test[, cohort_label := paste0(params$cohorts_test, " (Testing)")]
-  data <- rbind( data_test, data_train)
-  
   p <- ggplot(data, aes(x = observed, y = predicted)) + 
     geom_point() + 
     geom_smooth(method = "lm") +
-    facet_wrap(~cohort_label, scale="free") + 
+    facet_wrap(~set + cohort) + 
     xlab("Observed HAI response") + 
     ylab("Predicted HAI response") + 
     theme_IS()
@@ -99,29 +83,11 @@ ggplotly(p)
 
 ## Heatmap of selected features
 ```{r heatmap, echo = FALSE, cache = FALSE}
-eset <- con$getGEMatrix(cohortType = c(params$cohorts_train, params$cohorts_test))
-mat <- t(HIPCMatrix:::get_fc_mx(
-  eset = eset, 
-  timepoint = params$timepoint,
-  features = names(model$coefficients)[2:length(model$coefficients)]))
-
-pd <- data.table(Biobase::pData(eset))
-response <- con$get_immune_response(
-  assay = params$assay, 
-  dichotomize = params$dichotomize, 
-  participant_ids = unique(colnames(mat)),
-  dichotomize_thresh = params$dichotomize_thresh, 
+mat <- t(irp$FC)
+anno <- con$test_immune_response_predictors(
+  cohorts = c(params$cohorts_test, params$cohorts_train)
 )
-anno <- merge(response, pd, all.x = TRUE, all.y = FALSE)
-anno[, set := ifelse(cohort_type %in% params$cohorts_train,
-                            "Training", 
-                            "Testing")]
-setorder(anno, -set, cohort_type, response)
-
-anno <- unique(anno[participant_id %in% colnames(mat), 
-             .(participant_id, 
-               response,cohort_type, 
-               set)])
+setorder(anno, -set, cohort, observed)
 anno <- data.frame(anno[, -"participant_id"], row.names = anno$participant_id)
 
 if ( params$dichotomize ) {
@@ -134,31 +100,42 @@ if ( params$dichotomize ) {
 mat <- mat[, rownames(anno)]
 mat2 <- mat
 rownames(mat) <- ifelse(nchar(rownames(mat)) > 15, paste0(substr(rownames(mat), 1, 15), "..."), rownames(mat))
-pheatmap::pheatmap(mat,
-        annotation = anno,
-        annotation_colors = anno_col,
-        scale = "row",
-        color = ISpalette(20),
-        cluster_rows = TRUE,
-        cluster_distance = "correlation",
-        cluster_method = "ward",
-        dendrogram = "none",
-        cluster_cols = FALSE,
-        show_colnames = FALSE)
-# heatmaply(x = mat2,
-#           dendrogram = "row",
-#           scale = "row",
-#           distfun = function(x) as.dist(1 - cor(t(x))),
-#           hclust_method = "ward.D",
-#           colors = ISpalette(20),
-#           col_side_colors = anno)
+# pheatmap::pheatmap(mat,
+#         annotation = anno,
+#         annotation_colors = anno_col,
+#         scale = "row",
+#         color = ISpalette(20),
+#         cluster_rows = TRUE,
+#         cluster_distance = "correlation",
+#         cluster_method = "ward",
+#         dendrogram = "none",
+#         cluster_cols = FALSE,
+#         show_colnames = FALSE)
+heatmaply(x = mat2,
+          dendrogram = "row",
+          scale = "row",
+          distfun = function(x) as.dist(1 - cor(t(x))),
+          hclust_method = "ward.D",
+          colors = ISpalette(20),
+          col_side_colors = anno)
 ```
 
 
 
 ## Table of genes selected by the elastic net
 ```{r kable}
-datatable(format_predictor_table(model), escape = 1, width = 600)
+predictors <- irp$predictors[, .(
+  `Gene Symbol` = paste0('<a href="http://immunet.princeton.edu/predictions/gene/?network=immune_global&gene=', 
+                         gene_symbol, 
+                         '" target="_blank">', 
+                         gene_symbol,
+                         '</a>'), 
+  statistic, 
+  `p-value`
+)]
+
+
+datatable(predictors, escape = 1, width = 600)
 ```
 
 

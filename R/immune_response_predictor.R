@@ -1,3 +1,22 @@
+### Immune Response Predictor S3 object
+#' @export
+print.ImmuneResponsePredictor <- function(irp) {
+  cat("ImmuneResponsePredictor object\n")
+  cat("Predictors:", nrow(irp$predictors), "genes ")
+  if (irp$inputs$timepoint > 0) {
+    cat("(fold-change at ", irp$inputs$timepoint, " ", irp$inputs$timepoint_unit, ")\n", sep = "")
+  } else {
+    cat("(expression at ", irp$inputs$timepoint, " ", irp$inputs$timepoint_unit, ")\n", sep = "")
+  }
+  cat("Response:", irp$response$assay)
+  cat(ifelse(irp$inputs$dichotomize,
+    paste0("(dichotomized: threshold = ", irp$inputs$dichotomize_thresh, ")\n"),
+    "\n"
+  ))
+  cat("Training: ", paste0(irp$cohorts$training, collapse = ", "), "\n", sep = "")
+  cat("Testing: ", paste0(irp$cohorts$testing, collapse = ", "), "\n", sep = "")
+}
+
 
 #' Get immune response.
 #'
@@ -323,12 +342,12 @@ get_fit <- function(FC,
 
   # lasso #IN FC, dichotomize, selected_features #OUT predictor_table
   FC <- data.frame(FC, check.names = FALSE)
-  formula <- as.formula(paste0("outcome~`", paste(colnames(FC), collapse = "`+`"), sep = "`"))
+  formula <- stats::as.formula(paste0("outcome~`", paste(colnames(FC), collapse = "`+`"), sep = "`"))
   FC$outcome <- response_vector
   if (dichotomize) {
-    fit <- glm(formula, FC, family = "binomial")
+    fit <- stats::glm(formula, FC, family = "binomial")
   } else {
-    fit <- lm(formula, FC)
+    fit <- stats::lm(formula, FC)
   }
 
   fit
@@ -345,7 +364,6 @@ train_immune_response_predictors <- function(con,
                                              fc_thresh = 0.58,
                                              dichotomize = FALSE,
                                              dichotomize_thresh = 4,
-                                             return_type = "fit",
                                              reload = FALSE) {
   # Check cache
   args <- list(
@@ -359,24 +377,11 @@ train_immune_response_predictors <- function(con,
     dichotomize_thresh = dichotomize_thresh
   )
 
-
-  if (!return_type %in% c("fit", "features")) {
-    stop("return_type must be either 'fit' or 'features'")
-  }
-
-  log_message("Return_type: ", return_type)
-
   digestedArgs <- digest::digest(args)
-  cache_name <- paste0("irp_fit_", digestedArgs)
-  if (cache_name %in% names(con$cache) & !reload) {
-    if (return_type == "fit") {
-      log_message("returning model fit from cache.")
-      return(con$cache[[cache_name]])
-    } else {
-      log_message("returning features from cache")
-      fit <- con$cache[[cache_name]]
-      return(names(fit$coefficients)[2:length(fit$coefficients)])
-    }
+  hashes <- sapply(con$immune_response_predictors, `[[`, "hash")
+  if (digestedArgs %in% hashes & !reload) {
+    log_message("returning model fit from cache.")
+    return(which(hashes == digestedArgs))
   }
 
 
@@ -392,10 +397,11 @@ train_immune_response_predictors <- function(con,
     )
   }
 
-  if (!tolower(paste(timepoint, timepoint_unit)) %in% tolower(con$listGEAnalysis()$coefficient)) {
+  if (!tolower(paste(timepoint, timepoint_unit)) %in% tolower(con$listGEAnalysis()$coefficient) &
+    timepoint > 0) {
     stop(
       timepoint, " ", timepoint_unit, " is not a valid timepoint. Please choose from ",
-      paste0(con$listGEAnalysis()$coefficient, collapse = ", ")
+      paste0(unique(con$listGEAnalysis()$coefficient), collapse = ", ")
     )
   }
   eset <- con$getGEMatrix(cohortType = cohorts)
@@ -433,7 +439,8 @@ train_immune_response_predictors <- function(con,
   response <- con$get_immune_response(
     assay = assay,
     participant_ids = rownames(FC),
-    dichotomize = dichotomize
+    dichotomize = dichotomize,
+    dichotomize_thresh = dichotomize_thresh
   )
 
   # remove any participants with NA values
@@ -465,35 +472,68 @@ train_immune_response_predictors <- function(con,
     dichotomize = dichotomize
   )
 
-  con$cache[[cache_name]] <- fit
+  irp <- list(
+    hash = digestedArgs,
+    model = fit,
+    cohorts = list(
+      training = cohorts,
+      testing = NULL
+    ),
+    predictors = format_predictor_table(fit),
+    response = list(
+      assay = assay,
+      dichotomize = dichotomize,
+      dichotomize_thresh = dichotomize_thresh,
+      data = list(
+        training = response[, .(
+          participant_id,
+          observed = response,
+          predicted = fit$fitted.values[participant_id],
+          cohort = eset[, match(participant_id, eset$participant_id)]$cohort_type
+        )],
+        testing = NULL
+      )
+    ),
+    inputs = args,
+    FC = FC[, features]
+  )
 
-  if (return_type == "features") return(features)
-  fit
+  class(irp) <- "ImmuneResponsePredictor"
+
+  irp_index <- length(con$immune_response_predictors) + 1
+  con$immune_response_predictors[[irp_index]] <- irp
+
+  invisible(irp_index)
 }
 
+# by default, run on all irp objects
 predict_response <- function(con,
-                             cohorts,
-                             timepoint,
-                             fit,
-                             timepoint_unit = "Days") {
+                             cohort,
+                             irp_index) {
+
+  # TODO: Predict differently when dichotomize = TRUE?
+
+  if (is.null(irp_index) | is.null(con$immune_response_predictors[[irp_index]])) {
+    stop("Invalid irp_index")
+  }
   # Validate params
-  bad_cohorts <- !cohorts %in% con$listGEMatrices()$cohort_type
+  if (length(cohort) != 1) stop("one cohort must be specified.")
+  bad_cohorts <- !cohort %in% con$listGEMatrices()$cohort_type
   if (any(bad_cohorts)) {
     stop(
-      "'", cohorts[bad_cohorts], "' is not a valid cohort. \n",
+      "'", cohort, "' is not a valid cohort. \n",
       "Choose from: ", paste0(con$listGEMatrices()$cohort_type,
         collapse = ", "
       )
     )
   }
 
-  if (!tolower(paste(timepoint, timepoint_unit)) %in% tolower(con$listGEAnalysis()$coefficient)) {
-    stop(
-      timepoint, " ", timepoint_unit, " is not a valid timepoint. Please choose from ",
-      paste0(con$listGEAnalysis()$coefficient, collapse = ", ")
-    )
-  }
-  eset <- con$getGEMatrix(cohortType = cohorts)
+  irp <- con$get_irp(irp_index)
+
+  timepoint <- irp$inputs$timepoint
+  timepoint_unit <- irp$inputs$timepoint_unit
+
+  eset <- con$getGEMatrix(cohortType = cohort)
 
   # Get matrix of fold-change from day 0 to timepoint.
   # If timepoint = 0, then just return expression values.
@@ -508,42 +548,98 @@ predict_response <- function(con,
   FC <- get_fc_mx(
     eset,
     timepoint,
-    timepoint_unit
+    timepoint_unit,
+    features = irp$predictors$gene_symbol
   )
 
   log_message("Deriving predicted values...")
   newdata <- data.frame(FC)
   rownames(newdata) <- rownames(FC)
-  predicted_values <- stats::predict(fit, newdata = newdata, type = "response")
+  predicted_values <- stats::predict(irp$model, newdata = newdata, type = "response")
+
+  new_FC <- rbind(
+    con$get_irp(irp_index)$FC,
+    FC[, colnames(con$get_irp(irp_index)$FC)]
+  )
+  new_FC <- new_FC[!duplicated(new_FC), ]
+  con$immune_response_predictors[[irp_index]]$FC <- new_FC
 
   predicted_values
 }
 
 test_immune_response_predictors <- function(con,
                                             cohorts,
-                                            timepoint,
-                                            fit,
-                                            assay = "hai",
-                                            timepoint_unit = "Days",
-                                            dichotomize = FALSE,
-                                            dichotomize_thresh = 4) {
-  predicted_values <- con$predict_response(
-    cohorts,
-    timepoint,
-    fit,
-    timepoint_unit
-  )
+                                            irp_index = NULL,
+                                            reload = FALSE) {
+  if (length(con$immune_response_predictors) == 0) {
+    stop("No irp objects found in con. First run con$train_immune_response_predictors()")
+  }
 
-  result <- con$get_immune_response(
-    assay = assay,
-    participant_ids = names(predicted_values),
-    dichotomize = dichotomize,
-    dichotomize_thresh = dichotomize_thresh
-  )
-  setnames(result, "response", "observed")
-  result[, predicted := predicted_values[participant_id]]
+  if (is.null(irp_index)) {
+    log_message("irp_index not specified. Using most recent...")
+    irp_index <- length(con$immune_response_predictors)
+  }
 
-  result
+  if (irp_index > length(con$immune_response_predictors)) {
+    stop("Invalid irp_index")
+  }
+
+  irp <- con$get_irp(irp_index)
+
+  assay <- irp$inputs$assay
+  dichotomize <- irp$inputs$dichotomize
+  dichotomize_thresh <- irp$inputs$dichotomize_thresh
+
+  res <- lapply(cohorts, function(cohort_test) {
+
+    # When reload = TRUE, run all cohorts not in TRAINING set.
+    # when reload = FALSE, only run cohorts not already in TESTING set.
+    if (cohort_test %in% irp$cohorts$training) {
+      result <- irp$response$data$training[cohort == cohort_test]
+    } else if (cohort_test %in% irp$cohorts$testing & !reload) {
+      result <- irp$response$data$testing[cohort == cohort_test]
+    } else {
+      predicted_values <- con$predict_response(
+        cohort = cohort_test,
+        irp_index = irp_index
+      )
+
+      result <- con$get_immune_response(
+        assay = assay,
+        participant_ids = names(predicted_values),
+        dichotomize = dichotomize,
+        dichotomize_thresh = dichotomize_thresh
+      )
+      setnames(result, "response", "observed")
+      result[, predicted := predicted_values[participant_id]]
+      result[, cohort := cohort_test]
+
+      # Don't add to testing list if already there ie reload = TRUE
+      if (!cohort_test %in% irp$cohorts$testing) {
+        con$immune_response_predictors[[irp_index]]$response$data$testing <- rbind(
+          irp$response$data$testing,
+          result
+        )
+        con$immune_response_predictors[[irp_index]]$cohorts$testing <- c(irp$cohorts$testing, cohort_test)
+      } else {
+        # rm previous entry and add new
+        con$immune_response_predictors[[irp_index]]$response$data$testing <- irp$response$data$testing[cohort != cohort_test]
+        con$immune_response_predictors[[irp_index]]$response$data$testing <- rbind(
+          irp$response$data$testing,
+          result
+        )
+      }
+    }
+
+    result[, set := ifelse(cohort_test %in% irp$cohorts$training,
+      "Training",
+      "Testing"
+    )]
+
+    result
+  })
+
+  rbindlist(res)
 }
 
 # Run IRP
@@ -556,8 +652,9 @@ run_irp <- function(con,
                     timepoint_unit,
                     fc_thresh,
                     dichotomize,
-                    dichotomize_thresh) {
-  fit <- con$train_immune_response_predictors(
+                    dichotomize_thresh,
+                    reload) {
+  irp_index <- con$train_immune_response_predictors(
     cohorts = cohorts_train,
     timepoint = timepoint,
     assay = assay,
@@ -565,35 +662,17 @@ run_irp <- function(con,
     use_only_de_genes = use_only_de_genes,
     fc_thresh = fc_thresh,
     dichotomize = dichotomize,
-    dichotomize_thresh = dichotomize_thresh
+    dichotomize_thresh = dichotomize_thresh,
+    reload = reload
   )
 
-
-  result <- con$test_immune_response_predictors(
-    con = con,
-    cohorts = cohorts_train,
-    timepoint = timepoint,
-    fit = fit,
-    assay = assay,
-    timepoint_unit = timepoint_unit,
-    dichotomize = dichotomize,
-    dichotomize_thresh = dichotomize_thresh
+  con$test_immune_response_predictors(
+    cohorts = cohorts_test,
+    irp_index = irp_index,
+    reload = reload
   )
-  if (!is.null(cohorts_test)) {
-    result_test <- test_immune_response_predictors(
-      con = con,
-      cohorts = cohorts_test,
-      timepoint = timepoint,
-      fit = fit,
-      assay = assay,
-      timepoint_unit = timepoint_unit,
-      dichotomize = dichotomize,
-      dichotomize_thresh = dichotomize_thresh
-    )
-    result$cohort_label <- paste0(paste0(cohorts_train, collapse = ", "), " (Training)")
-    result_test$cohort_label <- paste0(paste0(cohorts_test, collapse = ", "), "(Testing)")
-    result <- rbind(result, result_test)
-  }
+
+  con$get_irp(irp_index)
 }
 
 #' Format Predictor Table
@@ -616,13 +695,7 @@ format_predictor_table <- function(fit) {
     predictor_table
   ))
   predictor_table[, .(
-    gene_symbol = paste0(
-      '<a href="http://immunet.princeton.edu/predictions/gene/?network=immune_global&gene=',
-      selected_features,
-      '" target="_blank">',
-      selected_features,
-      "</a>"
-    ),
+    gene_symbol = selected_features,
     statistic = as.numeric(statistic),
     `p-value` = as.numeric(`p-value`)
   )]
