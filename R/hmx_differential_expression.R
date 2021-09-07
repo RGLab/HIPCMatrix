@@ -304,7 +304,7 @@ uploadGEAnalysisResults <- function(con) {
 }
 
 
-checkImpliedGEAR <- function() {
+checkImpliedGEAR <- function(con) {
   impliedGEA <- data.table(labkey.selectRows(
     baseUrl = con$config$labkey.url.base,
     folderPath = con$config$labkey.url.path,

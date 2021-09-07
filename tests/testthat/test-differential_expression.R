@@ -59,6 +59,11 @@ test_that("HMX$runGEAnalysis returns correct object", {
   )
 })
 
+
+test_that("checkImpliedGEAR returns correct", {
+  impliedGEAR <- SDY269$checkImpliedGEAR()
+  expect_true(impliedGEAR)
+})
 # test_that("HMX$uploadGEAnalysisResults", {
 #   with_mock_api({
 #     con$uploadGEAnalysisResults()
