@@ -8,8 +8,12 @@ mapAlias2Symbol(aliases, gene_symbol_map = hgncAlias2Symbol)
 }
 \arguments{
 \item{aliases}{character vector of gene aliases}
+
+\item{gene_symbol_map}{data.table with gene aliases and matching symbol.
+Columns should be "ALIAS" and "SYMBOL". Default is to use hgncAlias2Symbol
+object provided in package data.}
 }
 \description{
 Function to update annotation of a character vector of gene aliases, using
-the mapping provided by \link{\code{hgncAlias2Symbol}}
+the mapping provided by \code{\link{hgncAlias2Symbol}}
 }

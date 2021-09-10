@@ -73,6 +73,10 @@ for gene expression analysis
 \if{html}{\out{<a id="method-runGEAnalysis"></a>}}
 \if{latex}{\out{\hypertarget{method-runGEAnalysis}{}}}
 \subsection{Method \code{runGEAnalysis()}}{
+List of ImmuneResponsePredictor objects associated with
+this connection. Created by HMS$run_irp()
+
+
 Run Differential Expression analysis on matrices in a study
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{HMX$runGEAnalysis(rerun = FALSE)}\if{html}{\out{</div>}}
@@ -339,9 +343,9 @@ Test immune response predictor model on testing cohort data.
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{irp_index}}{index of immune_response_predictor object in HMX}
+\item{\code{cohort}}{cohort to use (string)}
 
-\item{\code{cohorts}}{character vector of cohorts to include}
+\item{\code{irp_index}}{index of immune_response_predictor object in HMX}
 }
 \if{html}{\out{</div>}}
 }

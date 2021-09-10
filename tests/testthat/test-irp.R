@@ -33,8 +33,7 @@ test_that("get_immune_response only returns correct pids", {
 })
 
 test_that("get_immune_response neut_ab_titer", {
-  con <- HMX$new("SDY180")
-  resp <- con$get_immune_response("neut_ab_titer")
+  resp <- SDY180$get_immune_response("neut_ab_titer")
   expect_equal(colnames(resp), c("participant_id", "response"))
   expect_type(resp$response, "double")
   expect_equal(length(unique(resp$participant_id)), nrow(resp))
@@ -67,6 +66,30 @@ test_that("get_de_genes handles bad inputs", {
     SDY269$get_de_genes(SDY269, timepoint = 9),
     "9 Days is not a valid timepoint"
   )
+})
+
+test_that("get_fc_mx returns correct format", {
+  get_fc_mx <- HIPCMatrix:::get_fc_mx
+  # this eset has multiple entries per participant per timepoint
+  eset <- SDY180$getGEMatrix(cohortType = "Study group 1 Saline_Whole blood")
+  fc <- get_fc_mx(eset, timepoint = 0, timepoint_unit = "Days")
+  expect_false(any(duplicated(fc)))
+  expect_false(any(duplicated(rownames(fc))))
+  expect_true(length(colnames(fc)) > 10000)
+
+  fc <- get_fc_mx(eset, timepoint = 3, timepoint_unit = "Days")
+  expect_false(any(duplicated(fc)))
+  expect_false(any(duplicated(rownames(fc))))
+  expect_true(length(colnames(fc)) > 10000)
+
+  features <- c("SAT1", "PEAR1", "CD48")
+  fc <- get_fc_mx(eset, timepoint = 0, timepoint_unit = "Days", features = features)
+  expect_equal(features, colnames(fc))
+
+  features <- c("SAT1", "PEAR1", "CD48", "FAKE_GENE")
+  fc <- get_fc_mx(eset, timepoint = 0, timepoint_unit = "Days", features = features)
+  expect_equal(features, colnames(fc))
+  expect_true(all(is.na(fc[, "FAKE_GENE"])))
 })
 
 
@@ -183,6 +206,30 @@ test_that("predict_response", {
 
   # TODO: add tests for binomial response
 })
+
+
+test_that("format_predictor_table", {
+  irp_index <- SDY269$train_immune_response_predictors(
+    cohorts = "LAIV group 2008_PBMC",
+    timepoint = 3
+  )
+  tbl <- format_predictor_table(SDY269$get_irp(irp_index)$model)
+  expect_equal(names(tbl), c("gene_symbol", "statistic", "p-value"))
+
+  # Test weird gene names
+  gene_names <- c("GENE", "GENE-2", "GENE/3", "gene.4", "gene5")
+  fc <- data.frame(matrix(rnorm(5 * 10),
+    nrow = 10,
+    ncol = 5
+  ))
+  colnames(fc) <- gene_names
+  fc$outcome <- rowSums(fc) + rnorm(nrow(fc))
+  formula <- stats::as.formula(paste0("outcome~`", paste(gene_names, collapse = "`+`"), sep = "`"))
+  model <- lm(formula, fc)
+  tbl <- format_predictor_table(model)
+  expect_equal(tbl$gene_symbol, gene_names)
+})
+
 
 
 test_that("train_immune_response_predictor works", {
@@ -304,10 +351,22 @@ test_that("Full IRP workflow", {
   expect_equal(output[3], "Response: hai")
   expect_equal(output[4], "Training: TIV Group 2008_PBMC")
   expect_equal(output[5], "Testing: LAIV group 2008_PBMC")
+
+  # Genes in model do not appear in testing data!
+  irp <- SDY269$run_irp(
+    cohorts_train = "TIV Group 2008_PBMC",
+    cohorts_test = "LAIV group 2008_PBMC",
+    timepoint = 7,
+    use_only_de_genes = FALSE
+  )
+
+  irp <- SDY180$run_irp(
+    cohorts_train = c("Study group 1 Saline_Whole blood", "Study group 1 2009-2010 Fluzone_Whole blood"),
+    cohorts_test = c("Study group 2 2009-2010 Fluzone_Whole blood"),
+    timepoint = 0,
+    use_only_de_genes = FALSE
+  )
 })
-
-
-### Formerly broken things
 
 
 

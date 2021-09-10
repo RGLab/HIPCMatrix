@@ -11,6 +11,8 @@ HMX <- R6Class(
   public = list(
 
     # Properties
+    #' @description List of ImmuneResponsePredictor objects associated with
+    #' this connection. Created by HMS$run_irp()
     immune_response_predictors = list(),
 
     # Methods
@@ -224,7 +226,7 @@ HMX <- R6Class(
     #' @description Test immune response predictor model on testing cohort data.
     #' @aliases predict_response
     #'
-    #' @param cohorts character vector of cohorts to include
+    #' @param cohort cohort to use (string)
     #' @param irp_index index of immune_response_predictor object in HMX
     predict_response = function(cohort,
                                 irp_index = NULL) {

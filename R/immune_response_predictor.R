@@ -1,37 +1,32 @@
 ### Immune Response Predictor S3 object
+#' Print an ImmuneResponsePredictor object
 #' @export
-print.ImmuneResponsePredictor <- function(irp) {
+#' @param x an object of class ImmuneResponsePredictor
+#' @param ... further arguments passed to or from other methods
+print.ImmuneResponsePredictor <- function(x, ...) {
   cat("ImmuneResponsePredictor object\n")
-  cat("Predictors:", nrow(irp$predictors), "genes ")
-  if (irp$inputs$timepoint > 0) {
-    cat("(fold-change at ", irp$inputs$timepoint, " ", irp$inputs$timepoint_unit, ")\n", sep = "")
+  cat("Predictors:", nrow(x$predictors), "genes ")
+  if (x$inputs$timepoint > 0) {
+    cat("(fold-change at ", x$inputs$timepoint, " ", x$inputs$timepoint_unit, ")\n", sep = "")
   } else {
-    cat("(expression at ", irp$inputs$timepoint, " ", irp$inputs$timepoint_unit, ")\n", sep = "")
+    cat("(expression at ", x$inputs$timepoint, " ", x$inputs$timepoint_unit, ")\n", sep = "")
   }
-  cat("Response:", irp$response$assay)
-  cat(ifelse(irp$inputs$dichotomize,
-    paste0("(dichotomized: threshold = ", irp$inputs$dichotomize_thresh, ")\n"),
+  cat("Response:", x$response$assay)
+  cat(ifelse(x$inputs$dichotomize,
+    paste0("(dichotomized: threshold = ", x$inputs$dichotomize_thresh, ")\n"),
     "\n"
   ))
-  cat("Training: ", paste0(irp$cohorts$training, collapse = ", "), "\n", sep = "")
-  cat("Testing: ", paste0(irp$cohorts$testing, collapse = ", "), "\n", sep = "")
+  cat("Training: ", paste0(x$cohorts$training, collapse = ", "), "\n", sep = "")
+  cat("Testing: ", paste0(x$cohorts$testing, collapse = ", "), "\n", sep = "")
 }
 
 
-#' Get immune response.
-#'
-#' Returns max log fold change of \code{assay} from baseline for each
-#' particiapnt.
-#'
-#' @param con HMX connection
-#' @param assay "hai", "neut_ab_response", or "elisa"
-#' @param participant_ids character vector of participant_ids
-#' @param dichotomize Dichotomize result? If FALSE, max log fold change is
-#' returned. If TRUE, returns TRUE if max log fold change is greater than
-#' \code{dichotomize_value}
-#' @param dichotomize_thresh Value to use for dichotomizing result if
-#' \code{dichotomize} is TRUE.
-#'
+# Get immune response.
+#
+# Returns max log fold change of \code{assay} from baseline for each
+# particiapnt.
+#
+# See HMX$get_immune_response for full documentation
 get_immune_response <- function(con,
                                 assay = "hai",
                                 participant_ids = NULL,
@@ -118,15 +113,8 @@ get_immune_response <- function(con,
 
 
 
-#' Get genes differentially expressed over time
-#'
-#' @param con HMX connection
-#' @param timepoint Timepoint for finding differentially expressed genes
-#' @param fc_thresh fold-change threshold for determining whether genes
-#' are differentially expressed
-#' @param timepoint_unit "Days" or "Hours"
-#' @param cohorts character vector of cohorts to include
-#'
+# Get genes differentially expressed over time
+# See HMX$get_de_genes
 get_de_genes <- function(con,
                          timepoint,
                          fc_thresh = 0.58,
@@ -220,9 +208,10 @@ get_fc_mx <- function(eset,
   # participant_id + timePt, therefore need to arbitrarily select the first
   # observation prior to ensuring subject has BOTH requested timePt and
   # baseline.
+  setkeyv(pd, c("study_time_collected", "participant_id"))
+  pd <- pd[, .SD[1L], by = key(pd)]
+
   if (timepoint > 0) {
-    setkeyv(pd, c("study_time_collected", "participant_id"))
-    pd <- pd[, .SD[1L], by = key(pd)]
     pids <- pd[, .N, by = participant_id][N > 1, participant_id]
     pd <- pd[participant_id %in% pids]
     pd <- pd[order(participant_id, study_time_collected)]
@@ -238,9 +227,22 @@ get_fc_mx <- function(eset,
     eset <- eset[, pd$biosample_accession]
     FC <- t(Biobase::exprs(eset))
   }
+
   rownames(FC) <- pd[match(rownames(FC), pd$biosample_accession), participant_id]
 
   if (!is.null(features)) {
+    # Add NA cols for features not present
+    if (any(!features %in% colnames(FC))) {
+      new_features <- features[!features %in% colnames(FC)]
+      FC <- cbind(
+        FC,
+        matrix(
+          nrow = nrow(FC),
+          ncol = length(new_features),
+          dimnames = list(rownames(FC), new_features)
+        )
+      )
+    }
     FC <- FC[, features]
   }
 
@@ -353,8 +355,11 @@ get_fit <- function(FC,
   fit
 }
 
-#' Get Immune Response Predictors
-#'
+
+# Train immune response predictors
+#
+# See HMX$train_immune_response_predictors for full documentation
+
 train_immune_response_predictors <- function(con,
                                              cohorts,
                                              timepoint,
@@ -554,8 +559,13 @@ predict_response <- function(con,
 
   log_message("Deriving predicted values...")
   newdata <- data.frame(FC)
+  colnames(newdata) <- colnames(FC)
   rownames(newdata) <- rownames(FC)
-  predicted_values <- stats::predict(irp$model, newdata = newdata, type = "response")
+  predicted_values <- stats::predict(irp$model,
+    newdata = newdata,
+    type = "response",
+    na.action = stats::na.exclude
+  )
 
   new_FC <- rbind(
     con$get_irp(irp_index)$FC,
@@ -567,6 +577,9 @@ predict_response <- function(con,
   predicted_values
 }
 
+
+# Test existing irp model on a different cohort
+# see HMS$test_immune_response_predictors for full documentation
 test_immune_response_predictors <- function(con,
                                             cohorts,
                                             irp_index = NULL,
@@ -685,6 +698,8 @@ run_irp <- function(con,
 format_predictor_table <- function(fit) {
   sum_fit <- summary(fit)
   sum_fit_coef <- sum_fit$coefficients
+  # Strip beginning and ending "`" which get added to names with weird symbols
+  rownames(sum_fit_coef) <- gsub("^`|`$", "", rownames(sum_fit_coef))
   pred_cIdx <- grep("value|Pr", colnames(sum_fit_coef))
   predictor_table <- sum_fit_coef[, pred_cIdx][-1, ]
   colnames(predictor_table) <- c("statistic", "p-value")
