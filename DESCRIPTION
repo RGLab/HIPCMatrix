@@ -50,6 +50,7 @@ Depends:
     R (>= 3.5)
 Collate: 
     'HMX.R'
+    'gene_set_enrichment_analysis.R'
     'gene_sets.R'
     'gene_symbol_mapping.R'
     'hmx_differential_expression.R'
