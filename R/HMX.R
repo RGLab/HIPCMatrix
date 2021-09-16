@@ -11,6 +11,8 @@ HMX <- R6Class(
   public = list(
 
     # Properties
+
+
     #' @description List of ImmuneResponsePredictor objects associated with
     #' this connection. Created by HMS$run_irp()
     immune_response_predictors = list(),
@@ -237,9 +239,7 @@ HMX <- R6Class(
       )
     },
 
-    #' @description Test immune response predictors
-    #'
-    #' @details get a table of observed vs predicted
+    #' @description get a table of observed vs predicted
     #' values given a fitted model.
     #'
     #' @param cohorts cohorts to test
@@ -256,10 +256,9 @@ HMX <- R6Class(
       )
     },
 
-    #' @description run Immune Response Predictor analysis
+    #' @description Find predictors of immune response from gene expression.
     #' @aliases run_irp
     #'
-    #' @details Find predictors of immune response from gene expression.
     #' @param cohorts_train Training cohorts
     #' @param cohorts_test Testing cohorts (optional)
     #' @param timepoint Timepoint for finding differentially expressed genes
@@ -298,6 +297,39 @@ HMX <- R6Class(
         dichotomize = dichotomize,
         dichotomize_thresh = dichotomize_thresh,
         reload = reload
+      )
+    },
+
+    #' @description Run a gene set enrichment analysis on a gene expression matrix,
+    #' comparing all timepoints to baseline. The CAMERA method from the limma
+    #' package is used, as described in
+    #' \url{https://academic.oup.com/nar/article/40/17/e133/2411151}{Wu and Smyth (2012)}
+    #'
+    #' @aliases run_gsea
+    #'
+    #'
+    #' @param matrix_name The name of the gene expression matrix
+    #'  to download.
+    #' @param cohort_type  The name of a cohortType that has an
+    #' associated gene expression matrix. Note that if this argument is not
+    #' NULL, then \code{matrixName} is ignored. CohortType is a concatenation of
+    #' "cohort" and "cell type" that allows the user to specify a matrix for the
+    #' cell type subset of a cohort.
+    #' @param set_name Name of predefined set of gene signatures. Choose from:
+    #' \code{chaussabel}, \code{blood_transcription}, \code{msigdb}
+    #' @param gene_sets  A list of vectors of gene names, each entry corresponding
+    #' to a gene set. If specified, this will be used in place of the "set_name"
+    #' argument to test gene sets.
+    run_gsea = function(matrix_name = NULL,
+                        cohort_type = NULL,
+                        set_name = "msigdb",
+                        gene_sets = NULL) {
+      run_gsea(
+        con = self,
+        matrix_name = matrix_name,
+        cohort_type = cohort_type,
+        set_name = set_name,
+        gene_sets = gene_sets
       )
     }
   )

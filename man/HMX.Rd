@@ -12,6 +12,7 @@
 \alias{train_immune_response_predictors}
 \alias{predict_response}
 \alias{run_irp}
+\alias{run_gsea}
 \title{HIPCMatrix Connection}
 \description{
 ImmuneSpace connection object with additional methods
@@ -36,6 +37,7 @@ for gene expression analysis
 \item \href{#method-predict_response}{\code{HMX$predict_response()}}
 \item \href{#method-test_immune_response_predictors}{\code{HMX$test_immune_response_predictors()}}
 \item \href{#method-run_irp}{\code{HMX$run_irp()}}
+\item \href{#method-run_gsea}{\code{HMX$run_gsea()}}
 \item \href{#method-clone}{\code{HMX$clone()}}
 }
 }
@@ -354,7 +356,8 @@ Test immune response predictor model on testing cohort data.
 \if{html}{\out{<a id="method-test_immune_response_predictors"></a>}}
 \if{latex}{\out{\hypertarget{method-test_immune_response_predictors}{}}}
 \subsection{Method \code{test_immune_response_predictors()}}{
-Test immune response predictors
+get a table of observed vs predicted
+values given a fitted model.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{HMX$test_immune_response_predictors(cohorts, irp_index = NULL, reload = FALSE)}\if{html}{\out{</div>}}
 }
@@ -370,17 +373,12 @@ Test immune response predictors
 }
 \if{html}{\out{</div>}}
 }
-\subsection{Details}{
-get a table of observed vs predicted
-values given a fitted model.
-}
-
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-run_irp"></a>}}
 \if{latex}{\out{\hypertarget{method-run_irp}{}}}
 \subsection{Method \code{run_irp()}}{
-run Immune Response Predictor analysis
+Find predictors of immune response from gene expression.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{HMX$run_irp(
   cohorts_train,
@@ -427,10 +425,45 @@ returned. If TRUE, returns TRUE if max log fold change is greater than
 }
 \if{html}{\out{</div>}}
 }
-\subsection{Details}{
-Find predictors of immune response from gene expression.
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-run_gsea"></a>}}
+\if{latex}{\out{\hypertarget{method-run_gsea}{}}}
+\subsection{Method \code{run_gsea()}}{
+Run a gene set enrichment analysis on a gene expression matrix,
+comparing all timepoints to baseline. The CAMERA method from the limma
+package is used, as described in
+\url{https://academic.oup.com/nar/article/40/17/e133/2411151}{Wu and Smyth (2012)}
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{HMX$run_gsea(
+  matrix_name = NULL,
+  cohort_type = NULL,
+  set_name = "msigdb",
+  gene_sets = NULL
+)}\if{html}{\out{</div>}}
 }
 
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{matrix_name}}{The name of the gene expression matrix
+to download.}
+
+\item{\code{cohort_type}}{The name of a cohortType that has an
+associated gene expression matrix. Note that if this argument is not
+NULL, then \code{matrixName} is ignored. CohortType is a concatenation of
+"cohort" and "cell type" that allows the user to specify a matrix for the
+cell type subset of a cohort.}
+
+\item{\code{set_name}}{Name of predefined set of gene signatures. Choose from:
+\code{chaussabel}, \code{blood_transcription}, \code{msigdb}}
+
+\item{\code{gene_sets}}{A list of vectors of gene names, each entry corresponding
+to a gene set. If specified, this will be used in place of the "set_name"
+argument to test gene sets.}
+}
+\if{html}{\out{</div>}}
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-clone"></a>}}
