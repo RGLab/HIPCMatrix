@@ -256,8 +256,8 @@ updateEMs <- function(con) {
   tmp <- unique(unlist(strsplit(ge_files, split = ".tsv", fixed = TRUE)))
   base_names <- tmp[!(tmp %in% c(".summary", ".summary.orig", ".raw", ".immsig"))]
 
-  if (!all(base_names %in% con$listGEMatrices())) {
-    base_names <- base_names[base_names %in% con$listGEMatrices()]
+  if (!all(base_names %in% con$listGEMatrices()$name)) {
+    base_names <- base_names[base_names %in% con$listGEMatrices()$name]
     warning("Extra files / basenames present in current study.  Please delete.")
   }
 

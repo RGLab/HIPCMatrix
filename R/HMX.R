@@ -13,8 +13,8 @@ HMX <- R6Class(
     # Properties
 
 
-    #' @description List of ImmuneResponsePredictor objects associated with
-    #' this connection. Created by HMS$run_irp()
+    #' @field immune_response_predictors List of ImmuneResponsePredictor
+    #' objects associated with this connection. Created by \code{HMS$run_irp()}
     immune_response_predictors = list(),
 
     # Methods
@@ -50,7 +50,9 @@ HMX <- R6Class(
     #' @description Update Microarray.FeatureAnnotation table
     #' @aliases updateFAS
     #'
-    #' @param fas_names name of feature annotation set
+    #' @param fas_names name of feature annotation set. If NULL, any FAS
+    #' associated with matrices associated with the connection will be updated.
+    #' For global connection, all FAS will be updated.
     #' @details  This will take care of GeneExpressionExplorer Module, which uses
     #' the Microarray.FeatureAnnotation table to populate a dropdown for selection
     #' of genes of interest.  GEE will look for the FASid that was given to the original
@@ -58,7 +60,7 @@ HMX <- R6Class(
     #' it was decided to move the original to a new FAS called "myOriginalFasName_orig"
     #' that gets a new FASid.  Con$getGEMatrix() then looks for this new FASid when
     #' populating the probe level gene symbols with the arg: `annotation = "default"`.
-    updateFAS = function(fas_names) {
+    updateFAS = function(fas_names = NULL) {
       updateFAS(self, fas_names)
     },
 
@@ -103,14 +105,36 @@ HMX <- R6Class(
       if (self$study == "Studies") {
         ge_studies <- unique(self$listGEMatrices()$folder)
 
-        lapply(ge_studies, function(study) {
-          con <- HMX$new(
-            study = study,
-            verbose = TRUE
+        success <- lapply(ge_studies, function(study) {
+          res <- try(
+            {
+              con <- HMX$new(
+                study = study,
+                verbose = TRUE
+              )
+              con$updateEMs()
+              con$uploadGEAnalysisResults()
+            },
+            silent = TRUE
           )
-          con$updateEMs()
-          con$uploadGEAnalysisResults()
+          if ("try-error" %in% class(res)) {
+            log_message(study, " failed: ", res)
+            return(res)
+          }
+          TRUE
         })
+        names(success) <- ge_studies
+
+        if (all(sapply(success, isTRUE))) {
+          log_message("All matrices successfully updated!")
+        } else {
+          log_message(
+            "Some studies failed to update: \n",
+            paste0(sapply(ge_studies[!sapply(success, isTRUE)], function(sdy) {
+              paste0(sdy, ": ", success[[sdy]])
+            }), collapse = "\n")
+          )
+        }
       } else {
         self$updateEMs()
         self$uploadGEAnalysisResults()

@@ -57,6 +57,19 @@ test_that("HMX$runGEAnalysis returns correct object", {
       "coefficient"
     )
   )
+
+  sdy28 <- HMX$new("SDY28")
+  expect_message(
+    de_result <- sdy28$runGEAnalysis(),
+    "No baseline timepoints available"
+  )
+  expect_true(is.null(de_result))
+
+  sdy406 <- HMX$new("SDY406")
+  expect_message(
+    de_result <- sdy406$runGEAnalysis(),
+    "No post-baseline timepoints available "
+  )
 })
 
 

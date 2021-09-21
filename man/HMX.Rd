@@ -21,6 +21,14 @@ for gene expression analysis
 \section{Super class}{
 \code{\link[ImmuneSpaceR:ImmuneSpaceConnection]{ImmuneSpaceR::ImmuneSpaceConnection}} -> \code{HIPCMatrixConn}
 }
+\section{Public fields}{
+\if{html}{\out{<div class="r6-fields">}}
+\describe{
+\item{\code{immune_response_predictors}}{List of ImmuneResponsePredictor
+objects associated with this connection. Created by \code{HMS$run_irp()}}
+}
+\if{html}{\out{</div>}}
+}
 \section{Methods}{
 \subsection{Public methods}{
 \itemize{
@@ -75,10 +83,6 @@ for gene expression analysis
 \if{html}{\out{<a id="method-runGEAnalysis"></a>}}
 \if{latex}{\out{\hypertarget{method-runGEAnalysis}{}}}
 \subsection{Method \code{runGEAnalysis()}}{
-List of ImmuneResponsePredictor objects associated with
-this connection. Created by HMS$run_irp()
-
-
 Run Differential Expression analysis on matrices in a study
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{HMX$runGEAnalysis(rerun = FALSE)}\if{html}{\out{</div>}}
@@ -125,13 +129,15 @@ differential expression can be run.
 \subsection{Method \code{updateFAS()}}{
 Update Microarray.FeatureAnnotation table
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{HMX$updateFAS(fas_names)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{HMX$updateFAS(fas_names = NULL)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{fas_names}}{name of feature annotation set}
+\item{\code{fas_names}}{name of feature annotation set. If NULL, any FAS
+associated with matrices associated with the connection will be updated.
+For global connection, all FAS will be updated.}
 }
 \if{html}{\out{</div>}}
 }
