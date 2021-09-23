@@ -259,18 +259,18 @@ retrieve_input_files <- function(study,
         }
 
         if (!is.null(meta_data$illumina_manifest_file)) {
-          manifest_path <- file.path(analysis_dir, meta_data$illumina_manifest_file)
+          manifest_file <- file.path(analysis_dir, meta_data$illumina_manifest_file)
           if (!file.exists(manifest_path)) {
-            manifest_url <- paste0(
-              "https://github.com/RGLab/UpdateAnno/raw/main/CreateMatrixAssets/IlluminaManifests/",
+            manifest_src <- file.path(
+              system.file("CreateMatrixAssets/IlluminaManifests", package = "HIPCMatrix"),
               meta_data$illumina_manifest_file
             )
-            utils::download.file(url = manifest_url, destfile = manifest_path, quiet = TRUE)
+            file.copy(manifest_src, manifest_file)
           }
 
           res <- limma::read.idat(
             idatfiles = file_path,
-            bgxfile = manifest_path
+            bgxfile = manifest_file
           )
           raw_illumina_dt <- res$E
           pvals <- limma::detectionPValues(res)

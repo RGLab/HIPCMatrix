@@ -20,6 +20,6 @@ Process Affy
 \details{
 Requires annotation packages which can be installed from bioconductor.
 \code{affy::justRMA()} will use the appropriate package.
-Two are customCDF packages loaded from UpdateAnno: \code{huex10stv2cdf}
+Two are customCDF packages loaded from inst/FeatureAnnotationSetDev: \code{huex10stv2cdf}
 and \code{hursta2a520709cdf}
 }
