@@ -30,8 +30,7 @@ find_de_genes_eBayes <- function(eset,
   pd <- pd[, coef := factor(coef, levels = c("baseline", tmp))] # preps coef col for use in model
 
   if (length(unique(pd$participant_id)) < 2) {
-    message(paste0(run, " has fewer than 2 participants with multiple timepoints! Skipping."))
-    return()
+    stop("Fewer than 2 participants with multiple timepoints! ")
   }
 
   mm <- stats::model.matrix(stats::formula("~participant_id + coef"), pd)
@@ -51,8 +50,7 @@ find_de_genes_eBayes <- function(eset,
   )
 
   if (!is.null(fit$message)) {
-    message(paste0("Linear model not able to be fit for ", run, ". Skipping to next matrix"))
-    return()
+    stop("Linear model not able to be fit: ", fit$message)
   }
 
   coefs <- grep("^coef", colnames(mm), value = TRUE)
@@ -62,7 +60,7 @@ find_de_genes_eBayes <- function(eset,
     # Check that coef can be used
     tt <- data.table(limma::topTable(fit, coef = coef, number = Inf))
     if (all(is.na(tt$adj.P.Val))) {
-      message(paste0(coef, " has all NA values for adj.P.Val. Skipping to next coef."))
+      log_message(coef, " has all NA values for adj.P.Val. Skipping to next coef.")
       next()
     }
 
@@ -106,12 +104,16 @@ runGEAnalysis <- function(con, rerun = FALSE) {
 
   if (!any(coefs$study_time_collected <= 0)) {
     log_message("No baseline timepoints available in any cohort. Analysis not run.")
-    return()
+    con$cache[["de_runs"]] <- NULL
+    con$cache[["de_results"]] <- NULL
+    return(NULL)
   }
 
   if (sum(coefs$study_time_collected > 0) == 0) {
     log_message("No post-baseline timepoints available in any cohort. Analysis not run.")
-    return()
+    con$cache[["de_runs"]] <- NULL
+    con$cache[["de_results"]] <- NULL
+    return(NULL)
   }
 
   GEA_list <- vector("list")
@@ -123,8 +125,14 @@ runGEAnalysis <- function(con, rerun = FALSE) {
   idx <- 1 # analysis accession key
   for (run in runs) {
     eset <- con$getGEMatrix(matrixName = run, outputType = "normalized", annotation = "latest")
-    tt_list <- find_de_genes_eBayes(eset)
+    tt_list <- tryCatch(find_de_genes_eBayes(eset),
+      error = function(e) e
+    )
 
+    if ("error" %in% class(tt_list)) {
+      log_message("Could not run DE analysis for ", run, ": ", tt_list$message)
+      next()
+    }
 
     cm <- con$getDataset("cohort_membership")
     cm <- unique(cm[, list(cohort, arm_accession)])
@@ -200,7 +208,16 @@ uploadGEAnalysisResults <- function(con) {
     stop("Please run for one study at a time.")
   }
   de_results <- con$runGEAnalysis()
+
   de_runs <- con$cache$de_runs
+  if (is.null(de_results)) {
+    log_message(
+      "Differential expression results not found. ",
+      "Skipping upload."
+    )
+    return(invisible(con))
+  }
+
   if (nrow(de_results) == 0) {
     stop("No differentially expressed genes found.")
   }
@@ -287,7 +304,7 @@ uploadGEAnalysisResults <- function(con) {
       toImport <- data.frame(de_results, stringsAsFactors = F)
 
       # Load in chunks of 50000 rows
-      log_message("importing ", nrow(toImport), " rows to gene_expression_analysis_restuls...")
+      log_message("importing ", nrow(toImport), " rows to gene_expression_analysis_results...")
 
       # Use labkey.query.import for importing large number of rows.
       # Depends on Rlabkey >= v2.7.0
@@ -304,7 +321,7 @@ uploadGEAnalysisResults <- function(con) {
 }
 
 
-checkImpliedGEAR <- function() {
+checkImpliedGEAR <- function(con) {
   impliedGEA <- data.table(labkey.selectRows(
     baseUrl = con$config$labkey.url.base,
     folderPath = con$config$labkey.url.path,

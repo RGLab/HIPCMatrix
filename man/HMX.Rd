@@ -7,6 +7,12 @@
 \alias{updateFAS}
 \alias{updateEMs}
 \alias{runUpdateAnno}
+\alias{get_immune_response}
+\alias{get_de_genes}
+\alias{train_immune_response_predictors}
+\alias{predict_response}
+\alias{run_irp}
+\alias{run_gsea}
 \title{HIPCMatrix Connection}
 \description{
 ImmuneSpace connection object with additional methods
@@ -14,6 +20,14 @@ for gene expression analysis
 }
 \section{Super class}{
 \code{\link[ImmuneSpaceR:ImmuneSpaceConnection]{ImmuneSpaceR::ImmuneSpaceConnection}} -> \code{HIPCMatrixConn}
+}
+\section{Public fields}{
+\if{html}{\out{<div class="r6-fields">}}
+\describe{
+\item{\code{immune_response_predictors}}{List of ImmuneResponsePredictor
+objects associated with this connection. Created by \code{HMS$run_irp()}}
+}
+\if{html}{\out{</div>}}
 }
 \section{Methods}{
 \subsection{Public methods}{
@@ -24,6 +38,14 @@ for gene expression analysis
 \item \href{#method-updateFAS}{\code{HMX$updateFAS()}}
 \item \href{#method-updateEMs}{\code{HMX$updateEMs()}}
 \item \href{#method-runUpdateAnno}{\code{HMX$runUpdateAnno()}}
+\item \href{#method-get_immune_response}{\code{HMX$get_immune_response()}}
+\item \href{#method-get_de_genes}{\code{HMX$get_de_genes()}}
+\item \href{#method-train_immune_response_predictors}{\code{HMX$train_immune_response_predictors()}}
+\item \href{#method-get_irp}{\code{HMX$get_irp()}}
+\item \href{#method-predict_response}{\code{HMX$predict_response()}}
+\item \href{#method-test_immune_response_predictors}{\code{HMX$test_immune_response_predictors()}}
+\item \href{#method-run_irp}{\code{HMX$run_irp()}}
+\item \href{#method-run_gsea}{\code{HMX$run_gsea()}}
 \item \href{#method-clone}{\code{HMX$clone()}}
 }
 }
@@ -107,13 +129,15 @@ differential expression can be run.
 \subsection{Method \code{updateFAS()}}{
 Update Microarray.FeatureAnnotation table
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{HMX$updateFAS(fas_names)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{HMX$updateFAS(fas_names = NULL)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{fas_names}}{name of feature annotation set}
+\item{\code{fas_names}}{name of feature annotation set. If NULL, any FAS
+associated with matrices associated with the connection will be updated.
+For global connection, all FAS will be updated.}
 }
 \if{html}{\out{</div>}}
 }
@@ -174,6 +198,278 @@ a new matrix after loading all matrices for a study:
 \code{con$runUpdateAnno()}
 }
 
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-get_immune_response"></a>}}
+\if{latex}{\out{\hypertarget{method-get_immune_response}{}}}
+\subsection{Method \code{get_immune_response()}}{
+Get immune response.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{HMX$get_immune_response(
+  assay = "hai",
+  participant_ids = NULL,
+  dichotomize = FALSE,
+  dichotomize_thresh = 4,
+  reload = FALSE
+)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{assay}}{"hai", "neut_ab_response", or "elisa"}
+
+\item{\code{participant_ids}}{character vector of participant_ids}
+
+\item{\code{dichotomize}}{Dichotomize result? If FALSE, max log fold change is
+returned. If TRUE, returns TRUE if max log fold change is greater than
+\code{dichotomize_value}}
+
+\item{\code{dichotomize_thresh}}{Value to use for dichotomizing result if
+\code{dichotomize} is TRUE.}
+
+\item{\code{reload}}{Force rerun if result is already found in cache?}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+Max log fold change of \code{assay} from baseline for each
+particiapnt.
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-get_de_genes"></a>}}
+\if{latex}{\out{\hypertarget{method-get_de_genes}{}}}
+\subsection{Method \code{get_de_genes()}}{
+Get genes differentially expressed over time
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{HMX$get_de_genes(
+  timepoint,
+  fc_thresh = 0.58,
+  timepoint_unit = "Days",
+  cohorts = NULL,
+  reload = FALSE
+)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{timepoint}}{Timepoint for finding differentially expressed genes}
+
+\item{\code{fc_thresh}}{fold-change threshold for determining whether genes
+are differentially expressed}
+
+\item{\code{timepoint_unit}}{"Days" or "Hours"}
+
+\item{\code{cohorts}}{character vector of cohorts to include}
+
+\item{\code{reload}}{Force rerun if result is already found in cache?}
+}
+\if{html}{\out{</div>}}
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-train_immune_response_predictors"></a>}}
+\if{latex}{\out{\hypertarget{method-train_immune_response_predictors}{}}}
+\subsection{Method \code{train_immune_response_predictors()}}{
+Get immune response predictors
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{HMX$train_immune_response_predictors(
+  cohorts,
+  timepoint,
+  assay = "hai",
+  timepoint_unit = "Days",
+  use_only_de_genes = timepoint > 0,
+  fc_thresh = 0.58,
+  dichotomize = FALSE,
+  dichotomize_thresh = 4,
+  reload = FALSE
+)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{cohorts}}{character vector of cohorts to include}
+
+\item{\code{timepoint}}{Timepoint for finding differentially expressed genes}
+
+\item{\code{assay}}{"hai", "neut_ab_response", or "elisa"}
+
+\item{\code{timepoint_unit}}{"Days" or "Hours"}
+
+\item{\code{use_only_de_genes}}{Filter to differentially expressed genes
+when finding predictors?}
+
+\item{\code{fc_thresh}}{fold-change threshold for determining whether genes
+are differentially expressed. Ignored if \code{use_only_de_genes} is
+\code{FALSE}.}
+
+\item{\code{dichotomize}}{Dichotomize result? If FALSE, max log fold change is
+returned. If TRUE, returns TRUE if max log fold change is greater than
+\code{dichotomize_value}}
+
+\item{\code{dichotomize_thresh}}{Value to use for dichotomizing result if
+\code{dichotomize} is TRUE.}
+
+\item{\code{reload}}{Force rerun if result is already found in cache?}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+Invisibly returns \code{irp_index} which can be used to
+access the ImmuneResponsePredictor object with \code{HMX$get_irp()}
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-get_irp"></a>}}
+\if{latex}{\out{\hypertarget{method-get_irp}{}}}
+\subsection{Method \code{get_irp()}}{
+Get ImmuneResponsePredictor
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{HMX$get_irp(irp_index = NULL)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{irp_index}}{index of immune_response_predictor object in HMX}
+}
+\if{html}{\out{</div>}}
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-predict_response"></a>}}
+\if{latex}{\out{\hypertarget{method-predict_response}{}}}
+\subsection{Method \code{predict_response()}}{
+Test immune response predictor model on testing cohort data.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{HMX$predict_response(cohort, irp_index = NULL)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{cohort}}{cohort to use (string)}
+
+\item{\code{irp_index}}{index of immune_response_predictor object in HMX}
+}
+\if{html}{\out{</div>}}
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-test_immune_response_predictors"></a>}}
+\if{latex}{\out{\hypertarget{method-test_immune_response_predictors}{}}}
+\subsection{Method \code{test_immune_response_predictors()}}{
+get a table of observed vs predicted
+values given a fitted model.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{HMX$test_immune_response_predictors(cohorts, irp_index = NULL, reload = FALSE)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{cohorts}}{cohorts to test}
+
+\item{\code{irp_index}}{irp_index}
+
+\item{\code{reload}}{force re-run if already cached?}
+}
+\if{html}{\out{</div>}}
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-run_irp"></a>}}
+\if{latex}{\out{\hypertarget{method-run_irp}{}}}
+\subsection{Method \code{run_irp()}}{
+Find predictors of immune response from gene expression.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{HMX$run_irp(
+  cohorts_train,
+  cohorts_test = NULL,
+  timepoint,
+  use_only_de_genes = timepoint > 0,
+  assay = "hai",
+  timepoint_unit = "Days",
+  fc_thresh = 0.58,
+  dichotomize = FALSE,
+  dichotomize_thresh = 4,
+  reload = FALSE
+)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{cohorts_train}}{Training cohorts}
+
+\item{\code{cohorts_test}}{Testing cohorts (optional)}
+
+\item{\code{timepoint}}{Timepoint for finding differentially expressed genes}
+
+\item{\code{use_only_de_genes}}{Filter to differentially expressed genes
+when finding predictors?}
+
+\item{\code{assay}}{"hai", "neut_ab_response", or "elisa"}
+
+\item{\code{timepoint_unit}}{"Days" or "Hours"}
+
+\item{\code{fc_thresh}}{fold-change threshold for determining whether genes
+are differentially expressed. Ignored if \code{use_only_de_genes} is
+\code{FALSE}.}
+
+\item{\code{dichotomize}}{Dichotomize result? If FALSE, max log fold change is
+returned. If TRUE, returns TRUE if max log fold change is greater than
+\code{dichotomize_value}}
+
+\item{\code{dichotomize_thresh}}{Value to use for dichotomizing result if
+\code{dichotomize} is TRUE.}
+
+\item{\code{reload}}{Force rerun if result is already found in cache?}
+}
+\if{html}{\out{</div>}}
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-run_gsea"></a>}}
+\if{latex}{\out{\hypertarget{method-run_gsea}{}}}
+\subsection{Method \code{run_gsea()}}{
+Run a gene set enrichment analysis on a gene expression matrix,
+comparing all timepoints to baseline. The CAMERA method from the limma
+package is used, as described in
+\url{https://academic.oup.com/nar/article/40/17/e133/2411151}{Wu and Smyth (2012)}
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{HMX$run_gsea(
+  matrix_name = NULL,
+  cohort_type = NULL,
+  set_name = "msigdb",
+  gene_sets = NULL
+)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{matrix_name}}{The name of the gene expression matrix
+to download.}
+
+\item{\code{cohort_type}}{The name of a cohortType that has an
+associated gene expression matrix. Note that if this argument is not
+NULL, then \code{matrixName} is ignored. CohortType is a concatenation of
+"cohort" and "cell type" that allows the user to specify a matrix for the
+cell type subset of a cohort.}
+
+\item{\code{set_name}}{Name of predefined set of gene signatures. Choose from:
+\code{chaussabel}, \code{blood_transcription}, \code{msigdb}}
+
+\item{\code{gene_sets}}{A list of vectors of gene names, each entry corresponding
+to a gene set. If specified, this will be used in place of the "set_name"
+argument to test gene sets.}
+}
+\if{html}{\out{</div>}}
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-clone"></a>}}

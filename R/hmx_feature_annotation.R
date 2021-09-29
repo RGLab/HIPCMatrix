@@ -6,9 +6,12 @@ NULL
 #' map alias to gene symbol
 #'
 #' Function to update annotation of a character vector of gene aliases, using
-#' the mapping provided by \link{\code{hgncAlias2Symbol}}
+#' the mapping provided by \code{\link{hgncAlias2Symbol}}
 #'
 #' @param aliases character vector of gene aliases
+#' @param gene_symbol_map data.table with gene aliases and matching symbol.
+#' Columns should be "ALIAS" and "SYMBOL". Default is to use hgncAlias2Symbol
+#' object provided in package data.
 #' @import data.table
 #' @export
 #'
@@ -253,8 +256,8 @@ updateEMs <- function(con) {
   tmp <- unique(unlist(strsplit(ge_files, split = ".tsv", fixed = TRUE)))
   base_names <- tmp[!(tmp %in% c(".summary", ".summary.orig", ".raw", ".immsig"))]
 
-  if (!all(base_names %in% con$listGEMatrices())) {
-    base_names <- base_names[base_names %in% con$listGEMatrices()]
+  if (!all(base_names %in% con$listGEMatrices()$name)) {
+    base_names <- base_names[base_names %in% con$listGEMatrices()$name]
     warning("Extra files / basenames present in current study.  Please delete.")
   }
 

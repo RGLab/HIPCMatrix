@@ -1,0 +1,141 @@
+---
+title: "Immune Response Predictor"
+output: html_document
+params:
+  study: "SDY269"
+  cohorts_train: "LAIV group 2008_PBMC"
+  cohorts_test: "TIV Group 2008_PBMC"
+  timepoint: 7
+  timepoint_unit: "Days"
+  assay: "hai" 
+  use_only_de_genes: TRUE
+  fc_thresh: 0.5
+  dichotomize: FALSE
+  dichotomize_thresh: 4
+---
+
+```{r setup, echo = FALSE}
+suppressPackageStartupMessages({
+  library(HIPCMatrix)
+  library(ImmuneSpaceR)
+  library(knitr)
+  library(ggplot2)
+  library(plotly)
+  library(data.table)
+  library(heatmaply)
+  
+  library(DT)
+})
+
+opts_chunk$set(cache = FALSE,
+               echo = FALSE,
+               message = FALSE,
+               warning = FALSE,
+               fig.width = 12,
+               fig.height = 10,
+               fig.align = "center")
+```
+
+
+```{r train}
+con <- HMX$new(params$study)
+irp <- con$run_irp(
+  cohorts_train = params$cohorts_train,
+  cohorts_test = params$cohorts_test,
+  timepoint = params$timepoint, 
+  assay = params$assay, 
+  timepoint_unit = params$timepoint_unit, 
+  use_only_de_genes = params$use_only_de_genes, 
+  fc_thresh = params$fc_thresh, 
+  dichotomize = params$dichotomize, 
+  dichotomize_thresh = params$dichotomize_thresh
+)
+```
+
+## Predicted response vs. observed response per Participant
+```{r prediction, echo=FALSE, dev='CairoPNG'}
+
+data <- con$test_immune_response_predictors(
+  cohorts = c(params$cohorts_train, params$cohorts_test)
+)
+
+if ( length(params$cohorts_test) == 0 ) {
+  
+  p <- ggplot(data, aes(x = observed, y = predicted)) + 
+    geom_point() + 
+    geom_smooth(method = "lm") + 
+    theme_IS()
+  
+} else {
+  
+  p <- ggplot(data, aes(x = observed, y = predicted)) + 
+    geom_point() + 
+    geom_smooth(method = "lm") +
+    facet_wrap(~set + cohort) + 
+    xlab("Observed HAI response") + 
+    ylab("Predicted HAI response") + 
+    theme_IS()
+}
+#plot(p)
+ggplotly(p)
+```
+
+
+## Heatmap of selected features
+```{r heatmap, echo = FALSE, cache = FALSE}
+mat <- t(irp$FC)
+anno <- con$test_immune_response_predictors(
+  cohorts = c(params$cohorts_test, params$cohorts_train)
+)
+setorder(anno, -set, cohort, observed)
+anno <- data.frame(anno[, -"participant_id"], row.names = anno$participant_id)
+
+if ( params$dichotomize ) {
+  anno$response <- as.factor(anno$response)
+  anno_col <- list(response = c(`FALSE` = "white", `TRUE` = "black"))
+} else {
+  anno_col <- list(response = grey(seq(1, 0, by = -.1)))
+}
+
+mat <- mat[, rownames(anno)]
+mat2 <- mat
+rownames(mat) <- ifelse(nchar(rownames(mat)) > 15, paste0(substr(rownames(mat), 1, 15), "..."), rownames(mat))
+# pheatmap::pheatmap(mat,
+#         annotation = anno,
+#         annotation_colors = anno_col,
+#         scale = "row",
+#         color = ISpalette(20),
+#         cluster_rows = TRUE,
+#         cluster_distance = "correlation",
+#         cluster_method = "ward",
+#         dendrogram = "none",
+#         cluster_cols = FALSE,
+#         show_colnames = FALSE)
+heatmaply(x = mat2,
+          dendrogram = "row",
+          scale = "row",
+          distfun = function(x) as.dist(1 - cor(t(x))),
+          hclust_method = "ward.D",
+          colors = ISpalette(20),
+          col_side_colors = anno)
+```
+
+
+
+## Table of genes selected by the elastic net
+```{r kable}
+predictors <- irp$predictors[, .(
+  `Gene Symbol` = paste0('<a href="http://immunet.princeton.edu/predictions/gene/?network=immune_global&gene=', 
+                         gene_symbol, 
+                         '" target="_blank">', 
+                         gene_symbol,
+                         '</a>'), 
+  statistic, 
+  `p-value`
+)]
+
+
+datatable(predictors, escape = 1, width = 600)
+```
+
+

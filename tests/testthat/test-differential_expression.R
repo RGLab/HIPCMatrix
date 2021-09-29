@@ -1,6 +1,4 @@
-labkey.url.base <- "http://10.107.229.229:8080"
-con <- HMX$new("SDY269")
-eset <- con$getGEMatrix("SDY269_PBMC_TIV_Geo",
+eset <- SDY269$getGEMatrix("SDY269_PBMC_TIV_Geo",
   outputType = "normalized",
   annotation = "latest"
 )
@@ -42,7 +40,7 @@ test_that("find_de_genes_eBayes uses correct p-val cutoff", {
 })
 
 test_that("HMX$runGEAnalysis returns correct object", {
-  de_result <- con$runGEAnalysis()
+  de_result <- SDY269$runGEAnalysis()
   expect_s3_class(de_result, "data.table")
   expect_equal(
     names(de_result),
@@ -59,8 +57,26 @@ test_that("HMX$runGEAnalysis returns correct object", {
       "coefficient"
     )
   )
+
+  sdy28 <- HMX$new("SDY28")
+  expect_message(
+    de_result <- sdy28$runGEAnalysis(),
+    "No baseline timepoints available"
+  )
+  expect_true(is.null(de_result))
+
+  sdy406 <- HMX$new("SDY406")
+  expect_message(
+    de_result <- sdy406$runGEAnalysis(),
+    "No post-baseline timepoints available "
+  )
 })
 
+
+test_that("checkImpliedGEAR returns correct", {
+  impliedGEAR <- SDY269$checkImpliedGEAR()
+  expect_true(impliedGEAR)
+})
 # test_that("HMX$uploadGEAnalysisResults", {
 #   with_mock_api({
 #     con$uploadGEAnalysisResults()
