@@ -27,7 +27,7 @@
 }
 
 log_message <- function(...) {
-  message(sprintf("[%s] %s", Sys.time(), paste0(..., collapse = "")))
+  cat(sprintf("[%s] %s", Sys.time(), paste0(..., collapse = "")))
 }
 
 #' Write raw expression to a file
