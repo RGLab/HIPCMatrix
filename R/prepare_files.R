@@ -95,7 +95,7 @@ retrieve_input_files <- function(study,
     )
     file_path <- file.path(supp_files_dir, gsub("\\.gz", "", file_info$fname))
     if (all(file.exists(file_path) | file.exists(file.path(supp_files_dir, file_info$fname)))) {
-      message("Using saved supp files for ", geo_accession)
+      log_message("Using saved supp files for ", geo_accession)
       return(file.path(supp_files_dir, file_info$fname))
     }
   }

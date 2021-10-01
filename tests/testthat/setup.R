@@ -26,3 +26,12 @@ assign("labkey.url.base", ImmuneSpaceR:::.get_env_url(), .GlobalEnv)
 con_all <- HMX$new("")
 SDY269 <- HMX$new("SDY269")
 SDY180 <- HMX$new("SDY180")
+
+expect_log_message <- function(object,
+                               regexp,
+                               ...) {
+  out <- paste0(capture.output(object), collapse = "")
+  expect_match(out, regexp, ...)
+}
+
+

@@ -104,7 +104,7 @@ test_that("make_raw_matrix outputs correct messages", {
     colFilter = Rlabkey:::makeFilter(c("biosample_accession", "IN", "BS662409;BS662402")),
     original_view = TRUE
   )[!is.na(geo_accession)]
-  expect_message(
+  expect_log_message(
     processed_illumina <- make_raw_matrix(
       platform = "Illumina",
       gef = gef,
@@ -113,7 +113,7 @@ test_that("make_raw_matrix outputs correct messages", {
     ),
     "Processing illumina files"
   )
-  expect_failure(expect_message(
+  expect_failure(expect_log_message(
     processed_illumina <- make_raw_matrix(
       platform = "Illumina",
       gef = gef,
@@ -125,7 +125,7 @@ test_that("make_raw_matrix outputs correct messages", {
 
   gef <- readRDS("test_data/sdy112/SDY112_gef.rds")
   input_files <- normalizePath(HIPCMatrix:::.select_input_files("test_data/sdy112"))
-  expect_message(
+  expect_log_message(
     processed_affy <- make_raw_matrix(
       platform = "Affymetrix",
       gef = gef,
