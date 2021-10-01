@@ -1,6 +1,6 @@
 Package: HIPCMatrix
 Title: Microarray and RNA-seq Processing for ImmuneSpace
-Version: 1.0.1
+Version: 1.0.2
 Authors@R: 
     person(given = "Helen",
            family = "Miller",
