@@ -160,7 +160,7 @@ test_that("select_features selects fewer features than obs", {
   colnames(FC) <- paste0("gene", 1:50)
   # Make response dependent on genes 1:10
   response_vector <- rowSums(FC[, 1:10])
-  expect_message(
+  expect_log_message(
     features <- select_features(FC, response_vector),
     "You selected as many or more features"
   )
@@ -243,7 +243,7 @@ test_that("train_immune_response_predictor works", {
   expect_equal(irp$cohorts$training, "LAIV group 2008_PBMC")
   expect_true(is.null(irp$cohorts$testing))
 
-  expect_message(
+  expect_log_message(
     irp_index2 <- SDY269$train_immune_response_predictors(
       cohorts = "LAIV group 2008_PBMC",
       timepoint = 3
@@ -264,7 +264,7 @@ test_that("get_immune_response_predictor works for baseline predictor", {
   expect_equal(irp$cohorts$training, "LAIV group 2008_PBMC")
   expect_true(is.null(irp$cohorts$testing))
 
-  expect_message(
+  expect_log_message(
     irp_index2 <- SDY269$train_immune_response_predictors(
       cohorts = "LAIV group 2008_PBMC",
       timepoint = 0
@@ -285,7 +285,7 @@ test_that("get_immune_response_predictor works for elisa", {
   expect_s3_class(irp, "ImmuneResponsePredictor")
   expect_equal(irp$response$assay, "elisa")
 
-  expect_message(
+  expect_log_message(
     irp_index2 <- SDY269$train_immune_response_predictors(
       cohorts = "LAIV group 2008_PBMC",
       assay = "elisa",
@@ -330,7 +330,7 @@ test_that("test_immune_response_predictors returns correct format", {
     )
   ))
 
-  expect_message(
+  expect_log_message(
     SDY269$test_immune_response_predictors(cohorts = "LAIV group 2008_PBMC"),
     "irp_index not specified. Using most recent"
   )
