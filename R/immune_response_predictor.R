@@ -316,7 +316,7 @@ select_features <- function(FC,
   nFeatures <- length(selected_features)
   nObs <- length(response_vector)
   if (nObs <= nFeatures) {
-    message(
+    log_message(
       "You selected as many or more features (",
       nFeatures,
       ") than observations (",

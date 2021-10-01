@@ -159,7 +159,7 @@ test_that(".prep_geo_files GSM supp rnaseq", {
     original_view = TRUE
   )[!is.na(geo_accession)]
   analysis_dir <- "test_data/sdy1412"
-  expect_message(
+  expect_log_message(
     input_files <- .prep_geo_files("SDY1412",
       gef,
       meta_data,
@@ -205,6 +205,7 @@ test_that(".prep_geo_files GSE supp rnaseq", {
   )
   gef <- readRDS("test_data/sdy787/SDY787_gef.rds")[1, ]
   analysis_dir <- "test_data/sdy787"
+  # Message from GEOquery
   expect_message(
     input_files <- HIPCMatrix:::.prep_geo_files("SDY787",
       gef,
