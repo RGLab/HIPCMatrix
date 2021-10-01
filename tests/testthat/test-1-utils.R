@@ -54,11 +54,11 @@ test_that("write_matrix", {
 
 test_that("log_message", {
   name <- "Helen"
-  expect_message(
+  expect_log_message(
     HIPCMatrix:::log_message("Hello ", name),
     "Hello Helen"
   )
-  expect_message(
+  expect_log_message(
     HIPCMatrix:::log_message("Hello ", name),
     "\\[\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}\\]"
   )

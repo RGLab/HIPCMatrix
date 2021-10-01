@@ -10,7 +10,7 @@ test_that("normalize_microarray works correctly", {
     normalize_microarray(affy),
     "max\\(exprs_mx\\) < 100"
   )
-  expect_message(
+  expect_log_message(
     normalize_microarray(affy, force = TRUE, verbose = TRUE),
     "Forcing log2 transform"
   )
@@ -32,7 +32,7 @@ test_that("normalize_microarray works correctly", {
 
 test_that("normalize_rnaseq works correctly", {
   rna <- readRDS("test_data/rna_raw_mx.rds")
-  expect_message(
+  expect_log_message(
     rna_norm <- normalize_rnaseq(rna, verbose = TRUE),
     "variance stabilizing transformation"
   )
@@ -47,7 +47,7 @@ test_that("normalize_matrix runs the correct mehtod", {
   illumina_dt <- mx_to_dt(readRDS("test_data/illumina_raw_mx.rds"))
   rna_dt <- mx_to_dt(readRDS("test_data/rna_raw_mx.rds"))
 
-  expect_message(
+  expect_log_message(
     affy_norm <- normalize_matrix(copy(affy_dt),
       "Affymetrix",
       verbose = TRUE
@@ -59,7 +59,7 @@ test_that("normalize_matrix runs the correct mehtod", {
   expect_s3_class(affy_norm, "data.table")
   expect_equal(colnames(affy_norm)[1], "feature_id")
 
-  expect_message(
+  expect_log_message(
     stanford_norm <- normalize_matrix(copy(affy_dt),
       "Stanford Functional Genomics Facility",
       verbose = TRUE
@@ -71,7 +71,7 @@ test_that("normalize_matrix runs the correct mehtod", {
   expect_s3_class(stanford_norm, "data.table")
   expect_equal(colnames(stanford_norm)[1], "feature_id")
 
-  expect_message(
+  expect_log_message(
     illumina_norm <- normalize_matrix(copy(illumina_dt),
       "Illumina",
       verbose = TRUE
@@ -83,7 +83,7 @@ test_that("normalize_matrix runs the correct mehtod", {
   expect_s3_class(illumina_norm, "data.table")
   expect_equal(colnames(illumina_norm)[1], "feature_id")
 
-  expect_message(
+  expect_log_message(
     rna_norm <- normalize_matrix(copy(rna_dt),
       "NA",
       verbose = TRUE
