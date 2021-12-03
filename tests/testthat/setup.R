@@ -33,5 +33,3 @@ expect_log_message <- function(object,
   out <- paste0(capture.output(object), collapse = "")
   expect_match(out, regexp, ...)
 }
-
-

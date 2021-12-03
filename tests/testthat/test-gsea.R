@@ -61,22 +61,28 @@ test_that("run_gsea returns correct format", {
 
 
 test_that("run_gsea with gene_sets", {
+  gsea_result_btm <- SDY269$run_gsea(
+    matrix_name = "SDY269_PBMC_TIV_Geo",
+    set_name = "blood_transcription"
+  )
 
-  gsea_result_btm <- SDY269$run_gsea(matrix_name = "SDY269_PBMC_TIV_Geo",
-                                     set_name = "blood_transcription")
-
-  gsea_result_btm_gs <- SDY269$run_gsea(matrix_name = "SDY269_PBMC_TIV_Geo",
-                                        gene_sets = emory_blood_transcript_modules)
+  gsea_result_btm_gs <- SDY269$run_gsea(
+    matrix_name = "SDY269_PBMC_TIV_Geo",
+    gene_sets = emory_blood_transcript_modules
+  )
   expect_match(gsea_result_btm$Module[[1]], "\\(M\\d")
   expect_match(gsea_result_btm_gs$Module[[1]], "\\(M\\d")
   expect_true(all.equal(gsea_result_btm, gsea_result_btm_gs))
 
-  gsea_result_msig <- SDY269$run_gsea(matrix_name = "SDY269_PBMC_TIV_Geo",
-                                      set_name = "msigdb")
-  gsea_result_msig_gs <- SDY269$run_gsea(matrix_name = "SDY269_PBMC_TIV_Geo",
-                                         gene_sets = msigdb_immunologic_signatures)
+  gsea_result_msig <- SDY269$run_gsea(
+    matrix_name = "SDY269_PBMC_TIV_Geo",
+    set_name = "msigdb"
+  )
+  gsea_result_msig_gs <- SDY269$run_gsea(
+    matrix_name = "SDY269_PBMC_TIV_Geo",
+    gene_sets = msigdb_immunologic_signatures
+  )
   expect_match(gsea_result_msig$Module[[1]], "^GSE")
   expect_match(gsea_result_msig_gs$Module[[1]], "^GSE")
   expect_true(all.equal(gsea_result_msig, gsea_result_msig_gs))
 })
-

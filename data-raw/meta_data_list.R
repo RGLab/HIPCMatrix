@@ -55,7 +55,6 @@ meta_data_list <- list(
     # No raw data in any location
     not_available = c()
   ),
-
   custom_file_info = list(
     SDY224 = list(
       directory = "",

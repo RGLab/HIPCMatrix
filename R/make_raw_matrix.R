@@ -18,8 +18,7 @@ make_raw_matrix <- function(platform,
   if (verbose) log_message("Creating matrix of raw expression...")
   # Generate background corrected raw matrices for affy and illumina
   # For RNAseq pass through raw counts file.
-  exprs_dt <- switch(
-    platform,
+  exprs_dt <- switch(platform,
     "Affymetrix" = .process_affy(
       input_files,
       verbose = verbose

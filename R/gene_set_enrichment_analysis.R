@@ -18,10 +18,8 @@ gsea <- function(eset,
                  gene_sets = NULL,
                  contrast = "study_time_collected",
                  baseline = NULL) {
-
   if (is.null(gene_sets)) {
-    gene_sets <- switch(
-      set_name,
+    gene_sets <- switch(set_name,
       "chaussabel" = chaussabel_modules,
       "blood_transcription" = emory_blood_transcript_modules,
       "msigdb" = msigdb_immunologic_signatures,
