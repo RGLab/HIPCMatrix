@@ -18,13 +18,14 @@ gsea <- function(eset,
                  gene_sets = NULL,
                  contrast = "study_time_collected",
                  baseline = NULL) {
-  gene_sets <- switch(
-    set_name,
-    "chaussabel" = chaussabel_modules,
-    "blood_transcription" = emory_blood_transcript_modules,
-    "msigdb" = msigdb_immunologic_signatures,
-    stop("Invalid signature set.")
-  )
+  if (is.null(gene_sets)) {
+    gene_sets <- switch(set_name,
+      "chaussabel" = chaussabel_modules,
+      "blood_transcription" = emory_blood_transcript_modules,
+      "msigdb" = msigdb_immunologic_signatures,
+      stop("Invalid signature set.")
+    )
+  }
 
   indices <- limma::ids2indices(gene_sets, Biobase::fData(eset)$gene_symbol)
   Biobase::pData(eset)[, contrast] <- as.factor(Biobase::pData(eset)[, contrast])

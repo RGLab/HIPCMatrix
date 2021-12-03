@@ -127,8 +127,7 @@ normalize_matrix <- function(exprs_dt,
 
   ## Call the correct method
 
-  norm_exprs <- switch(
-    platform,
+  norm_exprs <- switch(platform,
     "Illumina" = normalize_microarray(exprs_mx,
       log2_transform = TRUE,
       verbose = verbose
