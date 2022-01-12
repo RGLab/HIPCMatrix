@@ -1,14 +1,53 @@
 #' @include HMX.R
 NULL
 
+#' Compute Differentially Expressed genes for RNAseq using DESeq2
+#'
+#' @param eset expressionset object with raw counts
+#' @param p_val_cutoff adjusted p-value cutoff for determining differentially
+#' expressed genes.
+find_de_genes_deseq <- function(eset,
+                                p_val_cutoff = 0.02) {
+  if (class(Biobase::exprs(eset)[1, ]) != "integer") {
+    stop("DESeq should only be run on counts data")
+  }
 
-#' Compute Differential Expression using Emperical Bayes Statistics
+  pd <- data.table(Biobase::pData(eset))
+  pd <- pd[, coef := paste(study_time_collected, study_time_collected_unit, sep = "_")]
+  if (length(unique(pd$coef)) < 2) {
+    stop("<2 groups found. Cannot perform DE analysis. ")
+  }
+
+  # Specify timepoints <= 0 as baseline
+  to_drop <- unique(pd[study_time_collected <= 0, coef])
+  pd <- pd[coef %in% to_drop, coef := "baseline"]
+  tmp <- grep("baseline", value = TRUE, invert = TRUE, gtools::mixedsort(unique(pd$coef)))
+  pd <- pd[, coef := factor(coef, levels = c("baseline", tmp))] # preps coef col for use in model
+  if (sum(pd$coef == "baseline") == 0) {
+    stop("No baseline timepoint!")
+  }
+
+  if (length(unique(pd$participant_id)) < 2) {
+    stop("Fewer than 2 participants with multiple timepoints! ")
+  }
+
+
+  dds <- DESeq2::DESeqDataSetFromMatrix(
+    countData = Biobase::exprs(eset),
+    colData = pd,
+    design = ~coef
+  )
+  dds <- DESeq2::DESeq(dds)
+}
+
+#' Find Differentially Expressed genes using Empirical Bayes Statistics
 #'
-#' Compute differential expression over time on microarray data using the
-#' \code{\link[limma]{eBayes}} method from the \code{limma} package. It
-#' reports all differentially expressed genes for each timepoint.
+#' Compute differential expression over time on microarray data using
+#' empirical Bayes statistics on a linear model using the
+#' \code{\link[limma]{eBayes}} method from the \code{limma} package. All
+#' differentially expressed genes for each timepoint are reported.
 #'
-#' @return list with one entry for each
+#' @return list with one entry for each non-baseline timepoint
 #'
 #' @param eset expressionset object with normalized microarray expression.
 #' @param p_val_cutoff adjusted p-value cutoff for determining differentially
@@ -80,14 +119,14 @@ find_de_genes_eBayes <- function(eset,
 
 ##### ----------------- HMX methods ------------------------ #####
 
-# See HMX$runGEAnalysis
-runGEAnalysis <- function(con, rerun = FALSE) {
+# See HMX$run_de_analysis
+run_de_analysis <- function(con, rerun = FALSE) {
   if (grepl("^IS", con$study)) {
-    stop("runGEAnalysis is not designed for ImmuneSignatures!")
+    stop("run_de_analysis is not designed for ImmuneSignatures!")
   }
 
   if (!grepl("SDY", con$study)) {
-    stop("run runGEAnalysis one study at a time!")
+    stop("run run_de_analysis one study at a time!")
   }
 
   if ("de_results" %in% names(con$cache) & !rerun) {
@@ -98,22 +137,16 @@ runGEAnalysis <- function(con, rerun = FALSE) {
     log_message("Running Differential Expression Analysis...")
   }
 
-  con$getGEInputs()
-  contrast <- c("study_time_collected", "study_time_collected_unit")
-  coefs <- unique(con$cache$GE_inputs[, c("arm_name", contrast), with = FALSE])
+  de_runs <- con$get_de_compatible_runs()
 
-  if (!any(coefs$study_time_collected <= 0)) {
-    log_message("No baseline timepoints available in any cohort. Analysis not run.")
+  if (nrow(de_runs) == 0) {
+    log_message("Insufficient data for all cohorts. Analysis not run.")
     con$cache[["de_runs"]] <- NULL
     con$cache[["de_results"]] <- NULL
     return(NULL)
   }
-
-  if (sum(coefs$study_time_collected > 0) == 0) {
-    log_message("No post-baseline timepoints available in any cohort. Analysis not run.")
-    con$cache[["de_runs"]] <- NULL
-    con$cache[["de_results"]] <- NULL
-    return(NULL)
+  if (con$config$verbose) {
+    log_message(nrow(de_runs), " cohorts/timepoints found for differential expression")
   }
 
   GEA_list <- vector("list")
@@ -202,12 +235,12 @@ runGEAnalysis <- function(con, rerun = FALSE) {
   return(de_results)
 }
 
-# see HMX$uploadGEAnalysisResults
-uploadGEAnalysisResults <- function(con) {
+# see HMX$upload_de_analysis_results
+upload_de_analysis_results <- function(con) {
   if (!grepl("SDY", con$study)) {
     stop("Please run for one study at a time.")
   }
-  de_results <- con$runGEAnalysis()
+  de_results <- con$run_de_analysis()
 
   de_runs <- con$cache$de_runs
   if (is.null(de_results)) {
@@ -320,31 +353,50 @@ uploadGEAnalysisResults <- function(con) {
   invisible(con)
 }
 
-
-checkImpliedGEAR <- function(con) {
-  impliedGEA <- data.table(labkey.selectRows(
+get_de_compatible_runs <- function(con) {
+  ge_samples <- data.table(labkey.selectRows(
     baseUrl = con$config$labkey.url.base,
     folderPath = con$config$labkey.url.path,
     schemaName = "assay.expressionMatrix.matrix",
-    queryName = "inputSamples",
+    queryName = "inputSamples_computed",
     colNameOpt = "rname",
+    colSelect = c(
+      "Biosample/biosample_accession",
+      "Biosample/ParticipantId",
+      "Biosample/arm_name",
+      "Biosample/study_time_collected",
+      "Biosample/study_time_collected_unit",
+      "Biosample/study_accession"
+    ),
     showHidden = TRUE
   ))
 
-  # 1. Remove all arm_name * study_time_collected with less than 4 replicates
+  # 1. Remove all arm_name * study_time_collected with less than 4 samples
   # otherwise predictive modeling cannot work
-  impliedGEA[, subs := unique(length(biosample_participantid)), by = .(biosample_arm_name, biosample_study_time_collected)]
-  impliedGEA <- impliedGEA[subs > 3]
+  ge_samples[,
+    sample_count := unique(length(biosample_participantid)),
+    by = .(biosample_arm_name, biosample_study_time_collected)
+  ]
+  ge_samples <- ge_samples[sample_count > 3]
 
   # 2. Check for baseline within each arm_name and then filter out baseline
-  impliedGEA[, baseline := any(biosample_study_time_collected <= 0), by = .(biosample_arm_name)]
-  impliedGEA <- impliedGEA[baseline == TRUE]
-  impliedGEA <- impliedGEA[biosample_study_time_collected > 0]
-
-  # 3. Generate key
-  impliedGEA[, key := paste(biosample_arm_name, biosample_study_time_collected, biosample_study_time_collected_unit)]
+  ge_samples[,
+    includes_baseline := any(biosample_study_time_collected <= 0),
+    by = .(biosample_arm_name)
+  ]
+  ge_samples <- ge_samples[includes_baseline == TRUE]
+  ge_samples <- ge_samples[biosample_study_time_collected > 0]
 
   # 4. Summarize by arm_name * study_time_collected for number of subs and key
-  smryGEA <- impliedGEA[, list(key = unique(key), subs = unique(subs)), by = .(biosample_arm_name, biosample_study_time_collected)]
-  dim(smryGEA)[[1]] > 0
+  de_runs <- unique(ge_samples[
+    ,
+    .(
+      study_accesion = biosample_study_accession,
+      arm_name = biosample_arm_name,
+      study_time_collected = biosample_study_time_collected,
+      study_time_collected_unit = biosample_study_time_collected_unit,
+      sample_count
+    )
+  ])
+  de_runs
 }

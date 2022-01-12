@@ -2,7 +2,7 @@
 % Please edit documentation in R/hmx_differential_expression.R
 \name{find_de_genes_eBayes}
 \alias{find_de_genes_eBayes}
-\title{Compute Differential Expression using Emperical Bayes Statistics}
+\title{Find Differentially Expressed genes using Empirical Bayes Statistics}
 \usage{
 find_de_genes_eBayes(eset, p_val_cutoff = 0.02)
 }
@@ -13,10 +13,11 @@ find_de_genes_eBayes(eset, p_val_cutoff = 0.02)
 expressed genes.}
 }
 \value{
-list with one entry for each
+list with one entry for each non-baseline timepoint
 }
 \description{
-Compute differential expression over time on microarray data using the
-\code{\link[limma]{eBayes}} method from the \code{limma} package. It
-reports all differentially expressed genes for each timepoint.
+Compute differential expression over time on microarray data using
+empirical Bayes statistics on a linear model using the
+\code{\link[limma]{eBayes}} method from the \code{limma} package. All
+differentially expressed genes for each timepoint are reported.
 }

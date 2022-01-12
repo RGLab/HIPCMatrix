@@ -39,8 +39,18 @@ test_that("find_de_genes_eBayes uses correct p-val cutoff", {
   expect_equal(nrow(de_result[[1]]), 100)
 })
 
-test_that("HMX$runGEAnalysis returns correct object", {
-  de_result <- SDY269$runGEAnalysis()
+# test_that("find_de_genes_deseq works", {
+#   con <- HMX$new("SDY1256")
+#   eset_norm <- con$getGEMatrix("SDY1256_WholeBlood_EPIC001_geo")
+#   expect_error(
+#     de_result <- find_de_genes_deseq(eset),
+#     "some values in assay are not integers"
+#   )
+#   rm(eset_norm)
+# })
+
+test_that("HMX$run_de_analysis returns correct object", {
+  de_result <- SDY269$run_de_analysis()
   expect_s3_class(de_result, "data.table")
   expect_equal(
     names(de_result),
@@ -60,22 +70,22 @@ test_that("HMX$runGEAnalysis returns correct object", {
 
   sdy28 <- HMX$new("SDY28")
   expect_log_message(
-    de_result <- sdy28$runGEAnalysis(),
+    de_result <- sdy28$run_de_analysis(),
     "No baseline timepoints available"
   )
   expect_true(is.null(de_result))
 
   sdy406 <- HMX$new("SDY406")
   expect_log_message(
-    de_result <- sdy406$runGEAnalysis(),
+    de_result <- sdy406$run_de_analysis(),
     "No post-baseline timepoints available "
   )
 })
 
 
-test_that("checkImpliedGEAR returns correct", {
-  impliedGEAR <- SDY269$checkImpliedGEAR()
-  expect_true(impliedGEAR)
+test_that("get_de_compatible_matrices returns correct format", {
+  implied_de <- SDY269$get_de_compatible_matrices()
+  expect_equal(nrow(implied_de), 4)
 })
 # test_that("HMX$uploadGEAnalysisResults", {
 #   with_mock_api({
