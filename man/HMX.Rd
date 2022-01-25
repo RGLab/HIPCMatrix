@@ -33,7 +33,7 @@ objects associated with this connection. Created by \code{HMS$run_irp()}}
 \itemize{
 \item \href{#method-run_de_analysis}{\code{HMX$run_de_analysis()}}
 \item \href{#method-upload_de_analysis_results}{\code{HMX$upload_de_analysis_results()}}
-\item \href{#method-get_de_compatible_matrices}{\code{HMX$get_de_compatible_matrices()}}
+\item \href{#method-get_de_compatible_runs}{\code{HMX$get_de_compatible_runs()}}
 \item \href{#method-updateFAS}{\code{HMX$updateFAS()}}
 \item \href{#method-updateEMs}{\code{HMX$updateEMs()}}
 \item \href{#method-get_immune_response}{\code{HMX$get_immune_response()}}
@@ -107,13 +107,13 @@ gene_expression_analysis_results tables with updated results.
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-get_de_compatible_matrices"></a>}}
-\if{latex}{\out{\hypertarget{method-get_de_compatible_matrices}{}}}
-\subsection{Method \code{get_de_compatible_matrices()}}{
+\if{html}{\out{<a id="method-get_de_compatible_runs"></a>}}
+\if{latex}{\out{\hypertarget{method-get_de_compatible_runs}{}}}
+\subsection{Method \code{get_de_compatible_runs()}}{
 Find gene expression matrices and timepoints which are compatible
 with differential expression analysis
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{HMX$get_de_compatible_matrices()}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{HMX$get_de_compatible_runs()}\if{html}{\out{</div>}}
 }
 
 \subsection{Returns}{

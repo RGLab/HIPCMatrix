@@ -1,45 +1,6 @@
 #' @include HMX.R
 NULL
 
-#' Compute Differentially Expressed genes for RNAseq using DESeq2
-#'
-#' @param eset expressionset object with raw counts
-#' @param p_val_cutoff adjusted p-value cutoff for determining differentially
-#' expressed genes.
-find_de_genes_deseq <- function(eset,
-                                p_val_cutoff = 0.02) {
-  if (class(Biobase::exprs(eset)[1, ]) != "integer") {
-    stop("DESeq should only be run on counts data")
-  }
-
-  pd <- data.table(Biobase::pData(eset))
-  pd <- pd[, coef := paste(study_time_collected, study_time_collected_unit, sep = "_")]
-  if (length(unique(pd$coef)) < 2) {
-    stop("<2 groups found. Cannot perform DE analysis. ")
-  }
-
-  # Specify timepoints <= 0 as baseline
-  to_drop <- unique(pd[study_time_collected <= 0, coef])
-  pd <- pd[coef %in% to_drop, coef := "baseline"]
-  tmp <- grep("baseline", value = TRUE, invert = TRUE, gtools::mixedsort(unique(pd$coef)))
-  pd <- pd[, coef := factor(coef, levels = c("baseline", tmp))] # preps coef col for use in model
-  if (sum(pd$coef == "baseline") == 0) {
-    stop("No baseline timepoint!")
-  }
-
-  if (length(unique(pd$participant_id)) < 2) {
-    stop("Fewer than 2 participants with multiple timepoints! ")
-  }
-
-
-  dds <- DESeq2::DESeqDataSetFromMatrix(
-    countData = Biobase::exprs(eset),
-    colData = pd,
-    design = ~coef
-  )
-  dds <- DESeq2::DESeq(dds)
-}
-
 #' Find Differentially Expressed genes using Empirical Bayes Statistics
 #'
 #' Compute differential expression over time on microarray data using
@@ -391,7 +352,7 @@ get_de_compatible_runs <- function(con) {
   de_runs <- unique(ge_samples[
     ,
     .(
-      study_accesion = biosample_study_accession,
+      study_accession = biosample_study_accession,
       arm_name = biosample_arm_name,
       study_time_collected = biosample_study_time_collected,
       study_time_collected_unit = biosample_study_time_collected_unit,

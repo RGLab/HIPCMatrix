@@ -71,20 +71,20 @@ test_that("HMX$run_de_analysis returns correct object", {
   sdy28 <- HMX$new("SDY28")
   expect_log_message(
     de_result <- sdy28$run_de_analysis(),
-    "No baseline timepoints available"
+    "Insufficient data"
   )
   expect_true(is.null(de_result))
 
   sdy406 <- HMX$new("SDY406")
   expect_log_message(
     de_result <- sdy406$run_de_analysis(),
-    "No post-baseline timepoints available "
+    "Insufficient data"
   )
 })
 
 
-test_that("get_de_compatible_matrices returns correct format", {
-  implied_de <- SDY269$get_de_compatible_matrices()
+test_that("get_de_compatible_runs returns correct format", {
+  implied_de <- SDY269$get_de_compatible_runs()
   expect_equal(nrow(implied_de), 4)
 })
 # test_that("HMX$uploadGEAnalysisResults", {
