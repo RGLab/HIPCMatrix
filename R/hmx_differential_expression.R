@@ -113,12 +113,12 @@ run_de_analysis <- function(con, rerun = FALSE) {
   GEA_list <- vector("list")
   GEAR_list <- vector("list")
 
-  runs <- con$cache$GE_matrices$name
+  runs <- unique(con$cache$GE_matrices$cohort_type)
   gef <- con$getDataset("gene_expression_files", original_view = T)
 
   idx <- 1 # analysis accession key
   for (run in runs) {
-    eset <- con$getGEMatrix(matrixName = run, outputType = "normalized", annotation = "latest")
+    eset <- con$getGEMatrix(cohortType = run, outputType = "normalized", annotation = "latest")
     tt_list <- tryCatch(find_de_genes_eBayes(eset),
       error = function(e) e
     )
