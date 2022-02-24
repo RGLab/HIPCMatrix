@@ -2,11 +2,10 @@
 % Please edit documentation in R/HMX.R
 \name{HMX}
 \alias{HMX}
-\alias{runGEAnalysis}
+\alias{run_de_analysis}
 \alias{uploadGEAnalysisResults}
 \alias{updateFAS}
 \alias{updateEMs}
-\alias{runUpdateAnno}
 \alias{get_immune_response}
 \alias{get_de_genes}
 \alias{train_immune_response_predictors}
@@ -32,12 +31,11 @@ objects associated with this connection. Created by \code{HMS$run_irp()}}
 \section{Methods}{
 \subsection{Public methods}{
 \itemize{
-\item \href{#method-runGEAnalysis}{\code{HMX$runGEAnalysis()}}
-\item \href{#method-uploadGEAnalysisResults}{\code{HMX$uploadGEAnalysisResults()}}
-\item \href{#method-checkImpliedGEAR}{\code{HMX$checkImpliedGEAR()}}
+\item \href{#method-run_de_analysis}{\code{HMX$run_de_analysis()}}
+\item \href{#method-upload_de_analysis_results}{\code{HMX$upload_de_analysis_results()}}
+\item \href{#method-get_de_compatible_runs}{\code{HMX$get_de_compatible_runs()}}
 \item \href{#method-updateFAS}{\code{HMX$updateFAS()}}
 \item \href{#method-updateEMs}{\code{HMX$updateEMs()}}
-\item \href{#method-runUpdateAnno}{\code{HMX$runUpdateAnno()}}
 \item \href{#method-get_immune_response}{\code{HMX$get_immune_response()}}
 \item \href{#method-get_de_genes}{\code{HMX$get_de_genes()}}
 \item \href{#method-train_immune_response_predictors}{\code{HMX$train_immune_response_predictors()}}
@@ -80,12 +78,12 @@ objects associated with this connection. Created by \code{HMS$run_irp()}}
 \out{</details>}
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-runGEAnalysis"></a>}}
-\if{latex}{\out{\hypertarget{method-runGEAnalysis}{}}}
-\subsection{Method \code{runGEAnalysis()}}{
+\if{html}{\out{<a id="method-run_de_analysis"></a>}}
+\if{latex}{\out{\hypertarget{method-run_de_analysis}{}}}
+\subsection{Method \code{run_de_analysis()}}{
 Run Differential Expression analysis on matrices in a study
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{HMX$runGEAnalysis(rerun = FALSE)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{HMX$run_de_analysis(rerun = FALSE)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
@@ -97,30 +95,30 @@ Run Differential Expression analysis on matrices in a study
 }
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-uploadGEAnalysisResults"></a>}}
-\if{latex}{\out{\hypertarget{method-uploadGEAnalysisResults}{}}}
-\subsection{Method \code{uploadGEAnalysisResults()}}{
+\if{html}{\out{<a id="method-upload_de_analysis_results"></a>}}
+\if{latex}{\out{\hypertarget{method-upload_de_analysis_results}{}}}
+\subsection{Method \code{upload_de_analysis_results()}}{
 Upload differential gene expression analysis results to
 server. This updates the gene_expression_analysis and the
 gene_expression_analysis_results tables with updated results.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{HMX$uploadGEAnalysisResults()}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{HMX$upload_de_analysis_results()}\if{html}{\out{</div>}}
 }
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-checkImpliedGEAR"></a>}}
-\if{latex}{\out{\hypertarget{method-checkImpliedGEAR}{}}}
-\subsection{Method \code{checkImpliedGEAR()}}{
-Check gene expression matrices to determine if
-differential expression can be run.
+\if{html}{\out{<a id="method-get_de_compatible_runs"></a>}}
+\if{latex}{\out{\hypertarget{method-get_de_compatible_runs}{}}}
+\subsection{Method \code{get_de_compatible_runs()}}{
+Find gene expression matrices and timepoints which are compatible
+with differential expression analysis
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{HMX$checkImpliedGEAR()}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{HMX$get_de_compatible_runs()}\if{html}{\out{</div>}}
 }
 
 \subsection{Returns}{
-\code{TRUE} if differential expression can be run.
-\code{FALSE} if not.
+data.table with one row per timepoint per matrix which has
+sufficient data to run differential expression analysis
 }
 }
 \if{html}{\out{<hr>}}
@@ -165,37 +163,6 @@ Update Expression Matrices with new annotation
 This will update the summary.tsv files for all matrices
 associated with the connection by re-calculating the summarized
 expression values with the most current prob to gene symbol mapping.
-}
-
-}
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-runUpdateAnno"></a>}}
-\if{latex}{\out{\hypertarget{method-runUpdateAnno}{}}}
-\subsection{Method \code{runUpdateAnno()}}{
-Update gene annotation
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{HMX$runUpdateAnno()}\if{html}{\out{</div>}}
-}
-
-\subsection{Details}{
-This function will update the feature annotation tables,
-summarized expression matrices, and re-run differential expression
-where relevant, using the most current gene alias to symbol mapping
-found in the HIPCMatrix package data.
-
-To update annotation across ImmuneSpace, first update and re-install
-UpdateAnno. Then:
-
-\code{con <- HMX$new("")}
-
-\code{con$runUpdateAnno()}
-
-To update feature annotation and run differential expression on
-a new matrix after loading all matrices for a study:
-
-\code{con <- HMX$new("SDY_ID")}
-
-\code{con$runUpdateAnno()}
 }
 
 }

@@ -86,7 +86,7 @@ You can then perform analyses on the matrices available through the connection
 object. For example, to run differential expression analysis: 
 
 ```
-de_results <- con$runGEAnalysis()
+de_results <- con$run_de_analysis()
 ```
 
 ## Differential Expression Analysis

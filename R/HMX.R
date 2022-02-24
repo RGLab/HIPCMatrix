@@ -21,12 +21,12 @@ HMX <- R6Class(
 
 
     #' @description Run Differential Expression analysis on matrices in a study
-    #' @aliases runGEAnalysis
+    #' @aliases run_de_analysis
     #'
     #' @param rerun Force re-run if results already in cache?
     #'
-    runGEAnalysis = function(rerun = FALSE) {
-      runGEAnalysis(self, rerun)
+    run_de_analysis = function(rerun = FALSE) {
+      run_de_analysis(self, rerun)
     },
 
 
@@ -34,17 +34,17 @@ HMX <- R6Class(
     #' server. This updates the gene_expression_analysis and the
     #' gene_expression_analysis_results tables with updated results.
     #' @aliases uploadGEAnalysisResults
-    uploadGEAnalysisResults = function() {
-      uploadGEAnalysisResults(self)
+    upload_de_analysis_results = function() {
+      upload_de_analysis_results(self)
     },
 
-    #' @description Check gene expression matrices to determine if
-    #' differential expression can be run.
+    #' @description Find gene expression matrices and timepoints which are compatible
+    #' with differential expression analysis
     #'
-    #' @return `TRUE` if differential expression can be run.
-    #' `FALSE` if not.
-    checkImpliedGEAR = function() {
-      checkImpliedGEAR(self)
+    #' @return data.table with one row per timepoint per matrix which has
+    #' sufficient data to run differential expression analysis
+    get_de_compatible_runs = function() {
+      get_de_compatible_runs(self)
     },
 
     #' @description Update Microarray.FeatureAnnotation table
