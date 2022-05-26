@@ -33,7 +33,7 @@ meta_data_list <- list(
       "SDY520", "SDY640", "SDY789", "SDY820",
       "SDY522", "SDY888", "SDY1276",
       "SDY1325", "SDY1364", "SDY1373", "SDY1092",
-      "SDY903", "SDY787", "SDY1529"
+      "SDY903", "SDY787", "SDY1529", "SDY58"
     ),
 
     # Use raw files from ImmPort. Be careful because these may already be
@@ -93,6 +93,7 @@ meta_data_list <- list(
     id_regex_map_list = list(
       SDY1276 = list(old = "WholeBloodRNA_", new = ""),
       SDY224 = list(old = " \\[PBMC\\]", new = ""),
+      SDY58 = list(old = "^101", new = "10"),
       SDY63 = list(old = "^101", new = "10"),
       SDY888 = list(old = "( |)_((N|n)egative|(S|s)econdary)", new = "_RNASeq"),
       SDY1373 = list(old = "Sample name: ", new = ""),
