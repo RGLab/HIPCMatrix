@@ -113,7 +113,7 @@ retrieve_input_files <- function(study,
 #'
 #' @param supp_files_dir Path to directory for storing supplementary files.
 .select_input_files <- function(supp_files_dir) {
-  target_file_terms <- "non-normalized|corrected|raw|cel|pbmc|count"
+  target_file_terms <- "non-normalized|non_normalized|corrected|raw|cel|pbmc|count"
   supp_files <- list.files(supp_files_dir)
   raw_files <- supp_files[grep(target_file_terms, supp_files, ignore.case = TRUE)]
 

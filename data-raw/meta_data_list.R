@@ -33,7 +33,7 @@ meta_data_list <- list(
       "SDY520", "SDY640", "SDY789", "SDY820",
       "SDY522", "SDY888", "SDY1276",
       "SDY1325", "SDY1364", "SDY1373", "SDY1092",
-      "SDY903", "SDY787", "SDY1529"
+      "SDY903", "SDY787", "SDY1529", "SDY58"
     ),
 
     # Use raw files from ImmPort. Be careful because these may already be
