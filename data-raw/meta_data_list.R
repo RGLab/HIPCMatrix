@@ -93,7 +93,6 @@ meta_data_list <- list(
     id_regex_map_list = list(
       SDY1276 = list(old = "WholeBloodRNA_", new = ""),
       SDY224 = list(old = " \\[PBMC\\]", new = ""),
-      SDY58 = list(old = "^101", new = "10"),
       SDY63 = list(old = "^101", new = "10"),
       SDY888 = list(old = "( |)_((N|n)egative|(S|s)econdary)", new = "_RNASeq"),
       SDY1373 = list(old = "Sample name: ", new = ""),
