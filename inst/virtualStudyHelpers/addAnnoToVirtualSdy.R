@@ -13,8 +13,8 @@ addAnnoToVirtualSdy <- function(ISserver, virtualSdy, fasGrep = NULL, verbose = 
 
     # Convert server to baseUrl
     baseUrl <- ifelse( ISserver == "prod",
-                     "https://www.immunespace.org",
-                     "https://test.immunespace.org")
+                     "https://datatools.immunespace.org",
+                     "https://datatools-dev.immunespace.org")
 
     # Path assumed to be from HIPC directory
     vSdyPath <- paste0("/HIPC/", virtualSdy)
@@ -85,24 +85,24 @@ addAnnoToVirtualSdy <- function(ISserver, virtualSdy, fasGrep = NULL, verbose = 
     newFa$Container <- unique(toImport$Container)
     newFa$FeatureAnnotationSetId <- rowMap$new[ match(newFa$FeatureAnnotationSetId, rowMap$old)]
     newFa[is.na(newFa)] <- ""
-    
+
     # Importing > 100k rows bogs down, so do subsets
     numCuts <- ceiling(nrow(newFa)/100000)
     if(verbose){
       print(paste("Total Rows to Import:", nrow(newFa)))
     }
-    
+
     for(i in 1:numCuts){
       low <- 100000 * (i-1) + 1
       high <- 100000 * i
       if(high > nrow(newFa)){
         high <- nrow(newFa)
       }
-      
+
       if(verbose){
         print(paste0("low: ", low, " high: ", high))
       }
-      
+
       tmp <- newFa[low:high,]
       doneFa <- labkey.importRows(baseUrl = baseUrl,
                                   folderPath = vSdyPath,

@@ -79,7 +79,7 @@
 get_meta_data <- function(study,
                           gef = NULL,
                           fas_id = NULL,
-                          baseUrl = "https://www.immunespace.org") {
+                          baseUrl = "https://datatools.immunespace.org") {
 
   # ----- Create custom meta_data list for study -----
 
