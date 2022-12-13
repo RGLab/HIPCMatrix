@@ -9,10 +9,10 @@
 # Main Method
 copyMatricesToVirtualSdy <- function(ISserver, virtualSdy){
   # Note: This should be run as the immunespace unix user on the RServe EC2 instance
-  
+
   baseUrl <- ifelse( ISserver == "prod",
-                     "https://www.immunespace.org",
-                     "https://test.immunespace.org")
+                     "https://datatools.immunespace.org",
+                     "https://datatools-dev.immunespace.org")
 
   runs <- labkey.selectRows(baseUrl = baseUrl,
                             folderPath = "/Studies/",

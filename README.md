@@ -4,7 +4,7 @@
 [![Codecov test coverage](https://codecov.io/gh/RGLab/HIPCMatrix/branch/main/graph/badge.svg)](https://codecov.io/gh/RGLab/HIPCMatrix?branch=main)
 <!-- badges: end -->
 
-Utilities for processing and analyzing [HIPC](https://www.immuneprofiling.org/hipc/page/show) gene expression data in [ImmuneSpace](https://www.immunespace.org/). 
+Utilities for processing and analyzing [HIPC](https://www.immuneprofiling.org/hipc/page/show) gene expression data in [ImmuneSpace](https://datatools.immunespace.org/). 
 
 # Processing Gene Expression Data
 
@@ -217,8 +217,8 @@ To update these mappings and apply it throughout ImmuneSpace:
     devtools::install("RGLab/HIPCMatrix@dev")
     ```
 1. On the server, go to data integration module at Studies level: 
-    * TEST: https://test.immunespace.org/dataintegration/Studies/begin.view?
-    * PROD: https://www.immunespace.org/dataintegration/Studies/begin.view?
+    * TEST: https://datatools-dev.immunespace.org/dataintegration/Studies/begin.view?
+    * PROD: https://datatools.immunespace.org/dataintegration/Studies/begin.view?
 
 1. Run Update Anno ETL. This will: 
     1. Update Feature Annotation Sets with current annotation

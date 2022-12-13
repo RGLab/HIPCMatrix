@@ -8,7 +8,7 @@ option_list <- list(
               help = "Name of matrix stored in ImmuneSpace"),
   make_option(c("-l", "--labkey-url"),
               help = "labkey.url.base",
-              default = "https://test.immunespace.org"),
+              default = "https://datatools-dev.immunespace.org"),
   make_option(c("-r", "--reload"),
               help = "Force re-download of GEO files",
               action = "store_true",

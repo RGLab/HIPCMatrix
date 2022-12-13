@@ -40,7 +40,7 @@ runCreateMx <- function(study,
                         matrix_name,
                         selected_biosamples,
                         fas_id,
-                        labkey.url.base = "https://www.immunespace.org/",
+                        labkey.url.base = "https://datatools.immunespace.org/",
                         base_dir = file.path(
                           "/share",
                           "files",
@@ -112,7 +112,7 @@ runCreateMx <- function(study,
 
   # Specifying study and onTest so that code can be used in either module / pipeline,
   # which currently pulls lub and lup from javascript calls, or CL work.
-  onTest <- labkey.url.base == "https://test.immunespace.org"
+  onTest <- labkey.url.base == "https://datatools-dev.immunespace.org"
   con <- CreateConnection(study = study, onTest = onTest)
 
   # Create GEF
