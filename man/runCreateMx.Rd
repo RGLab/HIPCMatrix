@@ -9,7 +9,7 @@ runCreateMx(
   matrix_name,
   selected_biosamples,
   fas_id,
-  labkey.url.base = "https://www.immunespace.org/",
+  labkey.url.base = "https://datatools.immunespace.org/",
   base_dir = file.path("/share", "files", "Studies", study, "@files"),
   output_dir = file.path(base_dir, "analysis", "exprs_matrices"),
   analysis_dir = file.path(base_dir, "rawdata", "gene_expression"),

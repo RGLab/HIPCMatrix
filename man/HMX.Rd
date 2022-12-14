@@ -31,55 +31,55 @@ objects associated with this connection. Created by \code{HMS$run_irp()}}
 \section{Methods}{
 \subsection{Public methods}{
 \itemize{
-\item \href{#method-run_de_analysis}{\code{HMX$run_de_analysis()}}
-\item \href{#method-upload_de_analysis_results}{\code{HMX$upload_de_analysis_results()}}
-\item \href{#method-get_de_compatible_runs}{\code{HMX$get_de_compatible_runs()}}
-\item \href{#method-updateFAS}{\code{HMX$updateFAS()}}
-\item \href{#method-updateEMs}{\code{HMX$updateEMs()}}
-\item \href{#method-get_immune_response}{\code{HMX$get_immune_response()}}
-\item \href{#method-get_de_genes}{\code{HMX$get_de_genes()}}
-\item \href{#method-train_immune_response_predictors}{\code{HMX$train_immune_response_predictors()}}
-\item \href{#method-get_irp}{\code{HMX$get_irp()}}
-\item \href{#method-predict_response}{\code{HMX$predict_response()}}
-\item \href{#method-test_immune_response_predictors}{\code{HMX$test_immune_response_predictors()}}
-\item \href{#method-run_irp}{\code{HMX$run_irp()}}
-\item \href{#method-run_gsea}{\code{HMX$run_gsea()}}
-\item \href{#method-clone}{\code{HMX$clone()}}
+\item \href{#method-HIPCMatrixConn-run_de_analysis}{\code{HMX$run_de_analysis()}}
+\item \href{#method-HIPCMatrixConn-upload_de_analysis_results}{\code{HMX$upload_de_analysis_results()}}
+\item \href{#method-HIPCMatrixConn-get_de_compatible_runs}{\code{HMX$get_de_compatible_runs()}}
+\item \href{#method-HIPCMatrixConn-updateFAS}{\code{HMX$updateFAS()}}
+\item \href{#method-HIPCMatrixConn-updateEMs}{\code{HMX$updateEMs()}}
+\item \href{#method-HIPCMatrixConn-get_immune_response}{\code{HMX$get_immune_response()}}
+\item \href{#method-HIPCMatrixConn-get_de_genes}{\code{HMX$get_de_genes()}}
+\item \href{#method-HIPCMatrixConn-train_immune_response_predictors}{\code{HMX$train_immune_response_predictors()}}
+\item \href{#method-HIPCMatrixConn-get_irp}{\code{HMX$get_irp()}}
+\item \href{#method-HIPCMatrixConn-predict_response}{\code{HMX$predict_response()}}
+\item \href{#method-HIPCMatrixConn-test_immune_response_predictors}{\code{HMX$test_immune_response_predictors()}}
+\item \href{#method-HIPCMatrixConn-run_irp}{\code{HMX$run_irp()}}
+\item \href{#method-HIPCMatrixConn-run_gsea}{\code{HMX$run_gsea()}}
+\item \href{#method-HIPCMatrixConn-clone}{\code{HMX$clone()}}
 }
 }
-\if{html}{
-\out{<details ><summary>Inherited methods</summary>}
-\itemize{
-\item \out{<span class="pkg-link" data-pkg="ImmuneSpaceR" data-topic="ImmuneSpaceConnection" data-id="addTreatment">}\href{../../ImmuneSpaceR/html/ImmuneSpaceConnection.html#method-addTreatment}{\code{ImmuneSpaceR::ImmuneSpaceConnection$addTreatment()}}\out{</span>}
-\item \out{<span class="pkg-link" data-pkg="ImmuneSpaceR" data-topic="ImmuneSpaceConnection" data-id="clearCache">}\href{../../ImmuneSpaceR/html/ImmuneSpaceConnection.html#method-clearCache}{\code{ImmuneSpaceR::ImmuneSpaceConnection$clearCache()}}\out{</span>}
-\item \out{<span class="pkg-link" data-pkg="ImmuneSpaceR" data-topic="ImmuneSpaceConnection" data-id="downloadGEFiles">}\href{../../ImmuneSpaceR/html/ImmuneSpaceConnection.html#method-downloadGEFiles}{\code{ImmuneSpaceR::ImmuneSpaceConnection$downloadGEFiles()}}\out{</span>}
-\item \out{<span class="pkg-link" data-pkg="ImmuneSpaceR" data-topic="ImmuneSpaceConnection" data-id="getDataset">}\href{../../ImmuneSpaceR/html/ImmuneSpaceConnection.html#method-getDataset}{\code{ImmuneSpaceR::ImmuneSpaceConnection$getDataset()}}\out{</span>}
-\item \out{<span class="pkg-link" data-pkg="ImmuneSpaceR" data-topic="ImmuneSpaceConnection" data-id="getGEAnalysis">}\href{../../ImmuneSpaceR/html/ImmuneSpaceConnection.html#method-getGEAnalysis}{\code{ImmuneSpaceR::ImmuneSpaceConnection$getGEAnalysis()}}\out{</span>}
-\item \out{<span class="pkg-link" data-pkg="ImmuneSpaceR" data-topic="ImmuneSpaceConnection" data-id="getGEFiles">}\href{../../ImmuneSpaceR/html/ImmuneSpaceConnection.html#method-getGEFiles}{\code{ImmuneSpaceR::ImmuneSpaceConnection$getGEFiles()}}\out{</span>}
-\item \out{<span class="pkg-link" data-pkg="ImmuneSpaceR" data-topic="ImmuneSpaceConnection" data-id="getGEInputs">}\href{../../ImmuneSpaceR/html/ImmuneSpaceConnection.html#method-getGEInputs}{\code{ImmuneSpaceR::ImmuneSpaceConnection$getGEInputs()}}\out{</span>}
-\item \out{<span class="pkg-link" data-pkg="ImmuneSpaceR" data-topic="ImmuneSpaceConnection" data-id="getGEMatrix">}\href{../../ImmuneSpaceR/html/ImmuneSpaceConnection.html#method-getGEMatrix}{\code{ImmuneSpaceR::ImmuneSpaceConnection$getGEMatrix()}}\out{</span>}
-\item \out{<span class="pkg-link" data-pkg="ImmuneSpaceR" data-topic="ImmuneSpaceConnection" data-id="getParticipantData">}\href{../../ImmuneSpaceR/html/ImmuneSpaceConnection.html#method-getParticipantData}{\code{ImmuneSpaceR::ImmuneSpaceConnection$getParticipantData()}}\out{</span>}
-\item \out{<span class="pkg-link" data-pkg="ImmuneSpaceR" data-topic="ImmuneSpaceConnection" data-id="getParticipantGEMatrix">}\href{../../ImmuneSpaceR/html/ImmuneSpaceConnection.html#method-getParticipantGEMatrix}{\code{ImmuneSpaceR::ImmuneSpaceConnection$getParticipantGEMatrix()}}\out{</span>}
-\item \out{<span class="pkg-link" data-pkg="ImmuneSpaceR" data-topic="ImmuneSpaceConnection" data-id="initialize">}\href{../../ImmuneSpaceR/html/ImmuneSpaceConnection.html#method-initialize}{\code{ImmuneSpaceR::ImmuneSpaceConnection$initialize()}}\out{</span>}
-\item \out{<span class="pkg-link" data-pkg="ImmuneSpaceR" data-topic="ImmuneSpaceConnection" data-id="listDatasets">}\href{../../ImmuneSpaceR/html/ImmuneSpaceConnection.html#method-listDatasets}{\code{ImmuneSpaceR::ImmuneSpaceConnection$listDatasets()}}\out{</span>}
-\item \out{<span class="pkg-link" data-pkg="ImmuneSpaceR" data-topic="ImmuneSpaceConnection" data-id="listGEAnalysis">}\href{../../ImmuneSpaceR/html/ImmuneSpaceConnection.html#method-listGEAnalysis}{\code{ImmuneSpaceR::ImmuneSpaceConnection$listGEAnalysis()}}\out{</span>}
-\item \out{<span class="pkg-link" data-pkg="ImmuneSpaceR" data-topic="ImmuneSpaceConnection" data-id="listGEMatrices">}\href{../../ImmuneSpaceR/html/ImmuneSpaceConnection.html#method-listGEMatrices}{\code{ImmuneSpaceR::ImmuneSpaceConnection$listGEMatrices()}}\out{</span>}
-\item \out{<span class="pkg-link" data-pkg="ImmuneSpaceR" data-topic="ImmuneSpaceConnection" data-id="listGatingSets">}\href{../../ImmuneSpaceR/html/ImmuneSpaceConnection.html#method-listGatingSets}{\code{ImmuneSpaceR::ImmuneSpaceConnection$listGatingSets()}}\out{</span>}
-\item \out{<span class="pkg-link" data-pkg="ImmuneSpaceR" data-topic="ImmuneSpaceConnection" data-id="listParticipantGEMatrices">}\href{../../ImmuneSpaceR/html/ImmuneSpaceConnection.html#method-listParticipantGEMatrices}{\code{ImmuneSpaceR::ImmuneSpaceConnection$listParticipantGEMatrices()}}\out{</span>}
-\item \out{<span class="pkg-link" data-pkg="ImmuneSpaceR" data-topic="ImmuneSpaceConnection" data-id="listParticipantGroups">}\href{../../ImmuneSpaceR/html/ImmuneSpaceConnection.html#method-listParticipantGroups}{\code{ImmuneSpaceR::ImmuneSpaceConnection$listParticipantGroups()}}\out{</span>}
-\item \out{<span class="pkg-link" data-pkg="ImmuneSpaceR" data-topic="ImmuneSpaceConnection" data-id="listWorkspaces">}\href{../../ImmuneSpaceR/html/ImmuneSpaceConnection.html#method-listWorkspaces}{\code{ImmuneSpaceR::ImmuneSpaceConnection$listWorkspaces()}}\out{</span>}
-\item \out{<span class="pkg-link" data-pkg="ImmuneSpaceR" data-topic="ImmuneSpaceConnection" data-id="loadGatingSet">}\href{../../ImmuneSpaceR/html/ImmuneSpaceConnection.html#method-loadGatingSet}{\code{ImmuneSpaceR::ImmuneSpaceConnection$loadGatingSet()}}\out{</span>}
-\item \out{<span class="pkg-link" data-pkg="ImmuneSpaceR" data-topic="ImmuneSpaceConnection" data-id="mapSampleNames">}\href{../../ImmuneSpaceR/html/ImmuneSpaceConnection.html#method-mapSampleNames}{\code{ImmuneSpaceR::ImmuneSpaceConnection$mapSampleNames()}}\out{</span>}
-\item \out{<span class="pkg-link" data-pkg="ImmuneSpaceR" data-topic="ImmuneSpaceConnection" data-id="plot">}\href{../../ImmuneSpaceR/html/ImmuneSpaceConnection.html#method-plot}{\code{ImmuneSpaceR::ImmuneSpaceConnection$plot()}}\out{</span>}
-\item \out{<span class="pkg-link" data-pkg="ImmuneSpaceR" data-topic="ImmuneSpaceConnection" data-id="print">}\href{../../ImmuneSpaceR/html/ImmuneSpaceConnection.html#method-print}{\code{ImmuneSpaceR::ImmuneSpaceConnection$print()}}\out{</span>}
-\item \out{<span class="pkg-link" data-pkg="ImmuneSpaceR" data-topic="ImmuneSpaceConnection" data-id="summarizeCyto">}\href{../../ImmuneSpaceR/html/ImmuneSpaceConnection.html#method-summarizeCyto}{\code{ImmuneSpaceR::ImmuneSpaceConnection$summarizeCyto()}}\out{</span>}
-\item \out{<span class="pkg-link" data-pkg="ImmuneSpaceR" data-topic="ImmuneSpaceConnection" data-id="summarizeGatingSet">}\href{../../ImmuneSpaceR/html/ImmuneSpaceConnection.html#method-summarizeGatingSet}{\code{ImmuneSpaceR::ImmuneSpaceConnection$summarizeGatingSet()}}\out{</span>}
-}
-\out{</details>}
-}
+\if{html}{\out{
+<details><summary>Inherited methods</summary>
+<ul>
+<li><span class="pkg-link" data-pkg="ImmuneSpaceR" data-topic="ImmuneSpaceConnection" data-id="addTreatment"><a href='../../ImmuneSpaceR/html/ImmuneSpaceConnection.html#method-ImmuneSpaceConnection-addTreatment'><code>ImmuneSpaceR::ImmuneSpaceConnection$addTreatment()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="ImmuneSpaceR" data-topic="ImmuneSpaceConnection" data-id="clearCache"><a href='../../ImmuneSpaceR/html/ImmuneSpaceConnection.html#method-ImmuneSpaceConnection-clearCache'><code>ImmuneSpaceR::ImmuneSpaceConnection$clearCache()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="ImmuneSpaceR" data-topic="ImmuneSpaceConnection" data-id="downloadGEFiles"><a href='../../ImmuneSpaceR/html/ImmuneSpaceConnection.html#method-ImmuneSpaceConnection-downloadGEFiles'><code>ImmuneSpaceR::ImmuneSpaceConnection$downloadGEFiles()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="ImmuneSpaceR" data-topic="ImmuneSpaceConnection" data-id="getDataset"><a href='../../ImmuneSpaceR/html/ImmuneSpaceConnection.html#method-ImmuneSpaceConnection-getDataset'><code>ImmuneSpaceR::ImmuneSpaceConnection$getDataset()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="ImmuneSpaceR" data-topic="ImmuneSpaceConnection" data-id="getGEAnalysis"><a href='../../ImmuneSpaceR/html/ImmuneSpaceConnection.html#method-ImmuneSpaceConnection-getGEAnalysis'><code>ImmuneSpaceR::ImmuneSpaceConnection$getGEAnalysis()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="ImmuneSpaceR" data-topic="ImmuneSpaceConnection" data-id="getGEFiles"><a href='../../ImmuneSpaceR/html/ImmuneSpaceConnection.html#method-ImmuneSpaceConnection-getGEFiles'><code>ImmuneSpaceR::ImmuneSpaceConnection$getGEFiles()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="ImmuneSpaceR" data-topic="ImmuneSpaceConnection" data-id="getGEInputs"><a href='../../ImmuneSpaceR/html/ImmuneSpaceConnection.html#method-ImmuneSpaceConnection-getGEInputs'><code>ImmuneSpaceR::ImmuneSpaceConnection$getGEInputs()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="ImmuneSpaceR" data-topic="ImmuneSpaceConnection" data-id="getGEMatrix"><a href='../../ImmuneSpaceR/html/ImmuneSpaceConnection.html#method-ImmuneSpaceConnection-getGEMatrix'><code>ImmuneSpaceR::ImmuneSpaceConnection$getGEMatrix()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="ImmuneSpaceR" data-topic="ImmuneSpaceConnection" data-id="getParticipantData"><a href='../../ImmuneSpaceR/html/ImmuneSpaceConnection.html#method-ImmuneSpaceConnection-getParticipantData'><code>ImmuneSpaceR::ImmuneSpaceConnection$getParticipantData()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="ImmuneSpaceR" data-topic="ImmuneSpaceConnection" data-id="getParticipantGEMatrix"><a href='../../ImmuneSpaceR/html/ImmuneSpaceConnection.html#method-ImmuneSpaceConnection-getParticipantGEMatrix'><code>ImmuneSpaceR::ImmuneSpaceConnection$getParticipantGEMatrix()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="ImmuneSpaceR" data-topic="ImmuneSpaceConnection" data-id="initialize"><a href='../../ImmuneSpaceR/html/ImmuneSpaceConnection.html#method-ImmuneSpaceConnection-initialize'><code>ImmuneSpaceR::ImmuneSpaceConnection$initialize()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="ImmuneSpaceR" data-topic="ImmuneSpaceConnection" data-id="listDatasets"><a href='../../ImmuneSpaceR/html/ImmuneSpaceConnection.html#method-ImmuneSpaceConnection-listDatasets'><code>ImmuneSpaceR::ImmuneSpaceConnection$listDatasets()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="ImmuneSpaceR" data-topic="ImmuneSpaceConnection" data-id="listGEAnalysis"><a href='../../ImmuneSpaceR/html/ImmuneSpaceConnection.html#method-ImmuneSpaceConnection-listGEAnalysis'><code>ImmuneSpaceR::ImmuneSpaceConnection$listGEAnalysis()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="ImmuneSpaceR" data-topic="ImmuneSpaceConnection" data-id="listGEMatrices"><a href='../../ImmuneSpaceR/html/ImmuneSpaceConnection.html#method-ImmuneSpaceConnection-listGEMatrices'><code>ImmuneSpaceR::ImmuneSpaceConnection$listGEMatrices()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="ImmuneSpaceR" data-topic="ImmuneSpaceConnection" data-id="listGatingSets"><a href='../../ImmuneSpaceR/html/ImmuneSpaceConnection.html#method-ImmuneSpaceConnection-listGatingSets'><code>ImmuneSpaceR::ImmuneSpaceConnection$listGatingSets()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="ImmuneSpaceR" data-topic="ImmuneSpaceConnection" data-id="listParticipantGEMatrices"><a href='../../ImmuneSpaceR/html/ImmuneSpaceConnection.html#method-ImmuneSpaceConnection-listParticipantGEMatrices'><code>ImmuneSpaceR::ImmuneSpaceConnection$listParticipantGEMatrices()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="ImmuneSpaceR" data-topic="ImmuneSpaceConnection" data-id="listParticipantGroups"><a href='../../ImmuneSpaceR/html/ImmuneSpaceConnection.html#method-ImmuneSpaceConnection-listParticipantGroups'><code>ImmuneSpaceR::ImmuneSpaceConnection$listParticipantGroups()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="ImmuneSpaceR" data-topic="ImmuneSpaceConnection" data-id="listWorkspaces"><a href='../../ImmuneSpaceR/html/ImmuneSpaceConnection.html#method-ImmuneSpaceConnection-listWorkspaces'><code>ImmuneSpaceR::ImmuneSpaceConnection$listWorkspaces()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="ImmuneSpaceR" data-topic="ImmuneSpaceConnection" data-id="loadGatingSet"><a href='../../ImmuneSpaceR/html/ImmuneSpaceConnection.html#method-ImmuneSpaceConnection-loadGatingSet'><code>ImmuneSpaceR::ImmuneSpaceConnection$loadGatingSet()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="ImmuneSpaceR" data-topic="ImmuneSpaceConnection" data-id="mapSampleNames"><a href='../../ImmuneSpaceR/html/ImmuneSpaceConnection.html#method-ImmuneSpaceConnection-mapSampleNames'><code>ImmuneSpaceR::ImmuneSpaceConnection$mapSampleNames()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="ImmuneSpaceR" data-topic="ImmuneSpaceConnection" data-id="plot"><a href='../../ImmuneSpaceR/html/ImmuneSpaceConnection.html#method-ImmuneSpaceConnection-plot'><code>ImmuneSpaceR::ImmuneSpaceConnection$plot()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="ImmuneSpaceR" data-topic="ImmuneSpaceConnection" data-id="print"><a href='../../ImmuneSpaceR/html/ImmuneSpaceConnection.html#method-ImmuneSpaceConnection-print'><code>ImmuneSpaceR::ImmuneSpaceConnection$print()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="ImmuneSpaceR" data-topic="ImmuneSpaceConnection" data-id="summarizeCyto"><a href='../../ImmuneSpaceR/html/ImmuneSpaceConnection.html#method-ImmuneSpaceConnection-summarizeCyto'><code>ImmuneSpaceR::ImmuneSpaceConnection$summarizeCyto()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="ImmuneSpaceR" data-topic="ImmuneSpaceConnection" data-id="summarizeGatingSet"><a href='../../ImmuneSpaceR/html/ImmuneSpaceConnection.html#method-ImmuneSpaceConnection-summarizeGatingSet'><code>ImmuneSpaceR::ImmuneSpaceConnection$summarizeGatingSet()</code></a></span></li>
+</ul>
+</details>
+}}
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-run_de_analysis"></a>}}
-\if{latex}{\out{\hypertarget{method-run_de_analysis}{}}}
+\if{html}{\out{<a id="method-HIPCMatrixConn-run_de_analysis"></a>}}
+\if{latex}{\out{\hypertarget{method-HIPCMatrixConn-run_de_analysis}{}}}
 \subsection{Method \code{run_de_analysis()}}{
 Run Differential Expression analysis on matrices in a study
 \subsection{Usage}{
@@ -95,8 +95,8 @@ Run Differential Expression analysis on matrices in a study
 }
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-upload_de_analysis_results"></a>}}
-\if{latex}{\out{\hypertarget{method-upload_de_analysis_results}{}}}
+\if{html}{\out{<a id="method-HIPCMatrixConn-upload_de_analysis_results"></a>}}
+\if{latex}{\out{\hypertarget{method-HIPCMatrixConn-upload_de_analysis_results}{}}}
 \subsection{Method \code{upload_de_analysis_results()}}{
 Upload differential gene expression analysis results to
 server. This updates the gene_expression_analysis and the
@@ -107,8 +107,8 @@ gene_expression_analysis_results tables with updated results.
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-get_de_compatible_runs"></a>}}
-\if{latex}{\out{\hypertarget{method-get_de_compatible_runs}{}}}
+\if{html}{\out{<a id="method-HIPCMatrixConn-get_de_compatible_runs"></a>}}
+\if{latex}{\out{\hypertarget{method-HIPCMatrixConn-get_de_compatible_runs}{}}}
 \subsection{Method \code{get_de_compatible_runs()}}{
 Find gene expression matrices and timepoints which are compatible
 with differential expression analysis
@@ -122,8 +122,8 @@ sufficient data to run differential expression analysis
 }
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-updateFAS"></a>}}
-\if{latex}{\out{\hypertarget{method-updateFAS}{}}}
+\if{html}{\out{<a id="method-HIPCMatrixConn-updateFAS"></a>}}
+\if{latex}{\out{\hypertarget{method-HIPCMatrixConn-updateFAS}{}}}
 \subsection{Method \code{updateFAS()}}{
 Update Microarray.FeatureAnnotation table
 \subsection{Usage}{
@@ -151,8 +151,8 @@ populating the probe level gene symbols with the arg: \code{annotation = "defaul
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-updateEMs"></a>}}
-\if{latex}{\out{\hypertarget{method-updateEMs}{}}}
+\if{html}{\out{<a id="method-HIPCMatrixConn-updateEMs"></a>}}
+\if{latex}{\out{\hypertarget{method-HIPCMatrixConn-updateEMs}{}}}
 \subsection{Method \code{updateEMs()}}{
 Update Expression Matrices with new annotation
 \subsection{Usage}{
@@ -167,8 +167,8 @@ expression values with the most current prob to gene symbol mapping.
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-get_immune_response"></a>}}
-\if{latex}{\out{\hypertarget{method-get_immune_response}{}}}
+\if{html}{\out{<a id="method-HIPCMatrixConn-get_immune_response"></a>}}
+\if{latex}{\out{\hypertarget{method-HIPCMatrixConn-get_immune_response}{}}}
 \subsection{Method \code{get_immune_response()}}{
 Get immune response.
 \subsection{Usage}{
@@ -205,8 +205,8 @@ particiapnt.
 }
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-get_de_genes"></a>}}
-\if{latex}{\out{\hypertarget{method-get_de_genes}{}}}
+\if{html}{\out{<a id="method-HIPCMatrixConn-get_de_genes"></a>}}
+\if{latex}{\out{\hypertarget{method-HIPCMatrixConn-get_de_genes}{}}}
 \subsection{Method \code{get_de_genes()}}{
 Get genes differentially expressed over time
 \subsection{Usage}{
@@ -237,8 +237,8 @@ are differentially expressed}
 }
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-train_immune_response_predictors"></a>}}
-\if{latex}{\out{\hypertarget{method-train_immune_response_predictors}{}}}
+\if{html}{\out{<a id="method-HIPCMatrixConn-train_immune_response_predictors"></a>}}
+\if{latex}{\out{\hypertarget{method-HIPCMatrixConn-train_immune_response_predictors}{}}}
 \subsection{Method \code{train_immune_response_predictors()}}{
 Get immune response predictors
 \subsection{Usage}{
@@ -290,8 +290,8 @@ access the ImmuneResponsePredictor object with \code{HMX$get_irp()}
 }
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-get_irp"></a>}}
-\if{latex}{\out{\hypertarget{method-get_irp}{}}}
+\if{html}{\out{<a id="method-HIPCMatrixConn-get_irp"></a>}}
+\if{latex}{\out{\hypertarget{method-HIPCMatrixConn-get_irp}{}}}
 \subsection{Method \code{get_irp()}}{
 Get ImmuneResponsePredictor
 \subsection{Usage}{
@@ -307,8 +307,8 @@ Get ImmuneResponsePredictor
 }
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-predict_response"></a>}}
-\if{latex}{\out{\hypertarget{method-predict_response}{}}}
+\if{html}{\out{<a id="method-HIPCMatrixConn-predict_response"></a>}}
+\if{latex}{\out{\hypertarget{method-HIPCMatrixConn-predict_response}{}}}
 \subsection{Method \code{predict_response()}}{
 Test immune response predictor model on testing cohort data.
 \subsection{Usage}{
@@ -326,8 +326,8 @@ Test immune response predictor model on testing cohort data.
 }
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-test_immune_response_predictors"></a>}}
-\if{latex}{\out{\hypertarget{method-test_immune_response_predictors}{}}}
+\if{html}{\out{<a id="method-HIPCMatrixConn-test_immune_response_predictors"></a>}}
+\if{latex}{\out{\hypertarget{method-HIPCMatrixConn-test_immune_response_predictors}{}}}
 \subsection{Method \code{test_immune_response_predictors()}}{
 get a table of observed vs predicted
 values given a fitted model.
@@ -348,8 +348,8 @@ values given a fitted model.
 }
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-run_irp"></a>}}
-\if{latex}{\out{\hypertarget{method-run_irp}{}}}
+\if{html}{\out{<a id="method-HIPCMatrixConn-run_irp"></a>}}
+\if{latex}{\out{\hypertarget{method-HIPCMatrixConn-run_irp}{}}}
 \subsection{Method \code{run_irp()}}{
 Find predictors of immune response from gene expression.
 \subsection{Usage}{
@@ -400,8 +400,8 @@ returned. If TRUE, returns TRUE if max log fold change is greater than
 }
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-run_gsea"></a>}}
-\if{latex}{\out{\hypertarget{method-run_gsea}{}}}
+\if{html}{\out{<a id="method-HIPCMatrixConn-run_gsea"></a>}}
+\if{latex}{\out{\hypertarget{method-HIPCMatrixConn-run_gsea}{}}}
 \subsection{Method \code{run_gsea()}}{
 Run a gene set enrichment analysis on a gene expression matrix,
 comparing all timepoints to baseline. The CAMERA method from the limma
@@ -439,8 +439,8 @@ argument to test gene sets.}
 }
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-clone"></a>}}
-\if{latex}{\out{\hypertarget{method-clone}{}}}
+\if{html}{\out{<a id="method-HIPCMatrixConn-clone"></a>}}
+\if{latex}{\out{\hypertarget{method-HIPCMatrixConn-clone}{}}}
 \subsection{Method \code{clone()}}{
 The objects of this class are cloneable with this method.
 \subsection{Usage}{
