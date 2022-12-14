@@ -8,7 +8,7 @@ get_meta_data(
   study,
   gef = NULL,
   fas_id = NULL,
-  baseUrl = "https://www.immunespace.org"
+  baseUrl = "https://datatools.immunespace.org"
 )
 }
 \arguments{

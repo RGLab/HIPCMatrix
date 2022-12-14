@@ -1,17 +1,20 @@
 Package: HIPCMatrix
 Title: Microarray and RNA-seq Processing for ImmuneSpace
 Version: 1.1.6
-Authors@R: 
-    person(given = "Helen",
-           family = "Miller",
-           role = c("aut", "cre"),
-           email = "hmiller@fredhutch.org")
+Authors@R: c(person("Renan", "Sauteraud", role = "aut"),
+             person("Evan", "Henrich", role = "aut"),
+             person("Ju Yeong", "Kim", role = "aut"),
+             person("Lauren", "Wolfe", role = "aut"),
+             person("Helen", "Miller", role = "aut"),
+             person("ImmuneSpace Package Maintainer",
+                    email = "immunespace@gmail.com",
+                    role = c("cre", "cph")))
 Description: This package provides utilities for processing and analyzing bulk gene expression data for ImmuneSpace.
 License: GPL-2
 Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.1.2
+RoxygenNote: 7.2.2
 biocViews: DataImport, Preprocessing, Normalization
 URL: https://github.com/RGLab/HIPCMatrix
 Imports: 
